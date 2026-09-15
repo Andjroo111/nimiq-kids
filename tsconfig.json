@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleDetection": "force",
+    "moduleResolution": "bundler",
+    "types": ["bun"],
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "strict": true
+  },
+  // tools/ holds standalone dev harnesses that are never bundled into the app and may import
+  // from outside the repo (e.g. a Playwright install in a sibling project). Without this they
+  // land in the tsc program and CI fails on paths that only exist on the dev machine.
+  // node_modules must stay listed: naming `exclude` at all replaces the built-in default.
+  "exclude": ["node_modules", "tools"]
+}

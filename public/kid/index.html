@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+  <title>NIMIQ.kids</title>
+  <meta name="theme-color" content="#1F2348" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <!-- The vendored egg timer's version, substituted per request by src/serve-cache.ts
+       off the vendored files' own mtimes. js/eggtimer.js stamps the iframe src with it,
+       so the timer is cacheable AND the copy on screen can say which one it is. -->
+  <meta name="timer-build" content="__TIMER_BUILD__" />
+  <link rel="apple-touch-icon" href="/icon.svg" />
+  <!-- Legacy Nimiq app stylesheet (html{font-size:8px}, --nimiq-* vars, nq-button…)
+       + the vendored nq registry component bundle. Kid CSS loads after and is all-px. -->
+  <link rel="stylesheet" href="/vendor/nq/nimiq/legacy/nimiq-style.min.css" />
+  <link rel="stylesheet" href="/vendor/nq/nq-bundle.css" />
+  <!-- The Duolingo mechanics on the Nimiq map (nq registry, category game), vendored by
+       `nq add duo-path --html --out public/kid/vendor/duo`. Dependency order: the button
+       declares the --duo-* contract, the node builds on it, the path composes the nodes.
+       They read --nimiq-* from the legacy sheet above and map nothing. -->
+  <link rel="stylesheet" href="/kid/vendor/duo/duo-button/duo-button.css" />
+  <link rel="stylesheet" href="/kid/vendor/duo/duo-node/duo-node.css" />
+  <link rel="stylesheet" href="/kid/vendor/duo/duo-path/duo-path.css" />
+  <!-- Timer-style rigs (Treasure Box 'Timers'): tiny sheets, loaded up front; the JS is lazy. -->
+  <link rel="stylesheet" href="/kid/css/sticker-maker.css" />
+  <link rel="stylesheet" href="/kid/css/polaroid.css" />
+  <link rel="stylesheet" href="/kid/css/eggtimer.css" />
+  <link rel="stylesheet" href="/kid/kid.css" />
+<link rel="stylesheet" href="/kid/css/icons.css" />
+  <!-- The fixed top chrome (back-button line + language corner) and the shared
+       --kid-chrome-* / --kid-corner-* measurements, split out of wallet.css at
+       the 800-line guard. BEFORE wallet.css: phone.css and no-address.css still
+       override both sheets exactly as they did. -->
+  <link rel="stylesheet" href="/kid/css/chrome.css" />
+  <link rel="stylesheet" href="/kid/css/wallet.css" />
+  <!-- The Money screen for a kid with no address yet. AFTER wallet.css: it overrides the
+       account-header component's address dressing at equal specificity. -->
+  <link rel="stylesheet" href="/kid/css/no-address.css" />
+  <!-- Phone-first layer (<=767px): the real wallet is mobile-first at 390px. -->
+  <link rel="stylesheet" href="/kid/css/phone.css" />
+  <!-- V3 sticker chart: chart home, sticker kit, Treasure Box, money screen (390-first). -->
+  <link rel="stylesheet" href="/kid/css/chart.css" />
+  <!-- The calendar card (calendar.js), split out of chart.css at the 800-line guard.
+       AFTER chart.css: the sticker a date wears is still sized there. -->
+  <link rel="stylesheet" href="/kid/css/calendar.css" />
+  <!-- The Treasure Box screen (box.js), split out of chart.css at the 800-line guard. -->
+  <link rel="stylesheet" href="/kid/css/box.css" />
+  <!-- "Is it done?" — the sheet the sticker ring opens (done.js). -->
+  <link rel="stylesheet" href="/kid/css/done.css" />
+  <!-- A goal as the climb path (goal-path.js): the screen around the vendored duo-path. -->
+  <link rel="stylesheet" href="/kid/css/goal-path.css" />
+  <!-- The connect screen (main.js showPairing), on the brand page composition. -->
+  <link rel="stylesheet" href="/kid/css/connect.css" />
+  <!-- The savings thermometer (#355). Own file: wallet.css is at the 800-line guard. -->
+  <link rel="stylesheet" href="/kid/css/thermo.css" />
+  <!-- The games screen's rows (games.js). Own file because kid.css, which still holds the
+       screen itself, is a shared sheet against the 800-line guard.
+       ⚠️ The app SHELF that used to be linked here is gone (#398): games is a dock
+       destination now, so the board no longer draws app icons of its own. -->
+  <link rel="stylesheet" href="/kid/css/games.css" />
+  <!-- CHROME THAT ANSWERS THE SCENE: gray cards + navy labels on light art, white on dark.
+       Split out of chart.css at the 800-line guard. After the sheets whose rules it
+       overrides, before landscape.css, which stays last. -->
+  <link rel="stylesheet" href="/kid/css/scene.css" />
+  <!-- "NO INTERNET, THIS IS YOUR BOARD FROM 4:15". Own sheet: chart.css is at the 800-line
+       guard, and this is the only card on the board that is about the tablet, not the jobs. -->
+  <link rel="stylesheet" href="/kid/css/offline.css" />
+  <!-- THE ONE-TIME POINTER AT THE NAME PILL (#407). Its own sheet because it is parented to
+       `body` rather than to any screen, and because chart.css is at the 800-line guard. -->
+  <link rel="stylesheet" href="/kid/css/coach.css" />
+  <!-- THE TABLET TURNED SIDEWAYS. Every other sheet here is written for 800x1280 portrait;
+       this one re-lays the chart into two columns when the screen is short and wide. LAST,
+       so it can override chart.css, calendar.css and chrome.css without any of them
+       knowing it exists. -->
+  <link rel="stylesheet" href="/kid/css/landscape.css" />
+</head>
+<body>
+  <!-- The nimiq.kids kid tablet app, v3: a chart for the child, not a timer and not
+       a bank. Home = the sticker chore chart (week grid + today's sticker slots);
+       one screen at a time, rendered by /kid/js/main.js + friends into #kid-app. -->
+  <main id="kid-app" class="screen"></main>
+  <!-- THE BATTERY, in the corner the language pill left empty. The kiosk hides the status
+       bar, so this is the only battery a kid (or a parent walking past) can see. Fixed,
+       outside #kid-app so it rides over every screen; js/battery.js fills it from the
+       Battery Status API and removes it where there is none. -->
+  <div class="k-batt" id="kid-batt" hidden></div>
+
+  <!-- NO LANGUAGE SWITCHER IN THE KID AREA. Andjroo, 2026-08-27: "I wanna remove the
+       language selection from the kids area." The shell still does the i18n — it just
+       has nothing to mount here, so it never renders the pill. A grown-up sets the
+       language in the parent app, which carries the same fleet corner control; a kid
+       tapping a flag on a shared tablet could put the app into a language nobody in
+       the house reads, with no obvious way back. -->
+
+  <!-- Bottom sheet (studio, amount pads, free-timer picker) -->
+  <div class="kid-scrim" id="kid-scrim"><div class="kid-sheet" id="kid-sheet"></div></div>
+
+  <!-- Full-screen celebration overlay (NIM pill flies into the balance) -->
+  <div class="kid-overlay" id="kid-overlay"></div>
+
+  <canvas id="confetti"></canvas>
+  <div class="kid-toast" id="kid-toast"></div>
+
+  <script src="/js/vendor/qrcode.js"></script>
+  <script src="/vendor/nq/qr-creator.min.js"></script>
+  <!-- shared shell: i18n + the #lang flag-hex switcher (no #wallet-slot here) -->
+  <script type="module" src="/dist/app-shell.js?v=2"></script>
+  <!-- THE SERVICE WORKER, armed from the kid entry point because the kiosk lands on /kid/
+       directly and never sees /portal/. Ordinary script, not a module import of main.js's,
+       so a broken module graph cannot be what stops the tablet ever caching its own shell. -->
+  <script type="module" src="/kid/js/register-sw.js"></script>
+  <script type="module" src="/kid/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+/* nimiq.kids parent — THE SHARE SLIDER on an approval card (#352, epic #349).
+   How much of what a job promised this approval actually pays.
+
+   Its own file because parent.css is 758 lines against a CI guard that fails at 800, the
+   same seam board.css took.
+
+   THE SHAPE IS ANDJROO'S OWN, from the nimiq.blog /predict/ sliders, which are themselves a
+   port of the wallet's swap-balance-bar: the handle splits the WHOLE bar in two, solid on
+   one side and hatched on the other, with no leftover track. That shape is why it was the
+   right pick here rather than a fresh design. On the blog the two sides are "below my guess"
+   and "above it". Here they are literally the money:
+
+       SOLID NAVY  = what the kid gets paid
+       HATCHED     = what the job promised and is not being paid
+
+   The hatch already reads as "outlined, not filled" — the same lighter weight upstream uses
+   for the side you are giving up — so the meaning arrives before the label does.
+
+   The one thing this adds over the blog is the QUARTER GUIDES. #352 asks for quarter snaps
+   because "three quarters of it" is how a grown-up actually thinks, and a parent doing this
+   one-handed is not landing on 63%. The ticks are the guide; the snap is in the JS. */
+
+/* The wallet's handle glyph: a white disc carrying two small arrows. Verbatim from
+   /predict/, which took it from the wallet. Never redraw it. */
+.sh-wrap { --sh-handle: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 8" fill="%231F2348"><path d="M3.5 0 0 4l3.5 4V5.2h5V8L12 4 8.5 0v2.8h-5z"/></svg>');
+  margin-top: 2px; }
+
+/* Live readout: what this approval pays RIGHT NOW, in the card's own type. It replaces the
+   static amount in the header while the slider is off full, so there is never a card showing
+   two different numbers. */
+.sh-read { display: flex; align-items: baseline; gap: 8px; justify-content: center; }
+.sh-read .amount { font-size: 19px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--navy); }
+.sh-read .fiat-amount { font-size: 13px; font-weight: 600; color: var(--ink-50); font-variant-numeric: tabular-nums; }
+/* "of 24 003 NIM" — the promise, so a reduced number is legible as a fraction of something
+   rather than as the price. Only rendered below full. */
+.sh-of { font-size: 12px; font-weight: 600; color: var(--ink-50); text-align: center; margin-top: 2px; }
+
+.sh-track { position: relative; height: 44px; margin-top: 8px; }
+/* Two segments meeting in a gap at the handle, filling the whole bar. No leftover track:
+   upstream never shows one, and an empty tail would measure the share against the card's
+   width rather than against the two halves of the decision. */
+.sh-seg { position: absolute; top: 50%; height: 22px; margin-top: -11px; pointer-events: none; }
+.sh-paid { left: 0; background: var(--navy); border-radius: 500px 3px 3px 500px; }
+/* Held back: mostly white with thin light-blue stripes and a ring of the same colour, exactly
+   as the wallet hatches the side you are trading away. It reads lighter than the solid side,
+   which is the whole point. */
+.sh-held {
+  right: 0; border-radius: 3px 500px 500px 3px;
+  background: repeating-linear-gradient(-58deg, #0582CA 0 2px, #fff 2px 10px);
+  border: 2px solid #0582CA; box-sizing: border-box;
+}
+/* The light-blue hairline the handle rides on. Runs past the bar, as upstream does. */
+.sh-sep { position: absolute; top: 2px; bottom: 2px; width: 2px; margin-left: -1px; background: #0582CA; border-radius: 2px; pointer-events: none; }
+
+/* A REAL range input on top, transparent, so keyboard and screen readers get the native
+   control and everything painted above is only ever a picture of its value. */
+/* WIDENED BY A THUMB, on purpose. A range input keeps its disc inside its own box by insetting
+   the travel half a thumb at each end, so a thumb at "75%" of a 326px input actually sits at
+   71% of it. Compensating for that in the paint only moved the error around: the bar has to be
+   a true picture of the share, and the disc has to sit on the bar's edge, and both cannot hold
+   while the travel is shorter than the track. Overhanging the input half a thumb each side
+   makes the thumb's CENTRE travel exactly 0..100% of the track, so every number below is the
+   plain fraction. The overhang is transparent and lands inside the card's own 16px padding. */
+.sh-input {
+  -webkit-appearance: none; appearance: none;
+  position: absolute; top: 0; bottom: 0;
+  left: -14px; width: calc(100% + 28px);
+  height: 44px; margin: 0; padding: 0;
+  background: transparent; cursor: pointer;
+}
+.sh-input::-webkit-slider-runnable-track { height: 44px; background: transparent; }
+.sh-input::-moz-range-track { height: 44px; background: transparent; }
+.sh-input::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 28px; height: 28px; margin-top: 8px;
+  border: 0; border-radius: 500px; background: #fff var(--sh-handle) center/12px 8px no-repeat;
+  box-shadow: 0 2px 6px rgba(31, 35, 72, 0.3);
+}
+.sh-input::-moz-range-thumb {
+  width: 28px; height: 28px; border: 0; border-radius: 500px;
+  background: #fff var(--sh-handle) center/12px 8px no-repeat;
+  box-shadow: 0 2px 6px rgba(31, 35, 72, 0.3);
+}
+.sh-input:focus { outline: 0; }
+/* Rule 21 / the a11y gap: never outline:0 without restoring a visible focus state. */
+.sh-input:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px rgba(5, 130, 202, 0.35), 0 2px 6px rgba(31, 35, 72, 0.3); }
+.sh-input:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px rgba(5, 130, 202, 0.35), 0 2px 6px rgba(31, 35, 72, 0.3); }
+
+/* THE QUARTER GUIDES. Under the bar, not on it: on the bar a tick would have to read against
+   solid navy on one side and white hatching on the other. Each sits at its own fraction of
+   the thumb's real travel, so a tick lines up with the disc when the slider snaps to it —
+   positioned in calc() against 100% rather than measured, so a resize needs no listener. */
+.sh-ticks { position: relative; height: 24px; margin-top: 7px; }
+.sh-tick { position: absolute; top: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; }
+.sh-tick i { width: 2px; height: 7px; background: var(--navy); opacity: 0.25; border-radius: 2px; }
+.sh-tick b { font-size: 12px; font-weight: 700; color: #64687F; margin-top: 3px; font-variant-numeric: tabular-nums; }
+/* The one the slider is sitting on. Not a colour change: at 12px a colour shift on a 2px
+   tick is invisible, and the label is the part a parent reads. */
+.sh-tick.on i { opacity: 0.9; }
+.sh-tick.on b { color: var(--navy); }
+
+/* Below full, the note is required (the server refuses a partial approve without one), so it
+   appears with the reduced share rather than living on the card permanently. */
+.sh-note { margin-top: 10px; }
+.sh-note .nq-input { font-size: 14px; }
+
+/* "Pay 12 001 NIM" is longer than "Approve" and wrapped to two lines inside the pill on a
+   390px phone, which reads as a broken button rather than a long label. The approve action
+   gets the extra width it needs and the ghost keeps what is left: they were flex:1 each,
+   which split the row evenly regardless of what the labels say. Nowrap so the fix is
+   provable rather than approximate. */
+.ap-card .sh-wrap ~ .ap-actions .pill-btn { white-space: nowrap; }
+.ap-card .sh-wrap ~ .ap-actions .pill-btn.green { flex: 1.6; }

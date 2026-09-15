@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Nimiq LabelInput</title>
+<link rel="stylesheet" href="../../../../assets/css/legacy/nimiq-style.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+    body { font-family: 'Mulish', sans-serif; margin: 0; padding: 32px; }
+
+    /* label-input */
+    .label-input {
+        position: relative;
+        overflow: hidden; /* limit width-finder width to parent available width */
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .label-input .width-finder {
+        position: absolute;
+        color: transparent;
+        pointer-events: none;
+        user-select: none;
+        white-space: pre;
+        padding: 0 2.25rem; /* nq-input padding + border-width */
+    }
+
+    .label-input input {
+        padding-right: 0;
+        max-width: 100%;
+        transition:
+            color .2s ease, box-shadow .2s ease,
+            width 50ms ease-out;
+    }
+
+    .label-input input:disabled {
+        pointer-events: none; /* Prevent hover effects */
+    }
+</style>
+</head>
+<body>
+    <!-- Label input with value "Savings Account", unfocused. The hidden .width-finder spans
+         mirror the placeholder and the current value so the script below can fit the input's
+         width to its content. -->
+    <form class="label-input">
+        <span class="width-finder width-placeholder">Name your address</span>
+        <span class="width-finder width-value">Savings Account</span>
+        <input type="text" class="nq-input"
+            placeholder="Name your address"
+            style="width: 50px;"
+            value="Savings Account">
+    </form>
+
+    <script>
+        // Fits the input's width to its content (value if present, placeholder otherwise),
+        // plus a third of the font-size as padding against flicker while typing.
+        (() => {
+            const form = document.querySelector('.label-input');
+            const widthPlaceholder = form.querySelector('.width-placeholder');
+            const widthValue = form.querySelector('.width-value');
+            const input = form.querySelector('input');
+
+            const updateWidth = () => {
+                widthValue.textContent = input.value;
+                const placeholderWidth = widthPlaceholder.offsetWidth;
+                const valueWidth = widthValue.offsetWidth;
+                const fontSize = parseFloat(window.getComputedStyle(input, null).getPropertyValue('font-size'));
+                input.style.width = ((input.value.length ? valueWidth : placeholderWidth) + fontSize / 3) + 'px';
+            };
+
+            input.addEventListener('input', updateWidth);
+            (async () => {
+                await new Promise((r) => window.addEventListener('load', r, { once: true }));
+                await document.fonts.ready;
+                updateWidth();
+            })();
+        })();
+    </script>
+</body>
+</html>

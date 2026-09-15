@@ -1,0 +1,32 @@
+<!-- Nimiq label-input: a self-sizing nq-input. The hidden .width-finder spans mirror the
+     placeholder and the current value; fit the input's width with the script below. -->
+<form class="label-input">
+    <span class="width-finder width-placeholder">Name your address</span>
+    <span class="width-finder width-value">Savings Account</span>
+    <input type="text" class="nq-input"
+        placeholder="Name your address"
+        style="width: 50px;"
+        value="Savings Account">
+</form>
+
+<script>
+    // Fits the input's width to its content (value if present, placeholder otherwise),
+    // plus a third of the font-size as padding against flicker while typing.
+    (() => {
+        const form = document.querySelector('.label-input');
+        const widthPlaceholder = form.querySelector('.width-placeholder');
+        const widthValue = form.querySelector('.width-value');
+        const input = form.querySelector('input');
+
+        const updateWidth = () => {
+            widthValue.textContent = input.value;
+            const placeholderWidth = widthPlaceholder.offsetWidth;
+            const valueWidth = widthValue.offsetWidth;
+            const fontSize = parseFloat(window.getComputedStyle(input, null).getPropertyValue('font-size'));
+            input.style.width = ((input.value.length ? valueWidth : placeholderWidth) + fontSize / 3) + 'px';
+        };
+
+        input.addEventListener('input', updateWidth);
+        document.fonts.ready.then(updateWidth);
+    })();
+</script>

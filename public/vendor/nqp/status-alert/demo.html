@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Status Alert — demo</title>
+<link rel="stylesheet" href="../../../../assets/css/legacy/nimiq-style.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="status-alert.css">
+<style>
+    body { font-family: 'Mulish', sans-serif; }
+
+    /* Page scaffolding only — matches truth.html layout. The snippet itself
+       pins its own font-size, so the framework's 8px rem base is harmless. */
+    body {
+      margin: 0;
+      padding: 32px 24px;
+    }
+    .container {
+      max-width: 520px;
+      margin: 0 auto;
+    }
+</style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Sample state: identical to truth — note, tip, warning, caution -->
+
+    <div class="nq-status-alert note">
+      <p class="alert-title">Note</p>
+      <p>Your wallet is syncing with the network.</p>
+    </div>
+
+    <div class="nq-status-alert tip">
+      <p class="alert-title">Tip</p>
+      <p>Payment confirmed! 450 NIM sent successfully.</p>
+    </div>
+
+    <div class="nq-status-alert warning">
+      <p class="alert-title">Warning</p>
+      <p>Network congestion detected. Transactions may take longer than usual.</p>
+    </div>
+
+    <div class="nq-status-alert caution">
+      <p class="alert-title">Caution</p>
+      <p>Transaction failed. Insufficient balance for this transfer.</p>
+    </div>
+
+  </div>
+
+</body>
+</html>

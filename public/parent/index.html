@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+  <title>NIMIQ.kids</title>
+  <meta name="theme-color" content="#1F2348" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="/parent/manifest.json" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/icon.svg" />
+  <!-- Nimiq legacy app surface (8px root; custom CSS below is px-only) + pixel-verified
+       registry component CSS vendored in /vendor/nqp (nq add: account-header,
+       transaction-list, address-display, identicon, amount, toast-notification, qr-code) -->
+  <link rel="stylesheet" href="/vendor/nqp/nimiq/legacy/nimiq-style.min.css" />
+  <link rel="stylesheet" href="/vendor/nqp/account-header/account-header.css" />
+  <link rel="stylesheet" href="/vendor/nqp/transaction-list/transaction-list.css" />
+  <link rel="stylesheet" href="/vendor/nqp/address-display/address-display.css" />
+  <link rel="stylesheet" href="/vendor/nqp/identicon/identicon.css" />
+  <link rel="stylesheet" href="/vendor/nqp/amount/amount.css" />
+  <link rel="stylesheet" href="/vendor/nqp/toast-notification/toast-notification.css" />
+  <link rel="stylesheet" href="/parent/parent.css?v=3" />
+  <!-- The board (views-board.js + views-board-goals.js), split out of parent.css at the
+       800-line guard. AFTER parent.css: it relies on its tokens and wins at equal specificity. -->
+  <link rel="stylesheet" href="/parent/board.css?v=1" />
+  <!-- The approval card itself (#414/#416 pushed parent.css back over the guard). BEFORE
+       share.css, which reaches into these rules and has to keep winning. -->
+  <link rel="stylesheet" href="/parent/approvals.css?v=1" />
+  <!-- The share slider on an approval card (#352). Own file: parent.css is at the 800-line guard. -->
+  <link rel="stylesheet" href="/parent/share.css?v=1" />
+  <!-- The progress tracker's charts and the screen-time settings card (#377, #379). Same
+       reason and the same ordering rule as board.css: after parent.css, whose tokens it uses. -->
+  <link rel="stylesheet" href="/parent/parent-charts.css?v=1" />
+  <!-- What changes once the viewport stops being a phone (#360). LAST: it is a min-width
+       layer over every file above and wins at equal specificity. -->
+  <link rel="stylesheet" href="/parent/tablet.css?v=1" />
+</head>
+<body>
+  <div class="app">
+    <header class="phdr">
+      <div class="phdr-row">
+        <!-- The shipped NIMIQ.kids lockup (public/assets/brand/README.md). The header used to
+             pair a BARE Nimiq hexagon with the wordmark retyped as live text, which the brand
+             rules forbid twice over: the mark is the hexagon holding the solid hand, and
+             `NIMIQ` is a verbatim logotype path that must never be typeset. Dark variant because
+             .phdr is the navy radial. -->
+        <div class="hdr-brand">
+          <img class="hdr-lockup" src="/assets/brand/nimiq-kids-lockup-dark.svg" alt="NIMIQ.kids" />
+          <img class="hdr-mark" src="/assets/brand/nimiq-kids-mark.svg" alt="NIMIQ.kids" />
+        </div>
+        <!-- fleet chrome: the one-button corner control (wallet + language, nimiq-app-shell) -->
+        <div id="wallet-slot" class="phdr-wallet"></div>
+      </div>
+    </header>
+
+    <main class="view" id="view"><!-- rendered by parent.js --></main>
+
+    <!-- Bottom navigation (the wallet-style mobile action bar) -->
+    <nav class="pnav" id="tabs" aria-label="Sections">
+      <button data-tab="home"><span class="pnav-ic" data-ic="balance"></span><span data-t="papp.tabHome"></span></button>
+      <button data-tab="approvals"><span class="pnav-ic" data-ic="bell"></span><span data-t="papp.tabApprovals"></span><span class="pbadge" id="badge" hidden></span></button>
+      <!-- The Treasure Box is a SPENDING SURFACE, not a setting (#418). Andjroo, 2026-09-01:
+           "Treasure box, I feel like that needs to be up higher ... that's gonna be something
+           that we'll want for them to spend their own NIM on." It was the seventh card in
+           Settings. `duotone-medal` because that is already its face on the Settings card it
+           came from and on a coupon approval, and one thing wears one mark here. FLAT, not
+           the duotone: that one is painted through a gradient at 0.6 to 0.2 opacity and is
+           near invisible over an inactive tab's grey. -->
+      <button data-tab="store" id="tab-store"><span class="pnav-ic" data-ic="medal"></span><span data-t="papp.tabBox"></span></button>
+      <button data-tab="deposit"><span class="pnav-ic" data-ic="arrow-to-bottom"></span><span data-t="papp.tabTopUp"></span></button>
+      <button data-tab="settings"><span class="pnav-ic" data-ic="gear"></span><span data-t="papp.tabSettings"></span></button>
+    </nav>
+  </div>
+
+  <!-- Sheet (reject note / cashlink QR / device apps) -->
+  <div class="scrim" id="scrim"><div class="sheet" id="sheet"></div></div>
+
+  <!-- Full-screen proof photo -->
+  <div class="photo-view" id="photo-view"><img id="photo-img" alt="Proof photo" /></div>
+
+  <!-- Registry toast (wallet SwapNotification port) -->
+  <button class="nq-toast" id="toast" hidden><span class="body" id="toast-body"></span></button>
+
+  <script src="/vendor/nqp/qr-creator.min.js"></script>
+  <!-- shared fleet shell (i18n + dual-mode wallet + mini-app provider + profile/lang UI); must load before parent.js -->
+  <script type="module" src="/dist/parent-shell.js?v=2"></script>
+  <script type="module" src="/parent/parent.js?v=4"></script>
+</body>
+</html>

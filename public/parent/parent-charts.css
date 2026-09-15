@@ -1,0 +1,137 @@
+/* nimiq.kids parent — the CHARTS and the two screens built on them (#377, #379).
+ *
+ * Split out of parent.css because that file hit this repo's 800-line CI guard, and the
+ * guard is `>=`. The seam is a real one rather than an arbitrary cut: everything here
+ * belongs to the progress tracker, the chart primitives it draws with, and the screen-time
+ * settings card. Nothing in parent.css references any of it.
+ */
+/* ---------- the progress tracker (#379) ---------- */
+/*
+ * Marks are THIN and the chrome is recessive: the gridlines are 10% ink, the baseline 18%,
+ * and the bars are the only saturated thing on the card. A chart whose axes are as loud as
+ * its data is a chart where nothing is loud.
+ *
+ * The palette lives in charts.js, validated (lightness band, chroma floor, adjacent CVD
+ * separation, normal-vision floor, contrast) rather than picked by eye. Nothing here should
+ * restate a series colour: text wears ink tokens, and the coloured mark beside it carries
+ * the identity.
+ */
+.prg-range { display: flex; gap: 8px; margin: 0 0 14px; }
+.prg-range .pill-btn.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+/* Four tiles that wrap to two-up on a phone rather than shrinking to unreadable. */
+.prg-tiles {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 10px; margin-bottom: 14px;
+}
+.prg-tile { background: #fff; border-radius: 14px; padding: 14px 16px; box-shadow: var(--card-shadow); }
+.prg-tile-v { font-size: 30px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.prg-tile-u { font-size: 15px; font-weight: 700; color: var(--ink-50); margin-left: 3px; }
+.prg-tile-l { font-size: 12px; color: var(--ink-50); margin-top: 6px; }
+
+.prg-card { padding: 16px 16px 12px; margin-bottom: 14px; }
+.prg-hd { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 2px; }
+.prg-hd h3 { font-size: 16px; font-weight: 800; }
+.prg-sub { font-size: 12px; color: var(--ink-50); }
+
+.ch-key { display: flex; flex-wrap: wrap; gap: 12px; margin: 8px 0 12px; font-size: 12px; color: var(--ink-50); }
+.ch-key.col { flex-direction: column; gap: 7px; justify-content: center; }
+.ch-key-i { display: inline-flex; align-items: center; gap: 6px; }
+.ch-key-i i { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.ch-key-i b { color: var(--navy); font-variant-numeric: tabular-nums; }
+
+.ch-wrap { position: relative; }
+.ch-ymax { position: absolute; top: -2px; right: 0; font-size: 11px; color: var(--ink-40); font-variant-numeric: tabular-nums; }
+/* preserveAspectRatio="none" means the viewBox's 100 x-units stretch to the card width, so
+   a bar's `x` and `width` can be percentages and the geometry survives any screen. The
+   stroke widths below are set in the stretched space on purpose: they are hairlines either
+   way, and a vector-effect would make the dashes uneven. */
+.ch-svg { display: block; width: 100%; height: 132px; overflow: visible; }
+.ch-grid { stroke: rgba(31, 35, 72, 0.10); stroke-width: 1; }
+.ch-base { stroke: rgba(31, 35, 72, 0.18); stroke-width: 1; }
+/* A day with nothing on it still gets a mark: a 2px stub on the baseline says "zero",
+   where blank space says "no data", and those are different facts. */
+.ch-zero { fill: rgba(31, 35, 72, 0.16); }
+/* HTML, deliberately — see the note in charts.js. A dashed border and real text both
+   survive the card being any width; the same two things inside the stretched SVG came out
+   as ribbons. `pointer-events: none` so the rule never steals a column's hover. */
+.ch-rule {
+  position: absolute; left: 0; right: 0;
+  border-top: 1px dashed rgba(31, 35, 72, 0.45);
+  pointer-events: none;
+}
+.ch-rule span {
+  position: absolute; right: 0; top: -14px;
+  font-size: 10px; font-weight: 700; color: var(--ink-50);
+  background: #fff; padding: 0 3px; border-radius: 3px;
+}
+.ch-col { cursor: default; }
+.ch-col:hover .ch-seg, .ch-col:focus-visible .ch-seg { filter: brightness(1.08); }
+.ch-col:focus-visible { outline: none; }
+.ch-col:focus-visible rect:first-child { fill: rgba(31, 35, 72, 0.06); }
+/* Segments of one stack must not touch, or two fills read as one taller bar. */
+.ch-seg + .ch-seg { stroke: #fff; stroke-width: 2; paint-order: stroke; }
+
+.ch-labs { display: flex; margin-top: 6px; }
+.ch-lab { text-align: center; font-size: 10px; line-height: 1.25; color: var(--ink-40); }
+.ch-dom { display: block; font-variant-numeric: tabular-nums; }
+.ch-dow { display: block; font-weight: 700; color: var(--ink-50); }
+
+.ch-donut { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.ch-donut svg { width: 140px; height: 140px; flex: none; }
+.ch-arc { transition: opacity 120ms ease; }
+.ch-arc:hover, .ch-arc:focus-visible { opacity: 0.82; outline: none; }
+.ch-donut-v { font-size: 26px; font-weight: 800; fill: var(--navy); font-variant-numeric: tabular-nums; }
+.ch-donut-l { font-size: 11px; fill: var(--ink-50); }
+
+.ch-tip {
+  position: fixed; transform: translate(-50%, -100%);
+  background: var(--navy); color: #fff; font-size: 12px; font-weight: 600;
+  padding: 6px 10px; border-radius: 8px; pointer-events: none; z-index: 5;
+  white-space: nowrap; max-width: 90vw; overflow: hidden; text-overflow: ellipsis;
+}
+
+.prg-table { padding: 0; }
+.prg-table summary { padding: 14px 16px; font-size: 14px; font-weight: 700; cursor: pointer; }
+.prg-table-scroll { overflow-x: auto; padding: 0 16px 16px; }
+.prg-table table { border-collapse: collapse; font-size: 12px; width: 100%; }
+.prg-table th, .prg-table td { padding: 5px 8px; text-align: right; white-space: nowrap; }
+.prg-table th:first-child, .prg-table td:first-child { text-align: left; }
+.prg-table thead th { color: var(--ink-50); font-weight: 700; border-bottom: 1px solid var(--hairline); }
+.prg-table td { font-variant-numeric: tabular-nums; }
+.prg-table tbody tr:nth-child(even) { background: var(--ink-07); }
+
+/* ---------- screen-time settings (#377) ---------- */
+/* Weekday CHECKBOXES, never a text mask. "1111001" is the right storage and an awful
+   control: nobody can read it, and getting it wrong locks a tablet on the wrong day with
+   nothing on any screen to explain why. */
+.st-win { padding: 12px 0; border-bottom: 1px solid var(--hairline); }
+.st-win:last-child { border-bottom: 0; }
+.st-times { display: flex; align-items: center; gap: 8px; }
+.st-t { flex: 1; min-width: 0; margin: 0; }
+.st-to { font-size: 13px; color: var(--ink-50); flex: none; }
+.st-del {
+  flex: none; width: 30px; height: 30px; border-radius: 50%; border: 0;
+  background: var(--ink-07); color: var(--ink-50); display: grid; place-items: center;
+}
+.st-days { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.st-day { position: relative; }
+.st-day input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.st-day span {
+  display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+  background: var(--ink-07); color: var(--ink-50); font-size: 13px; font-weight: 700;
+}
+.st-day input:checked + span { background: var(--navy); color: #fff; }
+/* The keyboard has to be able to see the focus the visually-hidden input has. */
+.st-day input:focus-visible + span { outline: 2px solid var(--navy); outline-offset: 2px; }
+
+.st-split { height: 1px; background: var(--hairline); margin: 16px 0 14px; }
+.st-kid { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 0; }
+/* The kid's identicon sits IN the name line (#418), so the line becomes a flex row of its
+   own. 26px because the name beside it is 15px and a face taller than its own line pushes
+   the two number fields down a row on a phone. */
+.st-kid-n { font-weight: 700; flex: 1 1 100%; display: flex; align-items: center; gap: 8px; }
+.st-kid-n .identicon { width: 26px; height: 26px; flex-shrink: 0; }
+.st-num { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-50); }
+.st-num input { width: 72px; margin: 0; text-align: right; }
+.st-note { margin-top: 4px; }

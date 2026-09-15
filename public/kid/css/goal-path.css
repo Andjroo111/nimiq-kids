@@ -1,0 +1,91 @@
+/* nimiq.kids kid app — the goal screen (goal-path.js): the set strip, then the Duolingo path
+   climbed. The path itself is the vendored nq registry (/kid/vendor/duo: duo-button, duo-node,
+   duo-path), read on the DEFAULT Nimiq map; no hue is written in this file either. What lives
+   here is the screen around the path, and the three places the kid app asks more of the
+   component than its demo does: an emoji in a face, a bubble that carries a whole rung title,
+   and a column that has to fit a 390 phone AND an 800 tablet.
+
+   Sized 390-FIRST like done.css, with the tablet scale-up at the foot. Own file: chart.js and
+   chart.css both sit on the 800-line guard, and these rules describe a SCREEN, not the board. */
+
+/* ---- the screen: the games screen's shape, floating back button over a slab ---- */
+/* ⚠️ `min-height: 0` is load-bearing, the same trap as .k-chart (#401): as a flex ITEM the
+   screen defaults to min-height:auto, which floors it at its own content, and a five-rung
+   path is taller than a phone. Without it the whole screen grew to 1086px and scrolled the
+   back button off the top instead of letting .gp-scroll scroll. */
+.gp {
+  position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column;
+  padding: var(--kid-corner-band) 30px 46px;
+}
+.gp-slab { min-height: 0; }
+/* What scrolls: the strip, the path and the line under it, as one. `overflow-x: hidden`
+   because a node at the wave's edge overhangs its box by the ring, and a sideways scroll on a
+   column a kid drags with a thumb is a screen that squirms. */
+.gp-scroll {
+  flex: 1; min-height: 0;
+  overflow-y: auto; overflow-x: hidden;
+  display: flex; flex-direction: column; align-items: center; gap: var(--s2);
+}
+.gp-scroll .duo-path { padding-bottom: 32px; }
+/* The banner STICKS, as duolingo.com's unit header does: the screen opens on the rung that
+   matters, which on a five-rung ladder is below the fold, and the name of what is being climbed
+   has to stay in view while the column scrolls under it. The set strip above it scrolls away;
+   it is one flick up, and the banner is what a kid reads mid-climb. */
+.gp-scroll .duo-path-head { position: sticky; top: 0; z-index: 3; }
+.gp-scroll .pr-steps-total { padding-bottom: var(--s2); }
+
+/* ---- what the app asks of the node ---- */
+/* The marks in a face (goal-path.js rungMark): the rung's number, or the wallet's check.
+   The component sizes a bare svg at 44%; the check arrives wrapped in .k-icon, so it is
+   sized here, and the number is set at the button's own 700 weight. */
+.gp-num { font-size: 28px; line-height: 1; pointer-events: none; }
+.gp-mark { font-size: 30px; line-height: 1; pointer-events: none; display: flex; }
+.gp-mark svg { width: 1em; height: 1em; }
+/* Only the open rung is a button. A climbed rung and the prize keep their depth (they are the
+   same object as the open one) but nothing happens on them, so nothing presses. */
+.gp .duo-node.is-done .duo-node-face,
+.gp .duo-node.is-prize .duo-node-face { cursor: default; pointer-events: none; }
+
+/* ---- the bubble carries a rung title, not START ----
+   "Hold it for 30 seconds" is the point of the step, so it wraps rather than ellipsing, capped
+   at a width the wave can carry inside a 390 column, and the step above opens enough headroom
+   for two lines plus the pay line. */
+/* `width: max-content` first: the bubble is absolutely positioned inside a 70px node, so
+   without it the available width IS the node and a title wraps one word per line. */
+.gp .duo-node-bubble {
+  width: max-content; max-width: 196px;
+  white-space: normal; text-align: center; line-height: 1.25;
+}
+.gp .duo-path-steps { --duo-bubble-room: 64px; }
+.gp-bubble-pay {
+  display: block; margin-top: 4px;
+  font-size: 12px; letter-spacing: 0.4px; font-variant-numeric: tabular-nums;
+  color: var(--duo-paper-ink); opacity: 0.7;
+}
+
+/* ---- phone: the column is 390 wide but the slab inside it is not ----
+   30px of screen padding and the slab's own leaves ~306px for the path, so the wave's 70px
+   amplitude would push a bubble at the edge out of the slab. The amplitude gives way. */
+@media (max-width: 767px) {
+  .gp { padding: var(--kid-corner-band) var(--s4) 30px; }
+  .gp .duo-path { --duo-path-amp: 56px; }
+}
+
+/* ---------- tablet scale-up (>=768px keeps the 390 design, bigger) ---------- */
+@media (min-width: 768px) {
+  .gp-scroll { gap: var(--s3); }
+  .gp .duo-path {
+    --duo-path-width: 560px; --duo-path-amp: 104px; --duo-path-pitch: 48px;
+    --duo-node-size: 96px; --duo-node-lip: 11px; --duo-ring-gap: 14px;
+  }
+  .gp .duo-path .duo-node.is-prize { --duo-node-size: 116px; --duo-node-lip: 13px; }
+  .gp .duo-path-steps { --duo-bubble-room: 76px; }
+  .gp .duo-node-bubble { max-width: 260px; font-size: 15px; }
+  .gp-bubble-pay { font-size: 14px; }
+  .gp-num { font-size: 38px; }
+  .gp-mark { font-size: 40px; }
+  .gp .duo-path-kicker { font-size: 15px; }
+  .gp .duo-path-title { font-size: 26px; }
+  .gp .duo-path-head { padding: 20px 24px; margin-bottom: 52px; }
+  .gp-scroll .pr-steps-total { font-size: var(--fs-body); }
+}

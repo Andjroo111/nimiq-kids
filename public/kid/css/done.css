@@ -1,0 +1,196 @@
+/* nimiq.kids kid app — "Is it done?" (done.js), the sheet a job card's sticker
+   ring opens. Its own file rather than another 50 lines of chart.css: the chart
+   was 822 lines with it inlined, past the repo's 800-line guard, and these rules
+   describe a SHEET, not the chart behind it.
+
+   Composition is the app's own bottom sheet — .kid-sheet + .sheet-hd +
+   .sheet-name + .sheet-sub (util.js) and .mega-btn for the answers. Nothing new
+   was drawn for it.
+
+   Sized 390-FIRST like chart.css, with the tablet scale-up at the foot. Note
+   phone.css is the WRONG home for phone values here: it loads before this file,
+   so anything it said would lose to the base rule at equal specificity. */
+
+.dn-face { display: grid; place-items: center; }
+.dn-face-icon {
+  width: clamp(64px, 22vw, 88px); height: clamp(64px, 22vw, 88px);
+  object-fit: contain; display: block;
+}
+.dn-face-emoji { font-size: clamp(56px, 19vw, 76px); line-height: 1; }
+/* The two answers stack full-width so neither can look like the smaller option,
+   capped so an 800px tablet does not stretch them into slabs. */
+.dn-actions {
+  width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 10px;
+}
+.dn-actions .mega-btn { width: 100%; }
+/* The timer, now an offer rather than the road. Quiet, under the answers, and
+   only on a job that has a duration to run. */
+.dn-timer {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 44px; /* the tap-target floor: 9px of padding round 16px type is 38 */
+  padding: 9px 18px; border-radius: var(--r-pill);
+  background: var(--fill-5);
+  font-size: 16px; font-weight: var(--fw-title); color: var(--ink-50);
+}
+.dn-timer-ic { font-size: 20px; }
+/* ---------- "What did you do?" — a practice's exercises (practice.js) ----------
+   The sibling sheet of the one above, and deliberately in the same file: it asks the
+   same question about the same kind of card, and it answers with the same .mega-btn.
+   What differs is that the answer is a LIST — scales, the song, sight-reading — and
+   the ticks decide what the day pays, so the running total sits between the rows and
+   the button, where the eye lands last before tapping it. */
+.pr-steps {
+  width: 100%; max-width: 460px;
+  display: flex; flex-direction: column; gap: var(--s2);
+  max-height: 46dvh; overflow-y: auto;
+}
+/* The row is the job card, one step quieter: a sheet is already a focused surface,
+   so the white-on-white card would be drawing a box for nothing. */
+.pr-step {
+  display: flex; align-items: center; gap: var(--s3); text-align: left; width: 100%;
+  padding: var(--s2) var(--s3); min-height: 60px;
+  border-radius: var(--r-card); background: var(--fill-5);
+  transition: background var(--t-press) var(--ease), transform var(--t-press) var(--ease);
+}
+.pr-step:active { transform: scale(var(--press-scale)); }
+.pr-step.is-on { background: rgba(65, 163, 142, 0.12); }
+/* The tick is an empty ring until it is ticked — the state has to be readable at a
+   glance across a table, not inferred from a background wash. */
+.pr-step-tick {
+  flex: none; display: grid; place-items: center;
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid var(--ink-30); color: transparent; font-size: 14px;
+}
+.pr-step.is-on .pr-step-tick {
+  border-color: var(--green-2); background: var(--green-2); color: #fff;
+}
+.pr-step-icon { width: 40px; height: 40px; object-fit: contain; display: block; flex: none; }
+.pr-step-emoji { font-size: 32px; line-height: 1; flex: none; }
+.pr-step-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pr-step-title {
+  font-size: var(--fs-body); font-weight: var(--fw-title);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* One exercise = the tick button plus, when there is one, the clip under it. The wrapper owns
+   the gap so the two read as one card; `.pr-steps` still lays the wrappers out. */
+.pr-step-wrap { display: flex; flex-direction: column; gap: var(--s2); }
+/* Sized so a demonstration of hands on keys is actually legible: full width of the sheet,
+   16:9, and the poster frame visible before it is tapped. `preload="metadata"` in the markup
+   keeps five of these off the network until one is wanted. */
+.pr-step-clip {
+  width: 100%; aspect-ratio: 16 / 9; display: block;
+  border-radius: var(--r-card); background: #000; object-fit: contain;
+}
+
+/* How to do this one, in the parent's words. TWO LINES AND NO MORE: the sheet has to hold
+   five exercises and still leave "I'm done" on the screen, and an un-clamped paragraph on
+   each row pushes it off the bottom. Unlike the title it WRAPS — a how-to ellipsed on one
+   line teaches nothing, so the clamp gives it the room a sentence actually needs. */
+.pr-step-how {
+  font-size: var(--fs-small); font-weight: var(--fw-body);
+  color: var(--ink-70); line-height: 1.35;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  overflow: hidden; white-space: normal; text-align: left;
+}
+.pr-step .k-nim-pill {
+  background: none; padding: 0; border-radius: 0;
+  font-size: var(--fs-small); font-weight: var(--fw-title);
+  color: var(--green-2); font-variant-numeric: tabular-nums;
+}
+/* A goal's rungs used to be rows here (goal.js). They are the climb path now (goal-path.js,
+   goal-path.css); what stays below is the CARD on the board and the SET a ladder collects,
+   which the path screen draws above itself with the same rules. */
+/* ---- the ladder CARD on the chart (chart.js goalCard) ----
+   Here rather than in chart.css, which sits exactly on the 800-line guard, and because every
+   other rule the goals feature needs is already in this file. A job, a practice and a goal are
+   the same card to a kid; what these add is the rung they are on and the set they are filling. */
+.gl-next { color: var(--ink-50); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gl-next::before { content: "· "; color: var(--ink-30); }
+.ch-goal.is-met .pr-week { color: var(--green-2); }
+/* The set as DOTS on the card, so a kid scrolling past sees it filling up without opening
+   anything. Deliberately not the art: six 30px stickers on a meta line is a second card. */
+.gl-set-mini { display: inline-flex; gap: 3px; align-items: center; }
+.gl-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  border: 1.5px solid var(--ink-30); background: none;
+}
+.gl-dot.is-on { border-color: transparent; background: var(--green-2); }
+.gl-dot-boss { margin-left: 4px; border-color: var(--gold); }
+.gl-dot-boss.is-on { background: var(--gold); }
+
+/* ---- what a ladder COLLECTS (goal-path.js) ----
+   The set sits above the rungs because it is the reason to climb them. An unearned slot is a
+   dashed WELL, never a faded sticker: 3 of 5 has to read as two more to go, and a ghosted
+   dragon reads as art that failed to load. */
+.gl-set { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.gl-slot {
+  width: 46px; height: 46px; border-radius: 10px; flex: none;
+  border: 2px dashed var(--ink-30); display: grid; place-items: center;
+}
+.gl-slot.is-on { border-style: solid; border-color: transparent; background: rgba(33,188,165,.12); }
+.gl-slot img { width: 100%; height: 100%; object-fit: contain; display: block; }
+/* The prize stands apart from the five it is won with. */
+.gl-slot-boss { margin-left: 12px; border-color: var(--gold); }
+.gl-slot-boss.is-on { background: rgba(233,178,19,.18); }
+.gl-set-line {
+  font-size: var(--fs-label); font-weight: var(--fw-title); color: var(--ink-70);
+  text-align: center; font-variant-numeric: tabular-nums;
+}
+
+/* What the day is worth as it is being chosen. Tabular so the number does not
+   jitter sideways on every tap. */
+.pr-steps-total {
+  font-size: var(--fs-label); font-weight: var(--fw-title); color: var(--ink-70);
+  font-variant-numeric: tabular-nums; text-align: center;
+}
+
+/* A screen that is SHORT rather than narrow. Width is not what runs out on this
+   sheet: .kid-sheet's own 78dvh cap is, and the row it hides is the timer offer
+   at the bottom. Measured at 320x568 (SE 1st gen, the shortest screen this app
+   ever opens on) where the timer sat 16px under the cap. The face is what gives
+   way, because it is the one block that is recognition rather than instruction. */
+@media (max-height: 600px) {
+  .dn-face-icon { width: 48px; height: 48px; }
+  .dn-face-emoji { font-size: 42px; }
+  .dn-actions { gap: 8px; }
+  .pr-steps { max-height: 38dvh; }
+  .pr-step { min-height: 52px; }
+}
+
+/* ---------- tablet scale-up (>=768px keeps the 390 design, bigger) ---------- */
+@media (min-width: 768px) {
+  .dn-face-icon { width: 132px; height: 132px; }
+  .dn-face-emoji { font-size: 116px; }
+  .dn-actions { gap: var(--s3); }
+  .dn-timer { padding: var(--s3) var(--s6); gap: var(--s3); font-size: var(--fs-title); }
+  .dn-timer-ic { font-size: 30px; }
+  .pr-steps { gap: var(--s3); }
+  .pr-step { min-height: 76px; padding: var(--s3) var(--s4); gap: var(--s4); }
+  .pr-step-tick { width: 34px; height: 34px; }
+  .pr-step-icon { width: 52px; height: 52px; }
+  .pr-step-emoji { font-size: 42px; }
+  .pr-step-title { font-size: var(--fs-head); }
+  .pr-steps-total { font-size: var(--fs-body); }
+  .gl-slot { width: 60px; height: 60px; }
+  .gl-set-line { font-size: var(--fs-body); }
+}
+
+/* ---- sets a kid can collect, before there is a ladder (upkeep.js setCard) ----
+   DELIBERATELY NOT the dashed well above. That rule is about a ladder IN PROGRESS, where an
+   empty slot has to read as "two more to go". Here there is no progress to read: the kid is
+   being shown what the set IS, and a row of empty wells would show them nothing at all. So
+   the art is present and legible, and what says "not yours yet" is the muting plus the ask
+   underneath -- never a ghosted sticker, which still reads as art that failed to load. */
+.gs-set { text-align: left; }
+.gs-strip { display: flex; gap: 6px; flex-wrap: nowrap; margin: 6px 0 2px; }
+.gs-set .gs-slot {
+  width: 34px; height: 34px; border: 0; border-radius: 8px;
+  background: var(--ink-05, rgba(31,48,71,.06));
+}
+.gs-set .gs-slot img { opacity: .85; }
+/* The prize keeps its gold, so the thing at the end of the set is still the thing at the end. */
+.gs-set .gl-slot-boss { margin-left: 8px; background: rgba(233,178,19,.14); }
+/* Asked: the tap is spent. Dimmed rather than removed, because a set that vanished on tap
+   would read as "it did not work" to the one person who cannot ask twice. */
+.gs-set.is-asked { opacity: .55; }
+.gs-set.is-asked .gs-strip { filter: grayscale(.5); }

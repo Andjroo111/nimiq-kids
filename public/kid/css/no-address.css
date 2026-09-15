@@ -1,0 +1,24 @@
+/* nimiq.kids kid app — the Money screen for a kid whose grown-up has not given them an
+   address yet (#236). That kid is the first state of every kid on a parent-custody instance,
+   so it is a state with a name, not an edge case.
+
+   Its own file rather than a tail on wallet.css, which sits at 796 lines against this repo's
+   800-line CI guard. Linked AFTER wallet.css in /kid/index.html, and the order is
+   load-bearing: `.k-acct .address.k-no-address` and the component's own
+   `.account-header .active-address .address` are both (0,3,0), so source order is what
+   decides. */
+
+/* "No address yet" occupies the address slot but is a SENTENCE, not a value: the app font,
+   no fade mask trailing off nothing, and no monospace pretending it is 36 characters.
+   `word-spacing` is the one that is not cosmetic — the component's -0.2em is sized for the
+   gaps inside a chunked NQ address, and it closed this line up into "Noaddressyet" at 390px.
+   Seen in a browser, not reasoned about. */
+.k-acct .address.k-no-address {
+  font-family: inherit; -webkit-mask: none; mask: none; word-spacing: normal; opacity: 0.55;
+}
+
+/* Nothing in the dock works before there is an account: Send is refused by the server, Scan
+   is Send with a destination filled in, and Receive already bounces straight back rather than
+   draw a QR of nothing. Faded, not hidden — the dock is the shape of this screen, and a
+   screen that loses its bottom bar looks broken rather than waiting. */
+.k-dock-btn[disabled], .k-dock-scan[disabled] { opacity: 0.4; pointer-events: none; }

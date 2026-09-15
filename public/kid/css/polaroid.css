@@ -1,0 +1,145 @@
+/* nimiq.kids — Polaroid timer rig styles (placeholder art).
+   ART CONTRACT: every color, geometry knob and timing lives in the custom
+   properties below. Future NanoBanana re-skins override these vars (or restyle
+   the camera SVG parts: .pc-body, .pc-lens, .pc-slot) without touching
+   kid/js/polaroid.js. Development progress arrives as --pola-dev (0..1). */
+
+.pola-rig {
+  /* -- palette (kawaii: bold dark outline, cream camera, teal stripe) -- */
+  --pola-cam: #FFF6E8;
+  --pola-stripe: #21BCA5;
+  --pola-outline: #2E2E48;
+  --pola-outline-w: 5px;
+  --pola-lens: #2E2E48;
+  --pola-lens-in: #5C6284;
+  --pola-flash: #FFD66E;
+  --pola-button: #FF7D89;
+  --pola-cheek: #FFB3C7;
+  --pola-face: #2E2E48;
+  --pola-paper: #FFFFFF;
+  --pola-paper-edge: rgba(31, 35, 72, 0.18);
+  --pola-wash: #F6F3EC;
+  --pola-chem-a: rgba(160, 190, 255, 0.55);
+  --pola-chem-b: rgba(255, 214, 110, 0.5);
+  --pola-shadow: rgba(31, 35, 72, 0.16);
+
+  /* -- geometry -- */
+  --pola-frame-w: 62%;
+
+  /* -- motion -- */
+  --pola-eject-ms: 1100ms;
+  --pola-lift-ms: 1050ms;
+  --pola-flash-ms: 260ms;
+  --pola-jiggle-ms: 460ms;
+
+  /* -- progress (written by the rig every tick) -- */
+  --pola-dev: 0;
+
+  /* Definite width (not %): the task stage centers a content-sized host, and a
+     plain-div rig would collapse to 0 there (SVG rigs survive via replaced-element
+     sizing). 480 = the stage cap; the stage/phone max-width rules clamp it down. */
+  display: block;
+  width: 480px;
+  max-width: 340px;
+  margin: 0 auto;
+}
+
+.pola-stage {
+  position: relative;
+  aspect-ratio: 220 / 260;
+  width: 100%;
+}
+
+/* ---------- camera (on top; the frame ejects from behind it) ---------- */
+.pola-cam-wrap {
+  position: absolute; left: 0; right: 0; top: 4%;
+  z-index: 2;
+  filter: drop-shadow(0 8px 10px var(--pola-shadow));
+}
+.pola-cam { display: block; width: 100%; height: auto; overflow: visible; }
+.pc-body { fill: var(--pola-cam); stroke: var(--pola-outline); stroke-width: var(--pola-outline-w); }
+.pc-stripe { fill: var(--pola-stripe); }
+.pc-lens { fill: var(--pola-lens); }
+.pc-lens-in { fill: var(--pola-lens-in); }
+.pc-lens-glint { fill: rgba(255, 255, 255, 0.85); }
+.pc-flash { fill: var(--pola-flash); stroke: var(--pola-outline); stroke-width: 3px; }
+.pc-button { fill: var(--pola-button); stroke: var(--pola-outline); stroke-width: 3px; }
+.pc-cheek { fill: var(--pola-cheek); }
+.pc-eye { fill: none; stroke: var(--pola-face); stroke-width: 3px; stroke-linecap: round; }
+.pc-slot { fill: var(--pola-outline); }
+
+.pola-cam-wrap.is-jiggling { animation: pola-jiggle var(--pola-jiggle-ms) ease-in-out; }
+@keyframes pola-jiggle {
+  0%   { transform: rotate(0deg); }
+  25%  { transform: rotate(1.6deg); }
+  55%  { transform: rotate(-1.6deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* ---------- the instant photo ---------- */
+.pola-frame {
+  position: absolute; left: 50%; top: 38%;
+  z-index: 1;
+  width: var(--pola-frame-w);
+  padding: 4.5% 4.5% 0;
+  background: var(--pola-paper);
+  border: 3px solid var(--pola-paper-edge);
+  border-radius: 6px;
+  box-shadow: 0 10px 22px var(--pola-shadow);
+  transform: translateX(-50%) translateY(-72%);
+  transition: transform var(--pola-eject-ms) cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pola-rig.is-ejected .pola-frame { transform: translateX(-50%) translateY(0); }
+.pola-chin { height: 42px; }
+
+.pola-photo {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--pola-wash);
+}
+.pola-photo img {
+  display: block; width: 100%; height: 100%; object-fit: cover;
+  /* washed-white + blurry + drained -> clear as --pola-dev ramps 0 -> 1 */
+  filter: blur(calc((1 - var(--pola-dev)) * 14px))
+          saturate(var(--pola-dev))
+          brightness(calc(1.9 - var(--pola-dev) * 0.9));
+}
+.pola-photo i { position: absolute; inset: 0; pointer-events: none; }
+/* chemical swirl: only visible early in the development */
+.pola-chem {
+  background:
+    radial-gradient(90% 70% at 24% 30%, var(--pola-chem-a), transparent 60%),
+    radial-gradient(80% 80% at 76% 72%, var(--pola-chem-b), transparent 55%);
+  opacity: clamp(0, calc(0.7 - var(--pola-dev) * 1.6), 0.7);
+}
+.pola-wash { background: var(--pola-wash); opacity: calc((1 - var(--pola-dev)) * 0.9); }
+.pola-flash { background: #fff; opacity: 0; }
+
+/* ---------- hatch: snap sharp + flash, lift off with a wiggle ---------- */
+.pola-rig.is-snap .pola-photo img { filter: none; }
+.pola-rig.is-snap .pola-wash, .pola-rig.is-snap .pola-chem { opacity: 0; }
+.pola-rig.is-snap .pola-flash { animation: pola-blink var(--pola-flash-ms) ease-out; }
+@keyframes pola-blink { 0% { opacity: 0.95; } 100% { opacity: 0; } }
+
+.pola-rig.is-snap .pola-frame {
+  transition: none;
+  animation: pola-lift var(--pola-lift-ms) cubic-bezier(0.34, 1.3, 0.5, 1) 120ms both;
+}
+@keyframes pola-lift {
+  0%   { transform: translateX(-50%) translateY(0) rotate(0deg) scale(1); }
+  35%  { transform: translateX(-50%) translateY(-22px) rotate(-3deg) scale(1.05); }
+  60%  { transform: translateX(-50%) translateY(-14px) rotate(2.2deg) scale(1.05); }
+  80%  { transform: translateX(-50%) translateY(-18px) rotate(-1deg) scale(1.05); }
+  100% { transform: translateX(-50%) translateY(-16px) rotate(0deg) scale(1.05); }
+}
+
+/* ---------- prefers-reduced-motion: crossfades only ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .pola-frame { transition: none; }
+  .pola-cam-wrap.is-jiggling { animation: none; }
+  .pola-rig.is-snap .pola-flash { animation: none; }
+  .pola-rig.is-snap .pola-frame { animation: pola-fade-in 400ms ease-out both; }
+  @keyframes pola-fade-in { from { opacity: 0.6; } to { opacity: 1; } }
+}

@@ -1,0 +1,7 @@
+/* page-body — scrollable content area of a card page.
+   Requires the legacy framework stylesheet (nimiq-style.min.css) for the
+   .nq-card-body padding rules, and a flex-column parent (e.g. .small-page). */
+.page-body {
+    flex-grow: 1;
+    overflow-y: auto;
+}

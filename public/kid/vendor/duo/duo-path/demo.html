@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>duo-path</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../../../assets/css/legacy/nimiq-style.min.css">
+<link rel="stylesheet" href="../../duo-button/html/duo-button.css">
+<link rel="stylesheet" href="../../duo-node/html/duo-node.css">
+<link rel="stylesheet" href="duo-path.css">
+<style>
+    html, body { margin: 0; padding: 0; background: #F8F8F8; }
+    body { font-family: 'Mulish', 'Muli', system-ui, sans-serif; }
+    /* demo chrome: the path on the page ground, 390 wide, Nimiq map (default tokens). */
+    .duo-path-demo { width: 390px; }
+</style>
+</head>
+<body>
+<!-- duo-path demo: nine steps climbed, three done, the fourth active, four locked, the prize under the banner. Keep truth/demo/snippet identical. -->
+<div class="duo-path-demo">
+<section class="duo-path">
+    <header class="duo-path-head">
+        <div class="duo-path-head-text">
+            <p class="duo-path-kicker">Goal 2 of 3</p>
+            <h2 class="duo-path-title">Ride the bike</h2>
+        </div>
+        <button class="duo-button is-sm" type="button">Rules</button>
+    </header>
+    <ol class="duo-path-steps">
+        <li class="duo-path-step">
+            <div class="duo-node is-done">
+                <button class="duo-node-face" type="button" aria-label="Step 1, done">
+                    <svg viewBox="0 0 12 10" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.082 1.111 5.022 8.89 1.363 5.687"/></svg>
+                </button>
+            </div>
+        </li>
+        <li class="duo-path-step">
+            <div class="duo-node is-done">
+                <button class="duo-node-face" type="button" aria-label="Step 2, done">
+                    <svg viewBox="0 0 12 10" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.082 1.111 5.022 8.89 1.363 5.687"/></svg>
+                </button>
+            </div>
+        </li>
+        <li class="duo-path-step">
+            <div class="duo-node is-done">
+                <button class="duo-node-face" type="button" aria-label="Step 3, done">
+                    <svg viewBox="0 0 12 10" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.082 1.111 5.022 8.89 1.363 5.687"/></svg>
+                </button>
+            </div>
+        </li>
+        <li class="duo-path-step">
+            <div class="duo-node is-active" style="--duo-progress: 0.5">
+                <svg class="duo-node-ring" viewBox="0 0 20 18" aria-hidden="true"><path class="duo-node-track" d="M19.964 8.156 15.758.844A1.69 1.69 0 0014.299 0H5.887c-.6 0-1.156.32-1.456.844L.225 8.156c-.3.523-.3 1.165 0 1.688l4.206 7.312c.3.523.856.844 1.456.844h8.412c.6 0 1.156-.32 1.456-.844l4.206-7.312a1.69 1.69 0 00.003-1.688z"/><path class="duo-node-arc" d="M19.964 8.156 15.758.844A1.69 1.69 0 0014.299 0H5.887c-.6 0-1.156.32-1.456.844L.225 8.156c-.3.523-.3 1.165 0 1.688l4.206 7.312c.3.523.856.844 1.456.844h8.412c.6 0 1.156-.32 1.456-.844l4.206-7.312a1.69 1.69 0 00.003-1.688z" pathLength="100"/></svg>
+                <span class="duo-node-bubble">Start</span>
+                <button class="duo-node-face" type="button" aria-label="Step 4, your turn">
+                    <svg viewBox="0 0 12 12" aria-hidden="true"><path fill="currentColor" d="M5.886 10.22a.23.23 0 01.227 0l2.875 1.618a1.18 1.18 0 001.385-.153 1.16 1.16 0 00.292-1.339L9.54 7.751a.23.23 0 01.058-.264L11.64 5.67a1.16 1.16 0 00.277-1.272 1.14 1.14 0 00-1.08-.706H8.53a.23.23 0 01-.213-.14L7.076.677 7.063.65a1.195 1.195 0 00-2.14.026L3.68 3.551a.23.23 0 01-.213.14H1.16a1.135 1.135 0 00-1.077.7 1.17 1.17 0 00.294 1.292l2.027 1.804a.23.23 0 01.058.264l-1.13 2.598a1.16 1.16 0 00.29 1.34 1.18 1.18 0 001.391.152z"/></svg>
+                </button>
+            </div>
+        </li>
+        <li class="duo-path-step">
+            <div class="duo-node is-locked">
+                <button class="duo-node-face" type="button" aria-label="Step 5, not yet">
+                    <svg viewBox="0 0 12 12" aria-hidden="true"><path fill="currentColor" d="M5.886 10.22a.23.23 0 01.227 0l2.875 1.618a1.18 1.18 0 001.385-.153 1.16 1.16 0 00.292-1.339L9.54 7.751a.23.23 0 01.058-.264L11.64 5.67a1.16 1.16 0 00.277-1.272 1.14 1.14 0 00-1.08-.706H8.53a.23.23 0 01-.213-.14L7.076.677 7.063.65a1.195 1.195 0 00-2.14.026L3.68 3.551a.23.23 0 01-.213.14H1.16a1.135 1.135 0 00-1.077.7 1.17 1.17 0 00.294 1.292l2.027 1.804a.23.23 0 01.058.264l-1.13 2.598a1.16 1.16 0 00.29 1.34 1.18 1.18 0 001.391.152z"/></svg>
+                </button>
+            </div>
+        </li>
+        <li class="duo-path-step">
+            <div class="duo-node is-locked">
+                <button class="duo-node-face" type="button" aria-label="Step 6, not yet">
+                    <svg viewBox="0 0 12 12" aria-hidden="true"><path fill="currentColor" d="M5.886 10.22a.23.23 0 01.227 0l2.875 1.618a1.18 1.18 0 001.385-.153 1.16 1.16 0 00.292-1.339L9.54 7.751a.23.23 0 01.058-.264L11.64 5.67a1.16 1.16 0 00.277-1.272 1.14 1.14 0 00-1.08-.706H8.53a.23.23 0 01-.213-.14L7.076.677 7.063.65a1.195 1.195 0 00-2.14.026L3.68 3.551a.23.23 0 01-.213.14H1.16a1.135 1.135 0 00-1.077.7 1.17 1.17 0 00.294 1.292l2.027 1.804a.23.23 0 01.058.264l-1.13 2.598a1.16 1.16 0 00.29 1.34 1.18 1.18 0 001.391.152z"/></svg>
+                </button>
+            </div>
+        </li>
+        <li class="duo-path-step">
+            <div class="duo-node is-locked">
+                <button class="duo-node-face" type="button" aria-label="Step 7, not yet">
+                    <svg viewBox="0 0 12 12" aria-hidden="true"><path fill="currentColor" d="M5.886 10.22a.23.23 0 01.227 0l2.875 1.618a1.18 1.18 0 001.385-.153 1.16 1.16 0 00.292-1.339L9.54 7.751a.23.23 0 01.058-.264L11.64 5.67a1.16 1.16 0 00.277-1.272 1.14 1.14 0 00-1.08-.706H8.53a.23.23 0 01-.213-.14L7.076.677 7.063.65a1.195 1.195 0 00-2.14.026L3.68 3.551a.23.23 0 01-.213.14H1.16a1.135 1.135 0 00-1.077.7 1.17 1.17 0 00.294 1.292l2.027 1.804a.23.23 0 01.058.264l-1.13 2.598a1.16 1.16 0 00.29 1.34 1.18 1.18 0 001.391.152z"/></svg>
+                </button>
+            </div>
+        </li>
+        <li class="duo-path-step">
+            <div class="duo-node is-locked">
+                <button class="duo-node-face" type="button" aria-label="Step 8, not yet">
+                    <svg viewBox="0 0 12 12" aria-hidden="true"><path fill="currentColor" d="M5.886 10.22a.23.23 0 01.227 0l2.875 1.618a1.18 1.18 0 001.385-.153 1.16 1.16 0 00.292-1.339L9.54 7.751a.23.23 0 01.058-.264L11.64 5.67a1.16 1.16 0 00.277-1.272 1.14 1.14 0 00-1.08-.706H8.53a.23.23 0 01-.213-.14L7.076.677 7.063.65a1.195 1.195 0 00-2.14.026L3.68 3.551a.23.23 0 01-.213.14H1.16a1.135 1.135 0 00-1.077.7 1.17 1.17 0 00.294 1.292l2.027 1.804a.23.23 0 01.058.264l-1.13 2.598a1.16 1.16 0 00.29 1.34 1.18 1.18 0 001.391.152z"/></svg>
+                </button>
+            </div>
+        </li>
+        <li class="duo-path-step">
+            <div class="duo-node is-prize">
+                <button class="duo-node-face" type="button" aria-label="The prize">
+                    <svg viewBox="0 0 11 12" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".956" d="M5.5 4v6.5m0-6.5c-.166-.745-.451-1.382-.82-1.828-.367-.446-.8-.68-1.242-.672a1.1 1.1 0 00-.81.366 1.3 1.3 0 00-.336.884c0 .332.12.65.335.884a1.1 1.1 0 00.81.366M5.5 4c.166-.745.451-1.382.82-1.828.367-.446.8-.68 1.242-.672a1.1 1.1 0 01.81.366c.216.235.336.552.336.884s-.12.65-.335.884a1.1 1.1 0 01-.81.366m1.145 2v3.5c0 .265-.096.52-.268.707a.88.88 0 01-.648.293H3.208a.88.88 0 01-.648-.293 1.05 1.05 0 01-.268-.707V6m-.459-2h7.334a.5.5 0 01.5.5V6H1.333V4.5a.5.5 0 01.5-.5z"/></svg>
+                </button>
+            </div>
+        </li>
+    </ol>
+</section>
+</div>
+</body>
+</html>

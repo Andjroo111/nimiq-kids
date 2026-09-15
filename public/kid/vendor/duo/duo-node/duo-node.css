@@ -1,0 +1,241 @@
+/* duo-node: one step on a Duolingo path, as the Nimiq hexagon, on the host's
+   colours. ORIGINAL composition on duo-button's contract (load duo-button.css
+   first). Andjroo, 2026-09-13: "instead of circles, we should be trying to use
+   hexagons, like Nimiq", so the face is the verbatim Nimiq hexagon (the
+   M19.964 8.156 path, 20:18, pointed left and right, rounded corners; nimiq-ui
+   rule 22) and never a circle.
+   A box-shadow lip cannot follow a mask, so the lip is Tomacco's Rive build
+   exactly: a BASE hexagon in the edge colour sitting --duo-node-lip lower, and
+   the FACE hexagon over it. A press drops the face onto the base; the base
+   never moves. Both are masked pseudo-elements, so the face still takes the
+   host's gradient.
+   Five states, one class each on the wrapper: is-locked, is-active,
+   is-waiting, is-done, is-prize. The active step wears the egg plate's tunnel:
+   a groove cut around the hexagon in a tint of its face, and a round-capped
+   fluid that runs clockwise from the top-left corner as --duo-progress grows.
+   Groove, fluid and bubble live on the WRAPPER, so a press moves the face and
+   nothing else.
+   The art inside a face is the host's (an icon, a kid's sticker): the node is
+   the frame. No hue is written in this file.
+   Run: nq principles */
+
+:where(:root) {
+    --duo-node-size: 70px;
+    --duo-node-lip: 8px;
+    --duo-ring-w: 5px;
+    --duo-ring-gap: 11px;
+    --duo-progress: 0;
+    --duo-hex: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 18'%3E%3Cpath d='M19.964 8.156 15.758.844A1.69 1.69 0 0014.299 0H5.887c-.6 0-1.156.32-1.456.844L.225 8.156c-.3.523-.3 1.165 0 1.688l4.206 7.312c.3.523.856.844 1.456.844h8.412c.6 0 1.156-.32 1.456-.844l4.206-7.312a1.69 1.69 0 00.003-1.688z'/%3E%3C/svg%3E");
+}
+
+.duo-node {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: var(--duo-node-size);
+    /* the Nimiq hexagon is 20 wide by 18 tall */
+    height: calc(var(--duo-node-size) * 0.9);
+    /* the lip is part of the step's height, so a column keeps an honest pitch */
+    margin-bottom: var(--duo-node-lip);
+    font-family: var(--duo-font);
+}
+
+/* ---- the face: the pressable hexagon, base underneath ---- */
+.duo-node-face {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--duo-ink);
+    font: 700 22px/1 var(--duo-font);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transform: translateZ(0);
+    transition: transform var(--duo-up) var(--nimiq-ease, ease-out);
+}
+.duo-node-face::before,
+.duo-node-face::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    -webkit-mask: var(--duo-hex) center / 100% 100% no-repeat;
+    mask: var(--duo-hex) center / 100% 100% no-repeat;
+}
+/* the base: the edge colour, one lip lower, never moves */
+.duo-node-face::before {
+    z-index: -2;
+    background: var(--duo-edge, color-mix(in srgb, var(--duo-face) 80%, #000));
+    transform: translateY(var(--duo-node-lip));
+    transition: transform var(--duo-up) var(--nimiq-ease, ease-out);
+}
+/* the face: the host's colour and, on a Nimiq brand, its radial */
+.duo-node-face::after {
+    z-index: -1;
+    background-color: var(--duo-face);
+    background-image: var(--duo-face-bg);
+}
+.duo-node-face > svg {
+    width: 44%;
+    height: 44%;
+    fill: currentColor;
+}
+.duo-node-face > img {
+    width: 72%;
+    height: 72%;
+    object-fit: contain;
+    display: block;
+    pointer-events: none;
+}
+
+/* the press: the face drops onto the base, so the base compensates */
+.duo-node-face:active,
+.duo-node.is-pressed .duo-node-face {
+    transform: translateY(var(--duo-node-lip)) translateZ(0);
+    transition-duration: 0ms;
+}
+.duo-node-face:active::before,
+.duo-node.is-pressed .duo-node-face::before {
+    transform: translateY(0);
+    transition-duration: 0ms;
+}
+.duo-node-face:focus-visible {
+    outline: 3px solid var(--duo-edge, color-mix(in srgb, var(--duo-face) 80%, #000));
+    outline-offset: calc(var(--duo-ring-gap) + var(--duo-ring-w) + 3px);
+}
+
+/* ---- the tunnel: groove and fluid, active and waiting only, on the wrapper ----
+   Andjroo, 2026-09-13: round caps, and "chase that pattern" of the nimiq.kids egg
+   plate (rive-lab examples/nimiq-kids-egg-plate): a groove cut around the
+   hexagon with a gap at the top-left corner, and a narrower fluid with round
+   caps that runs clockwise from that corner. Egg numbers: groove 30, fluid 14,
+   on a channel of half-width 158, so groove 0.19 R and fluid 0.09 R; here 1.9
+   and 0.9 path units on a 20-wide hexagon (9px and 4px at a 70px step).
+   One svg, the same hexagon twice. pathLength=100 makes a dash a percentage of
+   the outline; the vertical flip turns the path's own direction into clockwise,
+   so the top-left corner sits at 66.7; the gap is 6.7 centred there and both
+   dashes start at 70.05 (offset 29.95). Groove = 93.3 dash. Fluid = progress
+   times 93.3, so a full fluid ends exactly where the groove does. Round caps on
+   both, the fluid's inside the groove's, as on the plate. A 0 fluid is a dot at
+   the start: the head of the fluid before it moves, which the plate also shows.
+   ⚠ No vector-effect: non-scaling-stroke here. Chromium then measures the dash
+   in screen pixels and ignores pathLength, so a 50% arc came out as six short
+   dashes. Stroke widths are path units and scale with the node. */
+.duo-node-ring {
+    --duo-ring-out: calc(var(--duo-ring-gap) + var(--duo-ring-w) / 2);
+    position: absolute;
+    left: calc(-1 * var(--duo-ring-out));
+    top: calc(var(--duo-node-lip) / 2 - 0.9 * var(--duo-ring-out));
+    width: calc(100% + 2 * var(--duo-ring-out));
+    aspect-ratio: 20 / 18;
+    overflow: visible;
+    pointer-events: none;
+    transform: scaleY(-1);
+}
+.duo-node:not(.is-active):not(.is-waiting) .duo-node-ring { display: none; }
+.duo-node-track,
+.duo-node-arc {
+    fill: none;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    stroke-dashoffset: 29.95;
+}
+.duo-node-track {
+    stroke: var(--duo-track, color-mix(in srgb, var(--duo-face) 22%, var(--duo-paper)));
+    stroke-width: var(--duo-groove-units, 1.9);
+    stroke-dasharray: 93.3 6.7;
+}
+.duo-node-arc {
+    stroke: var(--duo-ring, var(--duo-face));
+    stroke-width: var(--duo-fluid-units, 0.9);
+    stroke-dasharray: calc(var(--duo-progress) * 93.3) calc(100 - var(--duo-progress) * 93.3);
+    transition: stroke-dasharray 600ms var(--nimiq-ease, ease-out);
+}
+
+/* ---- the bubble above the active step: paper, a line, the text in the face colour ---- */
+.duo-node-bubble {
+    position: absolute;
+    bottom: calc(100% + var(--duo-ring-gap) + var(--duo-ring-w) / 2 + 2px);
+    left: 50%;
+    z-index: 1;
+    padding: 9px 14px;
+    border-radius: 12px;
+    background: var(--duo-paper);
+    border: 2px solid var(--duo-line, color-mix(in srgb, var(--duo-paper-ink) 14%, var(--duo-paper)));
+    color: var(--duo-face);
+    font: 700 13px/1 var(--duo-font);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    pointer-events: none;
+    animation: duo-bob 1.2s ease-in-out infinite;
+}
+.duo-node-bubble::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    margin: -7px 0 0 -6px;
+    background: inherit;
+    border: inherit;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+.duo-node:not(.is-active) .duo-node-bubble { display: none; }
+@keyframes duo-bob {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, -5px); }
+}
+
+/* ---- states ---- */
+.duo-node.is-done {
+    --duo-face: var(--duo-done);
+    --duo-face-bg: var(--duo-done-bg);
+}
+.duo-node.is-prize {
+    --duo-face: var(--duo-prize);
+    --duo-face-bg: var(--duo-prize-bg);
+}
+/* waiting: claimed, with a grown-up. The groove goes grey, no fluid, nothing to press. */
+.duo-node.is-waiting {
+    --duo-track: var(--duo-lock);
+    --duo-ring: transparent;
+}
+.duo-node.is-waiting .duo-node-face {
+    cursor: default;
+    pointer-events: none;
+}
+/* locked: last, so a locked prize is grey too. Keeps its base: duolingo.com's
+   locked steps are the same object in swan grey, not a flat disc. */
+.duo-node.is-locked {
+    --duo-face: var(--duo-lock);
+    --duo-face-bg: none;
+    --duo-ink: var(--duo-lock-ink);
+}
+.duo-node.is-locked .duo-node-face {
+    cursor: default;
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .duo-node-face,
+    .duo-node-face::before { transition: none; }
+    .duo-node-bubble { animation: none; transform: translateX(-50%); }
+    .duo-node-arc { transition: none; }
+    .duo-node-face:active,
+    .duo-node.is-pressed .duo-node-face { transform: translateZ(0); }
+    .duo-node-face:active::before,
+    .duo-node.is-pressed .duo-node-face::before { transform: translateY(var(--duo-node-lip)); }
+    .duo-node-face:active::after,
+    .duo-node.is-pressed .duo-node-face::after { filter: brightness(0.92); }
+}

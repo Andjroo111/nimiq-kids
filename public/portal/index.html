@@ -1,0 +1,168 @@
+<!doctype html>
+<!-- Portal chooser, the bare-domain landing on the public instance (root-redirect
+     sends "/" here when HATCH_LEGACY_BOOT=0). One job: route parents to /parent/
+     and kids to /kid/. Inside Nimiq Pay's WebView this is the only path a kid has
+     to their sign-in (the pairing screen), so both cards must stay unauthenticated.
+     Returning devices skip it entirely via the localStorage check below. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>nimiq.kids</title>
+  <meta name="theme-color" content="#1F2348" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/icon.svg" />
+  <script>
+    // Known devices skip the chooser: a stored parent session → parent app, a
+    // paired kid device → kid app. ?choose forces the chooser; a device holding
+    // BOTH tokens is ambiguous, so it also gets the chooser.
+    (() => {
+      try {
+        if (new URLSearchParams(location.search).has("choose")) return;
+        var parent = localStorage.getItem("kidsParentToken");
+        var kid = localStorage.getItem("kid.deviceToken");
+        if (parent && !kid) location.replace("/parent/");
+        else if (kid && !parent) location.replace("/kid/");
+      } catch (e) {}
+    })();
+  </script>
+  <style>
+    @font-face {
+      font-family: 'Mulish';
+      font-style: normal;
+      font-weight: 200 1000;
+      font-display: swap;
+      src: url('/fonts/mulish-latin-wght-normal.woff2') format('woff2');
+    }
+    :root {
+      --navy: #1F2348;
+      --ink-50: rgba(31, 35, 72, 0.5);
+      --hairline: rgba(31, 35, 72, 0.12);
+      --card-shadow: 0 4px 28px rgba(0, 0, 0, 0.09);
+      --ease: cubic-bezier(0.25, 0, 0, 1);
+    }
+    * { box-sizing: border-box; }
+    html { background: #F4F4F4; }
+    body {
+      font-family: 'Mulish', system-ui, -apple-system, sans-serif;
+      font-size: 15px; color: var(--navy); background: #F4F4F4; margin: 0;
+      min-height: 100dvh; display: flex; flex-direction: column;
+    }
+    /* Header spans the whole viewport (a 460px navy strip on a desktop read as a
+       cropped phone app); the row inside is what stays constrained. */
+    .phdr {
+      background-image: radial-gradient(100% 100% at bottom right, #260133, #1F2348);
+      color: #fff; padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+      /* positioned: the language pill's phone dropdown anchors to this header */
+      position: sticky; top: 0; z-index: 20;
+    }
+    .phdr-row { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; gap: 10px; min-height: 44px; }
+    .hdr-brand { display: flex; align-items: center; min-width: 0; }
+    /* One piece of artwork (hexagon + solid hand + wordmark) at 114.814x18, so
+       height alone sizes it — 27.6px tall, the header size the brand README
+       documents. Never a retyped wordmark. Unlike the parent app there is no
+       wallet pill competing for this row, so the full lockup holds down to
+       320px; the bare mark only covers the ultra-narrow tail. */
+    .hdr-lockup { height: 27.6px; width: auto; display: block; }
+    .hdr-mark { display: none; height: 28px; width: auto; }
+    @media (max-width: 319px) {
+      .hdr-lockup { display: none; }
+      .hdr-mark { display: block; }
+    }
+    .phdr-lang { margin-left: auto; display: flex; align-items: center; }
+    /* The chooser centers in the space the header leaves — on a phone and a
+       desktop alike — instead of hugging the top of a fixed column. */
+    .portal { flex: 1; padding: 28px 16px 40px; display: flex; align-items: center; justify-content: center; }
+    .portal-inner { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 14px; }
+    .portal h1 { font-size: 22px; font-weight: 700; text-align: center; margin: 6px 0 10px; }
+    .portal-card {
+      display: flex; align-items: center; gap: 16px; padding: 18px;
+      background: #fff; border: 1px solid var(--hairline); border-radius: 16px;
+      box-shadow: var(--card-shadow); text-decoration: none; color: var(--navy);
+      transition: transform .15s var(--ease), box-shadow .15s var(--ease);
+    }
+    .portal-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12); }
+    .portal-card:active { transform: scale(.985); box-shadow: var(--card-shadow); }
+    .portal-card:focus-visible { outline: 2px solid #0582CA; outline-offset: 3px; }
+    .portal-art { width: 58px; height: 58px; flex-shrink: 0; object-fit: contain; }
+    .portal-art--hex { display: grid; place-items: center; }
+    .portal-art--hex svg { width: 48px; height: 48px; }
+    .portal-copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .portal-name { font-size: 17px; font-weight: 700; }
+    .portal-sub { font-size: 13.5px; color: var(--ink-50); }
+    .portal-chev { margin-left: auto; flex-shrink: 0; color: var(--ink-50); }
+    @media (min-width: 768px) {
+      .portal-inner { max-width: 500px; }
+      .portal h1 { font-size: 28px; margin-bottom: 18px; }
+      .portal-card { padding: 22px 24px; gap: 18px; }
+      .portal-art { width: 64px; height: 64px; }
+      .portal-art--hex svg { width: 52px; height: 52px; }
+      .portal-name { font-size: 18px; }
+      .portal-sub { font-size: 14.5px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .portal-card, .portal-card:hover, .portal-card:active { transition: none; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="phdr">
+    <div class="phdr-row">
+      <div class="hdr-brand">
+        <img class="hdr-lockup" src="/assets/brand/nimiq-kids-lockup-dark.svg" alt="NIMIQ.kids" />
+        <img class="hdr-mark" src="/assets/brand/nimiq-kids-mark.svg" alt="NIMIQ.kids" />
+      </div>
+      <div id="lang" class="phdr-lang"></div>
+    </div>
+  </header>
+
+  <main class="portal">
+    <div class="portal-inner">
+      <h1 data-t="app.portalTitle">Who's here?</h1>
+
+      <a class="portal-card" href="/parent/">
+        <span class="portal-art portal-art--hex" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 18"><g fill="none"><path fill="url(#pt-hex-grad2)" d="M19.964 8.156 15.758.844A1.69 1.69 0 0014.299 0H5.887c-.6 0-1.156.32-1.456.844L.225 8.156c-.3.523-.3 1.165 0 1.688l4.206 7.312c.3.523.856.844 1.456.844h8.412c.6 0 1.156-.32 1.456-.844l4.206-7.312a1.69 1.69 0 00.003-1.688"/><defs><radialGradient id="pt-hex-grad2" cx="0" cy="0" r="1" gradientTransform="matrix(20.1956 0 0 20.2552 15.188 17.766)" gradientUnits="userSpaceOnUse"><stop stop-color="#ec991c"/><stop offset="1" stop-color="#e9b213"/></radialGradient></defs></g></svg>
+        </span>
+        <span class="portal-copy">
+          <span class="portal-name" data-t="app.portalParent">I'm a parent</span>
+          <span class="portal-sub" data-t="app.portalParentSub">Set up chores, rules and approvals</span>
+        </span>
+        <svg class="portal-chev" width="10" height="16" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+
+      <a class="portal-card" href="/kid/">
+        <!-- Was the egg rig's dinosaur (Andjroo's pick from the anim-demo roster) until the
+             characters went out for a redraw on 2026-09-15. The same hexagon as the parent
+             card, in the wallet's green, until the new one lands. -->
+        <span class="portal-art portal-art--hex" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 18"><g fill="none"><path fill="url(#pt-hex-grad-kid)" d="M19.964 8.156 15.758.844A1.69 1.69 0 0014.299 0H5.887c-.6 0-1.156.32-1.456.844L.225 8.156c-.3.523-.3 1.165 0 1.688l4.206 7.312c.3.523.856.844 1.456.844h8.412c.6 0 1.156-.32 1.456-.844l4.206-7.312a1.69 1.69 0 00.003-1.688"/><defs><radialGradient id="pt-hex-grad-kid" cx="0" cy="0" r="1" gradientTransform="matrix(20.1956 0 0 20.2552 15.188 17.766)" gradientUnits="userSpaceOnUse"><stop stop-color="#41A38E"/><stop offset="1" stop-color="#21BCA5"/></radialGradient></defs></g></svg>
+        </span>
+        <span class="portal-copy">
+          <span class="portal-name" data-t="app.portalKid">I'm a kid</span>
+          <span class="portal-sub" data-t="app.portalKidSub">Do my chores and other jobs around the house to earn NIM</span>
+        </span>
+        <svg class="portal-chev" width="10" height="16" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </main>
+
+  <!-- shared shell: i18n + the language pill in #lang (no #wallet-slot here, so
+       the shell mounts no wallet chrome and never touches the provider) -->
+  <script type="module" src="/dist/app-shell.js"></script>
+  <script type="module">
+    const apply = () => {
+      const sh = window.nimiqKidsShell;
+      if (!sh) return;
+      document.documentElement.lang = sh.getLanguage();
+      for (const el of document.querySelectorAll("[data-t]")) el.textContent = sh.t(el.dataset.t);
+    };
+    if (window.nimiqKidsShell) {
+      apply();
+      window.nimiqKidsShell.onLang(apply);
+    } else {
+      window.addEventListener("nimiq-shell-ready", () => { apply(); window.nimiqKidsShell.onLang(apply); }, { once: true });
+    }
+  </script>
+</body>
+</html>

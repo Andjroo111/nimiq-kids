@@ -1,0 +1,53 @@
+/* THE ONE-TIME POINTER AT THE NAME PILL (#407).
+ *
+ * Its own file because `chart.css` is at 796 of the 800-line CI guard, and because this thing
+ * is parented to `body` rather than to the board: it belongs to no screen's sheet.
+ *
+ * Fixed, not absolute. `js/coach.js` measures the pill and writes `top`/`left`/`max-width`, so
+ * nothing here may set those three. The pill lives in `.ch-aside`, which is a narrow left column
+ * in landscape, and a bubble positioned inside it is one ancestor `overflow` rule away from
+ * being clipped to nothing. */
+.kid-coach {
+  position: fixed;
+  z-index: 60;
+  padding: 10px 14px;
+  border-radius: var(--r-card);
+  background: var(--navy);
+  color: #fff;
+  font-size: 15px;
+  font-weight: var(--fw-title);
+  line-height: 1.3;
+  box-shadow: var(--sh-cta);
+  cursor: pointer;
+  /* It reads as a thing that just arrived rather than as chrome that was always there. */
+  animation: kid-coach-in 260ms ease-out both;
+}
+
+/* The arrow is what makes it a POINTER rather than a toast. Inset from the corner so it lands
+ * under the pill's own body and not off its edge. */
+.kid-coach-arrow {
+  position: absolute;
+  top: -7px;
+  left: 22px;
+  width: 14px;
+  height: 14px;
+  background: var(--navy);
+  transform: rotate(45deg);
+  border-radius: 2px;
+}
+
+.kid-coach-text { position: relative; }
+
+@keyframes kid-coach-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* A kid who has asked for less motion still gets the bubble; it just arrives. */
+@media (prefers-reduced-motion: reduce) {
+  .kid-coach { animation: none; }
+}
+
+@media (max-width: 767px) {
+  .kid-coach { font-size: 14px; padding: 9px 12px; }
+}

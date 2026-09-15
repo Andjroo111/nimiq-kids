@@ -1,0 +1,15 @@
+{
+  "name": "nimiq.kids — chores paid instantly",
+  "short_name": "nimiq.kids",
+  "description": "Kids' allowance & chores paid instantly in NIM via Cashlinks.",
+  "start_url": "/portal/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1F2348",
+  "theme_color": "#1F2348",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icon.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+ "version": 1,
+ "box": 256,
+ "icons": [
+  {
+   "slug": "goodjob",
+   "fill": 0.403,
+   "reach": 0.297
+  },
+  {
+   "slug": "hooray",
+   "fill": 0.407,
+   "reach": 0.289
+  },
+  {
+   "slug": "love",
+   "fill": 0.405,
+   "reach": 0.338
+  },
+  {
+   "slug": "shoes",
+   "fill": 0.404,
+   "reach": 0.235
+  },
+  {
+   "slug": "socks",
+   "fill": 0.405,
+   "reach": 0.389
+  },
+  {
+   "slug": "bath",
+   "fill": 0.404,
+   "reach": 0.387
+  },
+  {
+   "slug": "bed",
+   "fill": 0.41,
+   "reach": 0.287
+  },
+  {
+   "slug": "tidy",
+   "fill": 0.404,
+   "reach": 0.522
+  },
+  {
+   "slug": "teeth",
+   "fill": 0.299,
+   "reach": 0.165
+  },
+  {
+   "slug": "eat",
+   "fill": 0.395,
+   "reach": 0.189
+  },
+  {
+   "slug": "screenoff",
+   "fill": 0.404,
+   "reach": 0.472
+  }
+ ]
+}

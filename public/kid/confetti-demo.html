@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>confetti playground · nimiq.kids</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Mulish', system-ui, -apple-system, sans-serif; background: #F4F4F7;
+           color: #1F2348; min-height: 100dvh; padding: 20px; }
+    h1 { font-size: 15px; font-weight: 800; opacity: .7; margin-bottom: 14px; }
+    .wrap { display: grid; grid-template-columns: 380px 1fr; gap: 20px; align-items: start; }
+    @media (max-width: 820px) { .wrap { grid-template-columns: 1fr; } }
+
+    /* stage (sticky so it stays visible while scrolling the panel) */
+    .stage-col { position: sticky; top: 20px; }
+    .stage { position: relative; width: 380px; max-width: 100%; height: 460px; background: #fff;
+             border-radius: 22px; box-shadow: 0 4px 24px rgba(31,35,72,.10); overflow: hidden; }
+    .disc { position: absolute; left: 50%; top: 160px; transform: translate(-50%,-50%);
+            width: 240px; height: 240px; border-radius: 50%; overflow: hidden;
+            background: radial-gradient(120% 120% at 50% 20%, #E9C6CE 0 42%, #CFE3DB 42% 100%); }
+    .disc img { width: 100%; height: 100%; object-fit: cover; }
+    .clock { position: absolute; left: 0; right: 0; top: 320px; text-align: center;
+             font-size: 46px; font-weight: 900; color: #3a3a52; font-variant-numeric: tabular-nums; }
+    canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .playbar { display: flex; gap: 8px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+    .playbar .scrub { flex: 1 1 100%; }
+
+    /* panel */
+    .panel { background: #fff; border-radius: 22px; box-shadow: 0 4px 24px rgba(31,35,72,.10);
+             padding: 16px 18px; }
+    .grp { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .6px;
+           opacity: .5; margin: 16px 0 8px; }
+    .grp:first-child { margin-top: 4px; }
+    .ctl { display: grid; grid-template-columns: 130px 1fr 48px; gap: 10px; align-items: center;
+           margin-bottom: 9px; }
+    .ctl label { font-size: 13px; font-weight: 700; }
+    .ctl input[type=range] { width: 100%; accent-color: #0582CA; }
+    .ctl .v { font-size: 12px; font-weight: 800; opacity: .7; text-align: right; font-variant-numeric: tabular-nums; }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    button { font: inherit; font-weight: 800; font-size: 13px; border: none; border-radius: 500px;
+             padding: 9px 15px; cursor: pointer; background: rgba(31,35,72,.08); color: #1F2348; }
+    button.primary { background: #0582CA; color: #fff; }
+    input[type=color] { width: 40px; height: 34px; border: none; border-radius: 8px; background: none; cursor: pointer; padding: 0; }
+    input[type=number] { font: inherit; font-weight: 700; width: 70px; padding: 6px 8px; border: none; box-shadow: inset 0 0 0 1.5px rgba(31,35,72,.15); border-radius: 8px; }
+    label.chk { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+    .presets button { background: rgba(5,130,202,.10); color: #0582CA; }
+    pre { background: #1F2348; color: #d7e6f5; font-size: 11px; line-height: 1.5; border-radius: 12px;
+          padding: 12px 14px; overflow: auto; max-height: 180px; margin-top: 8px; }
+    .hint { font-size: 12px; opacity: .55; font-weight: 600; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <h1>nimiq.kids · confetti playground</h1>
+  <div class="wrap">
+    <div class="stage-col">
+      <div class="stage" id="stage">
+        <div class="disc"><img id="photo" alt="" /></div>
+        <div class="clock">00:00</div>
+        <canvas id="cvs"></canvas>
+      </div>
+      <div class="playbar">
+        <button class="primary" id="celebrate">▶ Celebrate</button>
+        <button id="replay">Single burst</button>
+        <label class="chk"><input type="checkbox" id="radial" checked /> Radial ticks</label>
+        <input class="scrub" type="range" id="scrub" min="0" max="1600" step="20" value="0" />
+        <span class="hint" id="scrubv">continuous while music plays · scrub freezes a single burst</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="presets row">
+        <button data-preset="tworings">Two rings (ref)</button>
+        <button data-preset="onering">One ring</button>
+        <button data-preset="scatter">Scatter</button>
+        <button data-preset="fall">Falling</button>
+      </div>
+
+      <div id="sliders"></div>
+
+      <div class="grp">Colors (one per ring, cycles)</div>
+      <div class="row" id="colors"></div>
+
+      <div class="grp">Seed</div>
+      <div class="row">
+        <input type="number" id="seed" value="7" />
+        <button id="reseed">Randomize</button>
+        <button id="reset">Reset defaults</button>
+      </div>
+
+      <div class="grp">Config <span class="hint" style="text-transform:none;letter-spacing:0">(auto-saved in this browser)</span></div>
+      <div class="row">
+        <button class="primary" id="copy">Copy config JSON</button>
+        <button id="download">Download .json</button>
+        <span class="hint" id="copied"></span>
+      </div>
+      <pre id="json"></pre>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createConfetti, makeDefaults, PARAMS } from "/kid/js/confetti.js";
+
+    const PHOTO = "data:image/svg+xml," + encodeURIComponent(
+      `<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'>
+        <rect width='240' height='240' fill='#BFD8CF'/>
+        <circle cx='120' cy='96' r='52' fill='#C79A6B'/>
+        <ellipse cx='120' cy='190' rx='84' ry='66' fill='#8C6239'/>
+        <circle cx='100' cy='90' r='7' fill='#2E2E48'/><circle cx='140' cy='90' r='7' fill='#2E2E48'/>
+        <path d='M104 116 q16 14 32 0' stroke='#2E2E48' stroke-width='5' fill='none' stroke-linecap='round'/>
+      </svg>`);
+    document.getElementById("photo").src = PHOTO;
+
+    const canvas = document.getElementById("cvs");
+    const confetti = createConfetti(canvas);
+    const STORE = "nk_confetti_cfg";
+    let cfg = makeDefaults();
+    // Restore last-used settings so a reload never wipes your work.
+    try { const s = localStorage.getItem(STORE); if (s) cfg = { ...cfg, ...JSON.parse(s) }; } catch {}
+    const save = () => { try { localStorage.setItem(STORE, JSON.stringify(cfg)); } catch {} };
+
+    // ---- presets tweak the defaults ----
+    const PRESETS = {
+      tworings: {},                                                    // defaults ARE two rings
+      onering:  { rings: 1, ticksPerRing: 30, innerRadius: 30, pops: 2 },
+      scatter:  { rings: 1, ticksPerRing: 16, innerRadius: 7, ringGap: 4, pops: 5, radial: false, spin: 6, speed: 160, tickLength: 8 },
+      fall:     { rings: 1, ticksPerRing: 40, innerRadius: 6, pops: 1, radial: false, spin: 8, speed: 300, gravity: 900, life: 1.8, mainScale: 1.4, tickLength: 9 },
+    };
+
+    // ---- build sliders from PARAMS ----
+    const slidersEl = document.getElementById("sliders");
+    let curGroup = "";
+    const sliderInputs = {};
+    for (const p of PARAMS) {
+      if (p.group !== curGroup) { curGroup = p.group;
+        const g = document.createElement("div"); g.className = "grp"; g.textContent = p.group; slidersEl.appendChild(g); }
+      const row = document.createElement("div"); row.className = "ctl";
+      const lab = document.createElement("label"); lab.textContent = p.label;
+      const inp = document.createElement("input"); inp.type = "range";
+      inp.min = p.min; inp.max = p.max; inp.step = p.step; inp.value = cfg[p.key];
+      const val = document.createElement("span"); val.className = "v"; val.textContent = cfg[p.key];
+      inp.oninput = () => { cfg[p.key] = parseFloat(inp.value); val.textContent = inp.value; changed(); };
+      sliderInputs[p.key] = { inp, val };
+      row.append(lab, inp, val); slidersEl.appendChild(row);
+    }
+
+    // ---- color pickers (3) ----
+    const colorsEl = document.getElementById("colors");
+    const colorInputs = [];
+    for (let i = 0; i < 3; i++) {
+      const c = document.createElement("input"); c.type = "color"; c.value = cfg.colors[i] || "#21BCA5";
+      c.oninput = () => { cfg.colors = colorInputs.map(x => x.value); changed(); };
+      colorInputs.push(c); colorsEl.appendChild(c);
+    }
+
+    const seedEl = document.getElementById("seed");
+    const radialEl = document.getElementById("radial");
+    const scrubEl = document.getElementById("scrub");
+    const scrubV = document.getElementById("scrubv");
+    const jsonEl = document.getElementById("json");
+    const celebrateBtn = document.getElementById("celebrate");
+
+    function syncControls() {
+      for (const p of PARAMS) { sliderInputs[p.key].inp.value = cfg[p.key]; sliderInputs[p.key].val.textContent = cfg[p.key]; }
+      colorInputs.forEach((c, i) => c.value = cfg.colors[i] || "#21BCA5");
+      seedEl.value = cfg.seed; radialEl.checked = cfg.radial;
+    }
+    function writeJson() { jsonEl.textContent = JSON.stringify(cfg, null, 2); }
+
+    function setCelebrating(on) {
+      celebrateBtn.classList.toggle("primary", on);
+      celebrateBtn.textContent = on ? "■ Stop" : "▶ Celebrate";
+    }
+    function celebrate() { scrubEl.value = 0; scrubV.textContent = "continuous"; confetti.celebrate(cfg); setCelebrating(true); }
+    function singleBurst() { scrubEl.value = 0; scrubV.textContent = "single burst"; confetti.fire(cfg); setCelebrating(false); }
+
+    // A control changed: keep whatever mode we're in live; freeze if scrubbing.
+    function changed() {
+      writeJson(); save();
+      if (scrubEl.value > 0) { confetti.renderAt(parseFloat(scrubEl.value), cfg); setCelebrating(false); }
+      else if (confetti.isCelebrating()) confetti.celebrate(cfg);
+      else confetti.fire(cfg);
+    }
+
+    // wiring
+    celebrateBtn.onclick = () => { if (confetti.isCelebrating()) { confetti.stop(); setCelebrating(false); } else celebrate(); };
+    document.getElementById("replay").onclick = singleBurst;
+    radialEl.onchange = () => { cfg.radial = radialEl.checked; changed(); };
+    seedEl.oninput = () => { cfg.seed = parseInt(seedEl.value || "1", 10); changed(); };
+    document.getElementById("reseed").onclick = () => { cfg.seed = (Math.random() * 1e6) | 0; seedEl.value = cfg.seed; changed(); };
+    scrubEl.oninput = () => {
+      const ms = parseFloat(scrubEl.value);
+      if (ms <= 0) { scrubV.textContent = "single burst"; singleBurst(); }
+      else { scrubV.textContent = ms + "ms (frozen)"; confetti.renderAt(ms, cfg); setCelebrating(false); }
+    };
+    document.querySelectorAll(".presets button").forEach((b) => {
+      b.onclick = () => { cfg = { ...makeDefaults(), ...PRESETS[b.dataset.preset] }; syncControls(); scrubEl.value = 0; writeJson(); save(); confetti.isCelebrating() ? celebrate() : singleBurst(); };
+    });
+    document.getElementById("reset").onclick = () => { cfg = makeDefaults(); syncControls(); scrubEl.value = 0; writeJson(); save(); singleBurst(); };
+
+    // Robust copy: clipboard API when allowed (https/localhost), else a temp-textarea
+    // execCommand fallback that works over plain http on a LAN IP.
+    function copyText(text) {
+      if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+      return new Promise((res, rej) => {
+        const ta = document.createElement("textarea");
+        ta.value = text; ta.style.position = "fixed"; ta.style.top = "-1000px";
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        let ok = false; try { ok = document.execCommand("copy"); } catch {}
+        document.body.removeChild(ta); ok ? res() : rej();
+      });
+    }
+    const flash = (msg) => { const el = document.getElementById("copied"); el.textContent = msg; setTimeout(() => el.textContent = "", 1800); };
+    document.getElementById("copy").onclick = () =>
+      copyText(JSON.stringify(cfg, null, 2)).then(() => flash("copied ✓")).catch(() => flash("couldn't copy · use Download"));
+    document.getElementById("download").onclick = () => {
+      const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: "application/json" });
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+      a.download = "confetti-config.json"; a.click(); URL.revokeObjectURL(a.href); flash("downloaded ✓");
+    };
+
+    // Deep link: ?t=420 freezes a frame; ?cfg=<urlencoded json> loads a config.
+    const qs = new URLSearchParams(location.search);
+    if (qs.get("cfg")) { try { cfg = { ...makeDefaults(), ...JSON.parse(qs.get("cfg")) }; } catch {} }
+    syncControls(); writeJson(); save();
+    if (qs.has("t")) confetti.renderAt(parseFloat(qs.get("t")) || 400, cfg);
+    else requestAnimationFrame(celebrate);
+  </script>
+</body>
+</html>

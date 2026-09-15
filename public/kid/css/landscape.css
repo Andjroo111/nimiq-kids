@@ -1,0 +1,200 @@
+/* nimiq.kids — THE CHART, TURNED SIDEWAYS.
+ *
+ * Every other stylesheet in this app is written for ONE shape: 800x1280 portrait, the
+ * Galaxy Tab A11+ stood on its end (1200x1920 physical at density 240). Turn that tablet
+ * and the width doubles while the height halves, and the whole design is stacked in a
+ * single column — so the half that matters gets crushed.
+ *
+ * Measured on the real viewport before this file existed (1280x800):
+ *
+ *     portrait  800x1280   Today's list gets 584px for 616px of cards
+ *     landscape 1280x800   Today's list gets 104px for 616px of cards
+ *
+ * 104px, with a task card 120px tall. Not one whole card. The name pill, the money card
+ * and the calendar are unchanged in that turn — they are 394px of chrome either way —
+ * and they simply eat the screen, each stretched to 1280px wide holding the same content
+ * it held at 800. Andjroo, 2026-08-27: "when I flip it sideways the task gets scrunched
+ * ... I can barely scroll and see the tasks."
+ *
+ * THE FIX IS THE SECOND AXIS. Landscape has width the portrait design never asks for, so
+ * the at-a-glance blocks (who I am, what I have, my week) go into a narrow left column and
+ * TODAY takes the whole height of the right one. Nothing is hidden and nothing moves
+ * screens; the same four blocks are on the same screen in the same order, read left-to-top
+ * instead of top-to-bottom.
+ *
+ * ⚠️ THE GATE IS SHORT-AND-WIDE, NOT `orientation: landscape`. A phone held sideways is
+ * also landscape and is 430px tall — it needs this layout MORE than the tablet, not less,
+ * and it is caught here. What must not be caught is a portrait tablet (800 wide, so the
+ * min-width alone would take it) or an ordinary desktop window, hence the max-height.
+ * Same trap as the parent app's 700px breakpoint catching a phone in landscape.
+ *
+ * Loaded LAST, so it overrides chart.css, calendar.css and chrome.css without any of them
+ * having to know it exists.
+ */
+
+/* PORTRAIT AND PHONE: the aside is not a box at all.
+   `display: contents` hoists its three children straight back into .k-chart's flex column,
+   so the portrait layout is byte-for-byte what it was before this wrapper existed — same
+   order, same one gap between every block, same scroll behaviour.
+
+   ⚠️ DECLARED FIRST, and it has to stay first. It and the rule inside the media query are
+   both (0,1,0), so the cascade is settled by source order alone: put this at the foot of
+   the file and it silently un-does the grid it exists to fall back from. */
+.ch-aside { display: contents; }
+
+@media (min-width: 820px) and (max-height: 860px) {
+  /* ---------- the two columns ---------- */
+  /* One row, full height: the aside scrolls inside itself if the calendar is opened to a
+     whole month, and Today scrolls inside itself as it always has. The SCREEN never grows,
+     which is the same rule .k-chart already follows in portrait — it is just enforced on
+     two children now instead of one. */
+  /* ⚠️ THE GRID IS ON THE SLAB, NOT THE SCREEN (2026-09-10). .k-chart holds exactly two
+     things now, the slab and the fixed dock, so a grid here would place the SLAB in column
+     one and leave column two empty. The slab is the element that holds .ch-aside and
+     .ch-today, so it is the one that has to be the two-column grid. */
+  .k-chart {
+    /* The dock is position:fixed, so it is out of flow and reserves nothing. The portrait
+       tablet rule pads 150px for it, which is 19% of a landscape screen spent on a 100px
+       bar. */
+    padding: calc(env(safe-area-inset-top, 0px) + var(--kid-corner-top))
+             var(--kid-chrome-gutter)
+             calc(var(--kid-dock-h, 100px) + var(--s3));
+  }
+  .ch-slab {
+    /* ⚠️ `flex: 1` HERE, against the `flex: 0 1 auto` it carries in portrait. Sideways the
+       two columns ARE the screen and both scroll inside themselves, so the slab has to be
+       given the height for `grid-template-rows: minmax(0, 1fr)` to divide. Left hugging its
+       content the row would size to the content it is supposed to be bounding, and the
+       aside would grow instead of scrolling. */
+    flex: 1; min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(320px, 30%) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    column-gap: var(--s5);
+  }
+  .ch-aside {
+    grid-column: 1; grid-row: 1;
+    display: flex; flex-direction: column; gap: var(--s4);
+    min-height: 0; overflow-y: auto;
+    /* The card shadows are 56px of blur; without a little room they clip against the
+       scroller's own edge. */
+    padding: 2px 4px 4px 2px;
+  }
+  .ch-today { grid-column: 2; grid-row: 1; min-height: 0; }
+
+  /* ⚠️ THE LANE IS BACK (2026-09-10). The header used to sit inside the narrow column, so
+     it did not share a line with the fixed corner control. It is a full-width row above the
+     slab now, on that control's line again, so it keeps a lane clear of it exactly as
+     portrait does -- the rule here only stops it stretching. */
+  .ch-hd { flex: none; }
+  /* Neither does anything else in the aside: it is a scroller, so a child that does not
+     fit must push the scrollbar rather than be squashed by flex's default shrink. Same
+     rule and same reason as `.ch-group { flex: none }` in the Today column. */
+  .ch-aside > * { flex: none; }
+
+  /* ---------- sized for the column each block actually landed in ----------
+     Everything below was tuned in the >=768px block for a block 800px wide and a screen
+     1280px tall. The money card and the calendar are now ~380px wide, and vertical space
+     is the scarce thing rather than the free thing, so the two scale back together. */
+  :root { --kid-ident: 46px; }
+
+  .ch-kid-name { font-size: 22px; }
+
+  .ch-money { padding: 14px 18px; gap: var(--s3); }
+  .ch-money-lbl { font-size: 12px; }
+  .ch-money-nim { font-size: 36px; }
+  .ch-money-nim i { font-size: 17px; }
+  .ch-money-fiat { font-size: 16px; }
+
+  /* Seven columns in a 380px card: a 40px date cell no longer fits beside its neighbours. */
+  .k-cal { padding: var(--s3); gap: var(--s2); }
+  .cal-month { font-size: var(--fs-body); }
+  .cal-dow span { font-size: var(--fs-micro); }
+  .cal-day { padding: 5px 0 6px; gap: 3px; }
+  .cal-day b { font-size: 14px; }
+  .cal-day-mark { width: 30px; height: 30px; }
+  .cal-check { font-size: 15px; }
+  .stk-cal { width: 30px; height: 30px; }
+  .stk-cal .stk-emoji { font-size: 17px; }
+
+  /* ---------- Today: more cards on screen, not bigger ones ----------
+     The portrait card is 116px tall so that a 116px card is a comfortable target on a
+     screen with 584px to spend. Here the same list has ~660px and is the ONLY thing in its
+     column, so the card shrinks to put more of the day in front of the kid at once: 116px
+     fits five, 88px fits eight. Still far above the 44px touch minimum. */
+  /* ⚠️ ONE STEP DOWN FOR EVERY SECTION HEADING, through the token (2026-09-10). This used to
+     be a .ch-sec-hd line here and a .bx-shelf-hd line 60 lines below, at two different sizes,
+     which is how portrait ended up with three heading scales in the first place. Landscape's
+     columns are narrower, so 19 rather than 22; the weight stays 900 and comes from the token
+     block in kid.css. */
+  :root { --fs-section-hd: 19px; }
+  .ch-sec-hd { margin-bottom: 6px; }
+  .ch-tasks { gap: 10px; }
+  .ch-task { padding: 12px 14px 12px 16px; min-height: 88px; gap: 14px; }
+  .ch-task-emoji { font-size: 40px; }
+  .ch-task-icon { width: 40px; height: 40px; }
+  .ch-task-main { gap: 6px; }
+  .ch-task-title { font-size: 23px; }
+  .ch-slot { width: 62px; height: 62px; }
+  .ch-slot-empty { inset: 4px; border-width: 3px; }
+  .ch-slot-wait { font-size: 24px; }
+  .stk-slot { width: 52px; height: 52px; }
+  .stk-slot .stk-emoji { font-size: 30px; }
+  .ch-group-hd { padding: var(--s2) var(--s3); font-size: var(--fs-label); }
+  .ch-groups { gap: 10px; }
+  .ch-empty { padding: 24px; }
+  .ch-empty p { font-size: 19px; }
+
+  /* ⚠️ NOTHING HERE SIZES AN APP SHELF ANY MORE (#398). The narrow column used to carry five
+     app tiles at 80px; games is a dock destination now, so the aside is name, money, calendar
+     and nothing else, and Today takes the whole of the right-hand column. */
+
+  /* ---------- the dock ----------
+     One size for all four here too, but SHORTER than the portrait tablet's: that block draws
+     an 80px button in a 100px bar, which on a screen 800px tall is real estate. The word does
+     the ranking, and the reserved height matches what is drawn.
+     (The >=768px block used to size these as the DISCS they were before each grew a word
+     under it, and reserve 74px for a bar it drew at 100. Both halves are corrected now, so
+     this block is a landscape decision rather than a workaround.) */
+  /* 76 = the badge's own lane (18) above a --ic-l glyph (40), the gap and the word, so the
+     "9" never lands on the chest (the 2026-09-01 complaint) at the size the icon system gives
+     the dock. The reserved height follows it: 76 + 6 + 6 = 88. */
+  body:has(#kid-app.chart-screen) { --kid-dock-h: 88px; }
+  .ch-dock { padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); gap: 8px; }
+  .ch-dock-btn,
+  .ch-dock-btn.is-on,
+  .ch-dock-box { width: auto; min-width: 84px; height: 76px; font-size: var(--ic-l); }
+  .ch-dock-lbl { font-size: 12px; }
+  .ch-badge { min-width: 20px; height: 18px; font-size: 12px; }
+
+  /* ---------- the Treasure Box, in two columns ----------
+   * Not the same defect as the chart. Measured at 1280x800 the Box is 1068px of content in an
+   * 800px viewport and it SCROLLS correctly — nothing is trapped and nothing is cut. It is
+   * simply a tall single column, so a kid deciding what to spend their NIM on sees the header
+   * and one shelf, and has to scroll to find out what else is on offer.
+   *
+   * Shelves are siblings of the header under .k-box, so a two-column grid needs nothing but a
+   * span on the header: the shelves auto-place, and a fourth (the app shelf, #376) drops into
+   * the next slot on its own rather than needing this rule changed.
+   *
+   * The tiles inside each shelf keep their own auto-fill grid, so a ~590px column lays three
+   * across instead of six with two empty tracks — which is what the width was really doing.
+   */
+  /* ⚠️ ON THE SLAB, not on .k-box, for the same reason as the board above: .k-box holds the
+     slab and the floating back button, so a grid here would place the SLAB in column one. */
+  .k-box { padding-bottom: var(--s6); }
+  .bx-slab {
+    display: grid; grid-template-columns: 1fr 1fr;
+    column-gap: var(--s5); align-content: start;
+  }
+  .bx-slab > .bx-hd { grid-column: 1 / -1; }
+  .bx-item { min-height: 108px; }
+  /* ⚠️ THE TILE WIDTH IS WHAT DECIDES THE HEIGHT HERE, which is not obvious. A grid ROW is as
+     tall as its tallest shelf, so one shelf wrapping to a second row of tiles pushes every
+     shelf beside it down with it. At the >=768px tile floor of 180px a 590px column lays 3
+     across, so the four sticker packs wrapped and cost the whole layout ~200px for one tile.
+     126px with an 8px gap lays four (4x126 + 3x8 = 528 in a ~590px column). Below the phone's
+     own 140px floor, but the tiles still come out ~145px wide — wider than the phone draws
+     them at 390 — because the floor is a minimum and 1fr does the rest. */
+  .bx-row { grid-template-columns: repeat(auto-fill, minmax(126px, 1fr)); gap: var(--s2); }
+}

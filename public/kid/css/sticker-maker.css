@@ -1,0 +1,130 @@
+/* nimiq.kids — Sticker Maker timer rig styles (placeholder art).
+   ART CONTRACT: every color, stroke weight and timing lives in the custom
+   properties below. Future NanoBanana re-skins override these vars (or swap the
+   SVG parts by class: .mk-body, .mk-hopper, .mk-window) without touching
+   kid/js/sticker-maker.js. Progress arrives as CSS vars set by the rig:
+   --mk-outline / --mk-fill / --mk-foil / --mk-out (per-phase 0..1) + --mk-dial. */
+
+.maker-rig {
+  /* -- palette (kawaii: bold dark outline, mint machine, sunny sticker) -- */
+  --maker-body: #9FE0DC;
+  --maker-hopper: #FFD66E;
+  --maker-base: #2E2E48;
+  --maker-slot: #1F2348;
+  --maker-window: #FFFFFF;
+  --maker-outline: #2E2E48;
+  --maker-outline-w: 5px;
+  --maker-sticker-base: #FFFFFF;
+  --maker-sticker-fill: #FFE9A8;
+  --maker-foil: #E9B213;
+  --maker-gleam: rgba(255, 255, 255, 0.75);
+  --maker-dial-track: rgba(46, 46, 72, 0.18);
+  --maker-dial: #21BCA5;
+  --maker-cheek: #FFB3C7;
+  --maker-face: #2E2E48;
+  --maker-shadow: rgba(31, 35, 72, 0.14);
+  --maker-question: #B5B8CE;
+
+  /* -- motion -- */
+  --maker-chug-ms: 460ms;
+  --maker-pop-ms: 900ms;
+  --maker-pop-delay: 150ms;
+
+  /* -- progress (written by the rig every tick) -- */
+  --mk-outline: 0;
+  --mk-fill: 0;
+  --mk-foil: 0;
+  --mk-out: 0;
+  --mk-dial: 0;
+
+  display: block;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+}
+.maker-rig-svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+/* ---------- machine parts ---------- */
+.mk-shadow { fill: var(--maker-shadow); }
+.mk-body { fill: var(--maker-body); stroke: var(--maker-outline); stroke-width: var(--maker-outline-w); }
+.mk-hopper { fill: var(--maker-hopper); stroke: var(--maker-outline); stroke-width: 4px; }
+.mk-base { fill: var(--maker-base); }
+.mk-slot { fill: var(--maker-slot); }
+.mk-window { fill: var(--maker-window); stroke: var(--maker-outline); stroke-width: 4px; }
+.mk-cheek { fill: var(--maker-cheek); }
+.mk-eye { fill: none; stroke: var(--maker-face); stroke-width: 3.5px; stroke-linecap: round; }
+
+/* ---------- the sticker being made (inside the porthole) ---------- */
+.mk-sticker { transform: translate(97px, 120px) translateY(calc(var(--mk-out) * 60px)); }
+.mk-sticker-base { fill: var(--maker-sticker-base); }
+.mk-sticker-fill { fill: var(--maker-sticker-fill); }
+.mk-question {
+  font-size: 44px; font-weight: 800; fill: var(--maker-question);
+  font-family: inherit;
+}
+
+/* Phase 1: the die-cut outline self-draws. */
+.mk-outline {
+  fill: none; stroke: var(--maker-outline); stroke-width: 4px; stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - var(--mk-outline));
+}
+/* Phase 2: art sweeps in top-down like a print head. */
+.mk-sticker-art { clip-path: inset(0 0 calc((1 - var(--mk-fill)) * 100%) 0); }
+/* Phase 3: foil pass — gleam sweeps across, gold ring stamps on. */
+.mk-gleam rect { fill: var(--maker-gleam); }
+.mk-gleam {
+  transform: translateX(calc(var(--mk-foil) * 130px - 65px));
+  opacity: clamp(0, calc(var(--mk-foil) * 4 - (var(--mk-foil) * var(--mk-foil) * 4)), 1);
+}
+.mk-foil-ring {
+  fill: none; stroke: var(--maker-foil); stroke-width: 4.5px;
+  opacity: var(--mk-foil);
+}
+.mk-foil-ring.is-set { opacity: 1; }
+
+/* ---------- progress dial ---------- */
+.mk-dial-bg { fill: #fff; stroke: var(--maker-dial-track); stroke-width: 5px; }
+.mk-dial {
+  fill: none; stroke: var(--maker-dial); stroke-width: 5px; stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - var(--mk-dial));
+}
+
+/* ---------- chug (phase change / wobble()) ---------- */
+.mk-body-wrap { transform-box: fill-box; transform-origin: 50% 100%; }
+.mk-body-wrap.is-chugging { animation: mk-chug var(--maker-chug-ms) ease-in-out; }
+@keyframes mk-chug {
+  0%   { transform: translateY(0) rotate(0deg); }
+  25%  { transform: translateY(-3px) rotate(-1.2deg); }
+  50%  { transform: translateY(0) rotate(1.2deg); }
+  75%  { transform: translateY(-2px) rotate(-0.6deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+/* ---------- hatch: the finished sticker pops out of the slot ---------- */
+.mk-pop { opacity: 0; }
+.mk-pop-inner { transform-box: fill-box; transform-origin: 50% 50%; }
+.mk-pop-paper { fill: #fff; stroke: var(--maker-outline); stroke-width: 3px; }
+
+.maker-rig.is-hatched .mk-sticker { transform: translate(97px, 120px) translateY(60px); }
+.maker-rig.is-hatched .mk-pop { opacity: 1; }
+.maker-rig.is-hatched .mk-pop-inner {
+  animation: mk-pop-out var(--maker-pop-ms) cubic-bezier(0.34, 1.56, 0.64, 1) var(--maker-pop-delay) both;
+}
+@keyframes mk-pop-out {
+  0%   { transform: translateY(38px) scale(0.12); }  /* right at the out-slot */
+  60%  { transform: translateY(-16px) scale(1.26); } /* springs up + past */
+  80%  { transform: translateY(5px) scale(1.08); }
+  100% { transform: translateY(0) scale(1.15); }     /* lands in front, proud */
+}
+.maker-rig.is-hatched .mk-body-wrap { animation: mk-chug var(--maker-chug-ms) ease-in-out; }
+
+/* ---------- prefers-reduced-motion: crossfades only ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .mk-body-wrap.is-chugging { animation: none; }
+  .maker-rig.is-hatched .mk-body-wrap { animation: none; }
+  .maker-rig.is-hatched .mk-sticker { opacity: 0; transform: translate(97px, 120px); transition: opacity 300ms ease-out; }
+  .maker-rig.is-hatched .mk-pop-inner { animation: mk-fade-in 400ms ease-out 150ms both; }
+  @keyframes mk-fade-in { from { opacity: 0; } to { opacity: 1; } }
+}

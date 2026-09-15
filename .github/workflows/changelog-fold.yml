@@ -1,0 +1,71 @@
+name: Changelog fold
+
+# Folds changelog.d/*.md into CHANGELOG.md and bumps package.json, on main, once.
+#
+# THE PROBLEM IT SOLVES. `package.json` and `CHANGELOG.md` are the only two files every
+# single PR in this repo touches, so they are the only two guaranteed to conflict when more
+# than one session is working. That is not hypothetical: the 2026-08-02 handoff records
+# three PRs stacked in one evening and two of them colliding on exactly those files, with a
+# rebase each time that had nothing to do with the change being shipped.
+#
+# So a PR no longer writes them. It writes `changelog.d/<branch-name>.md`, a path no other
+# branch can be using, and this job does the shared edit on main where there is nobody to
+# race. See changelog.d/README.md.
+on:
+  push:
+    branches: [main]
+
+# One fold at a time. Two concurrent folds would compute the same next version from the same
+# package.json and the second would fail to push — recoverable, but it would also mean two
+# releases claiming one number for as long as it took to notice.
+concurrency:
+  group: changelog-fold
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  fold:
+    name: Fold fragments and bump the version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.2"
+
+      - name: Fold
+        id: fold
+        run: node tools/changelog-fold.mjs
+
+      - name: Commit and push
+        if: steps.fold.outputs.folded == 'true'
+        env:
+          VERSION: ${{ steps.fold.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name  "nimiq.kids release bot"
+          git config user.email "noreply@nimiq.kids"
+          git add -A CHANGELOG.md package.json changelog.d
+          git commit -m "chore(release): v${VERSION}"
+
+          # Retry the push rather than failing on it. Another session merging between our
+          # checkout and our push is the NORMAL case here, not an error, and a failed fold
+          # would leave that session's fragment unreleased with nothing pointing at why.
+          # --rebase-merges keeps main's merge commits intact; our commit is a leaf and
+          # replays cleanly on top. A fragment that landed in the meantime simply folds on
+          # the next run, which is triggered by that very push.
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              echo "pushed v${VERSION} on attempt ${attempt}"
+              exit 0
+            fi
+            echo "push rejected (attempt ${attempt}), rebasing onto main"
+            git pull --rebase=merges origin main
+          done
+          echo "::error::could not push the release commit after 3 attempts"
+          exit 1

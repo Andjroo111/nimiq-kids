@@ -1,0 +1,337 @@
+
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --navy:#1F2348; --teal:#21BCA5; --red:#F2554B; --amber:#E9B213;
+    --sky:#2BC4DE;                 /* the light blue the running controls are */
+    --ink:#4A4F63;                 /* the countdown digits: softer than the outline */
+    --grey:#D8DCE4;
+    /* SF Pro Rounded wherever it exists, which on Andjroo's phone is everywhere.
+       The reference's whole personality is a rounded face; system-ui is not one. */
+    --font:ui-rounded,'SF Pro Rounded','Hiragino Maru Gothic ProN',Mulish,system-ui,sans-serif;
+  }
+  /* ⚠️ NO html/body RULE HERE. THIS FILE IS LOADED BY THE WHOLE APP.
+     Andjroo, 2026-07-31: "there is a black line below my bottom navigation, in the
+     border of the page." This carried the standalone timer page's own reset —
+     `html,body{height:100%;overflow:hidden;background:#0d1020}` — and it is linked
+     from public/kid/index.html, so that near-black became the PAGE background of
+     every screen in the app. The dock is white and ends at the viewport bottom, so
+     anywhere the safe-area inset lifts it by even a pixel the body shows underneath
+     as a dark line. Invisible in a headless 390x844 render, where the inset is 0;
+     plainly there on a phone.
+     kid.css already owns this — `html,body{height:100%}` and
+     `body{min-height:100dvh;overflow:hidden}` — and it loads after this file.
+     The port's own root (#eg-app) is position:fixed;inset:0 and needs no page reset.
+     ⚠️ This file is a PREFIXED COPY of timer.html's CSS. When it is re-derived, drop
+     the html/body rule again — the prefixer cannot know it is scoping a whole page. */
+  #eg-app{font-family:var(--font);color:var(--navy);-webkit-font-smoothing:antialiased}
+
+  /* the phone. On a desktop it is a 390px column so a render matches the device. */
+  #eg-app{position:fixed;inset:0;margin:0 auto;max-width:430px;background:#fff;overflow:hidden;
+       isolation:isolate}
+
+  /* ---------- the scene: the background AND the egg, clipped as one ----------
+     Andjroo, 2026-07-31: "on the main screen the background takes up the whole
+     thing behind the egg. Once the start button is pressed then we see the little
+     egg and that's where it's in the circle."
+     So the badge is not a second element that appears — it is this same layer with
+     its clip closed down onto a circle. The background does not cross-fade into a
+     disc, it BECOMES one, and the egg rides the same move.
+     ⚠️ The rig iframe lives here permanently and is never re-parented. Moving an
+     iframe between parents RELOADS its document, which would restart the rig
+     mid-run and lose the countdown. Everything is transform + clip-path.        */
+  /* ⚠️ overflow:hidden as well as the clip. clip-path hides the iframe's ink but
+     leaves its 720px box in the scroll extent, so the phone reports 41px of
+     sideways overflow at the badge scale — invisible, and still real. */
+  /* ⚠️ THE CLIP IS ON THE BACKGROUND, NOT ON THE SCENE. Andjroo, 2026-07-31: the
+     shells "need to fall to the side where they're falling out of that circle."
+     They could not: the rig lived inside the clipped layer, so anything it drew
+     past the badge's edge was cut off by the same circle that makes the badge.
+     Clipping `#eg-bgImg` alone keeps the move exactly as it was — the background is
+     still the thing that BECOMES the disc — while leaving the rig free to throw a
+     shell past the rim. `#eg-scene` keeps overflow:hidden, which is a different job:
+     the 720px iframe's box would otherwise put 41px of sideways scroll on a phone. */
+  #eg-scene{position:absolute;inset:0;z-index:1;overflow:hidden}
+  #eg-bgImg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;
+         clip-path:circle(var(--clipR) at var(--clipX) var(--clipY));
+         transition:clip-path .52s cubic-bezier(.4,0,.2,1)}
+  /* ⚠️ SIZED, NOT SCALED. This used to be a 720x560 iframe with a CSS
+     transform:scale() on it. Two things go wrong with that: the compositor is
+     free to rasterise a transformed iframe as a layer at its layout resolution
+     and then stretch it, and the rig inside cannot tell how big it is really
+     being drawn — so it cannot pick its own canvas resolution. Giving the frame
+     its true css size makes both problems disappear, and the rig measures
+     itself. The set->run collapse animates the box instead of a transform. */
+  #eg-rigWrap{position:absolute;pointer-events:none;
+           transition:left .52s cubic-bezier(.4,0,.2,1),top .52s cubic-bezier(.4,0,.2,1),
+                      width .52s cubic-bezier(.4,0,.2,1),height .52s cubic-bezier(.4,0,.2,1)}
+  #eg-rig{width:100%;height:100%;border:0;display:block;background:transparent}
+  /* the badge's own edge, drawn over the clip so the disc has a rim like the ref */
+  #eg-badgeRim{position:absolute;z-index:2;border-radius:50%;pointer-events:none;
+            box-shadow:0 10px 30px rgba(31,35,72,.18);opacity:0;transition:opacity .4s}
+  body.run #eg-badgeRim,body.hatch #eg-badgeRim{opacity:1}
+
+  /* ---------- screens: a crossfade, never a slide ----------
+     Andjroo: "they have things come up from the bottom EXCEPT for when it
+     transitions to the actual screen of the egg, it just like fades in."
+     Sheets rise. Screens fade. Those are the only two moves in here.            */
+  .eg-screen{position:absolute;inset:0;z-index:3;opacity:0;pointer-events:none;
+          transition:opacity .42s ease}
+  .eg-screen.on{opacity:1;pointer-events:auto}
+
+  /* ---------- set screen ---------- */
+  /* the numbers, on the shell. The egg is BLANK here — Andjroo picked "the egg is
+     faceless while you set it, the face arrives the moment Start is pressed." */
+  #eg-dial{position:absolute;z-index:4;pointer-events:none;text-align:center}
+  #eg-dialTitle{font-weight:800;color:var(--teal);letter-spacing:-.3px}
+  /* ⚠️ inline-flex, not flex. #eg-dial spans the page so the title can centre on it,
+     and a block-level #eg-cols inherits that full width — which the selection band,
+     pinned left:0/right:0 inside it, then draws edge to edge across the phone
+     instead of across the numbers. Shrink-wrapping the columns is what keeps the
+     band inside the egg where it belongs. */
+  #eg-cols{display:inline-flex;align-items:flex-start;justify-content:center;position:relative;
+        padding:0 16px}
+  .eg-colhead{font-weight:800;color:#9AA0B0;text-align:center}
+  .eg-colwrap{position:relative}
+  /* ⚠️ A real scroll container, not a fake one. iOS momentum and scroll-snap do the
+     feel for free; a pointer-driven list has to reimplement both and never matches. */
+  .eg-col{overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;
+       pointer-events:auto;overscroll-behavior:contain;touch-action:pan-y}
+  .eg-col::-webkit-scrollbar{display:none}
+  .eg-col .eg-n{display:grid;place-items:center;scroll-snap-align:center;font-weight:800;
+          color:var(--navy);font-variant-numeric:tabular-nums;transition:opacity .12s linear}
+  /* NO RED LINES. Andjroo, 2026-07-31: "I don't want to use red lines but they have
+     like the darker color solid and then a faded version for the number below it."
+     The selection is a soft band behind the row, and min/sec are told apart by the
+     colon sitting in it rather than by two underlines. */
+  #eg-band{position:absolute;left:0;right:0;border-radius:14px;background:rgba(33,188,165,.22);
+        box-shadow:inset 0 0 0 2px rgba(33,188,165,.30);pointer-events:none;z-index:-1}
+  #eg-colon{position:absolute;left:50%;transform:translate(-50%,-50%);font-weight:800;
+         color:var(--navy);pointer-events:none}
+
+  /* the + moved off the bottom of the egg. Andjroo: "we could have it up and to the
+     right" — it is a speech bubble, because what it adds is something to say.
+     ⚠️ ONE path, not a circle with a CSS tail stuck on it. The tail was a rotated,
+     skewed square with two borders, and its corners never met the circle's edge —
+     "a little jankety". A disc and a tail are one outlined shape, so they are one
+     arc and two lines, and the stroke runs round the whole of it without a join to
+     get wrong. */
+  #eg-plus{position:absolute;z-index:5;background:none;border:0;padding:0;cursor:pointer;
+        filter:drop-shadow(0 4px 10px rgba(31,35,72,.26))}
+  #eg-plus svg{display:block;width:100%;height:100%;overflow:visible}
+  /* Andjroo, 2026-07-31: setting a reminder must not recolour the bubble, it must
+     put the reminder IN it. So the bubble goes white and becomes the same little
+     white tile the icon is drawn for in the sheet — the choice is the state, and
+     the colour stays out of it. */
+  #eg-plus .bub{fill:var(--teal)}
+  #eg-plus.set .bub{fill:#fff}
+
+  .eg-bigbtn{position:absolute;left:24px;right:24px;border:0;border-radius:22px;cursor:pointer;
+          font-family:inherit;font-weight:800;color:#fff;letter-spacing:-.2px;padding:0}
+  /* Start is the SAME teal as the selection band, the chosen tiles and the bubble.
+     Andjroo, 2026-07-31 — the reference's green was a second accent doing nothing
+     the teal was not already doing. One accent, used everywhere. */
+  #eg-start{background:var(--teal);box-shadow:0 0 0 6px #fff,0 8px 18px rgba(31,35,72,.20)}
+  #eg-start:active{transform:translateY(2px)}
+
+  #eg-tray{position:absolute;left:0;right:0;display:flex;justify-content:center;z-index:4}
+  .eg-trayb{background:#fff;border:0;border-radius:50%;display:grid;place-items:center;
+         cursor:pointer;box-shadow:0 3px 10px rgba(31,35,72,.22);padding:0;position:relative}
+  .eg-trayb .eg-dot{position:absolute;right:2px;bottom:2px;width:14px;height:14px;border-radius:50%;
+              background:var(--teal);border:2.5px solid #fff}
+
+  /* ---------- run + hatch ---------- */
+  #eg-mutes{position:absolute;right:14px;z-index:6;display:flex;gap:6px;
+         top:calc(env(safe-area-inset-top,0px) + 12px)}
+  body.set #eg-mutes{display:none}
+  .eg-mute{background:none;border:0;cursor:pointer;padding:4px;display:grid;place-items:center}
+
+  #eg-clockRow{position:absolute;left:0;right:0;z-index:4;display:flex;align-items:center;
+            justify-content:center;gap:14px}
+  #eg-clock{font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-1px}
+  .eg-step{border:0;border-radius:50%;background:var(--grey);color:#fff;cursor:pointer;
+        display:grid;place-items:center;padding:0;flex:none}
+  .eg-step:active{background:#c3c8d2}
+
+  #eg-runCtl{position:absolute;left:0;right:0;z-index:4;display:flex;justify-content:center;gap:18px}
+  /* Andjroo, 2026-07-31: pause, stop and done all want a shadow underneath. It is a
+     LEDGE, not a blur — a grey slab sitting a little proud of the button on every
+     side, the way the reference's buttons sit on the page. Pressing shortens it
+     rather than removing it, so the button travels down onto its own shadow. */
+  .eg-ctl,#eg-done{box-shadow:0 9px 0 2px #D6DBE4, 0 15px 20px rgba(31,35,72,.14)}
+  .eg-ctl:active,#eg-done:active{transform:translateY(5px);
+       box-shadow:0 4px 0 2px #D6DBE4, 0 8px 12px rgba(31,35,72,.12)}
+  .eg-ctl{background:var(--sky);border:0;border-radius:20px;cursor:pointer;display:grid;
+       place-items:center;padding:0}
+  #eg-done{background:var(--red)}
+
+  /* the pie. Ours is deliberately NOT where theirs is — Andjroo, 2026-07-31.
+     Three placements are live so he can pick one, and it drags anywhere.
+     ⚠️ "Beside the clock" cannot be an absolute overlay: at 390px a 112px disc
+     parked on the left of a centred row lands straight on top of the + stepper AND
+     the leading digit. Beside means IN the row — so the pie is re-parented into it
+     and flexbox does the spacing, rather than three numbers being kept in sync. */
+  #eg-pie{z-index:5;cursor:grab;touch-action:none;flex:none;
+       filter:drop-shadow(0 3px 8px rgba(31,35,72,.22))}
+  #eg-pie.free{position:absolute}
+  #eg-pie.dragging{cursor:grabbing}
+  #eg-pieHost{position:absolute;inset:0;z-index:5;pointer-events:none}
+  #eg-pieHost>*{pointer-events:auto}
+  body.set #eg-pieHost,body.hatch #eg-pieHost,body.set #eg-rimArc,body.hatch #eg-rimArc{display:none}
+  #eg-rimArc{position:absolute;z-index:5;pointer-events:none}
+
+  /* ⚠️ THE WHOLE SCREEN. Andjroo, 2026-07-31: "the confetti needs to be happening
+     across the entire screen, not just inside of the circle." It was a canvas the
+     size of the badge with a 50% radius on it, so every piece was born inside the
+     disc and clipped at its edge — the burst could not travel. Full bleed, no
+     radius, and confetti.js sizes its field off the canvas it is handed. */
+  #eg-conf{position:absolute;inset:0;z-index:5;pointer-events:none}
+
+  /* ---------- sheets: these are the things that come up from the bottom ---------- */
+  #eg-scrim{position:absolute;inset:0;z-index:8;background:rgba(31,35,72,.34);opacity:0;
+         pointer-events:none;transition:opacity .3s}
+  #eg-scrim.on{opacity:1;pointer-events:auto}
+  /* ⚠️ min-height, not just content. Andjroo, 2026-07-31, on the backgrounds sheet:
+     "the card should slide up a little bit more." A one-row sheet is 250px tall and
+     stops well short of the ones beside it, so the same gesture lands in a different
+     place depending on which button opened it. The floor is what makes them agree. */
+  .eg-sheet{position:absolute;left:0;right:0;bottom:0;z-index:9;background:#F3F5F8;
+         border-radius:22px 22px 0 0;transform:translateY(100%);
+         transition:transform .38s cubic-bezier(.32,.72,0,1);
+         min-height:46%;max-height:88%;display:flex;flex-direction:column;
+         padding-bottom:calc(env(safe-area-inset-bottom,0px) + 10px)}
+  .eg-sheet.on{transform:translateY(0)}
+  /* ---------- THE SHEETS ARE CENTRED, AND THE ✕ IS TOP RIGHT ----------
+     Andjroo, 2026-07-31: "who came out of the egg is not centered, it should be
+     centered" and then "taking back my notes... seems like everything is to the
+     left." Both readings were of the same thing: the header was centred while the
+     ✕ and the sub-line were left, so the sheet never committed either way.
+     Settled by the nimiq-ui skill rather than by taste — Nimiq's own bottom sheets
+     (references/screenshots/wallet-app/logged-in/receive-nim-address-qr-mobile.png,
+     send-transaction-enter-address-mobile.png) put the title CENTRED, the section
+     labels CENTRED, and the close button as a CIRCLED X pinned to the TOP RIGHT.
+     The left slot is the back arrow's, and these sheets have no back. */
+  .eg-shead{padding:16px 56px 6px}
+  .eg-shead h2{text-align:center;font-size:19px;font-weight:800;text-wrap:balance}
+  /* ⚠️ NOT the ✕ character. Andjroo: "the ✕ is far too small and not correct." A
+     text glyph is whatever weight and size the font feels like — at 19px it came
+     out a hairline cross about 11px across, with no tap target under it. This is
+     the registry's close-button (`nq info close-button`): the @nimiq/style close
+     icon, which is a filled disc with the X knocked out of it, carried at 20%
+     opacity and 40% on press. Drawn, so it is the same mark at every size. */
+  .eg-sclose{position:absolute;top:12px;right:12px;z-index:3;width:44px;height:44px;
+          background:none;border:0;padding:0;cursor:pointer;color:var(--navy);
+          display:grid;place-items:center}
+  .eg-sclose svg{display:block;opacity:.2;transition:opacity .3s cubic-bezier(.25,0,0,1)}
+  .eg-sclose:hover svg,.eg-sclose:active svg{opacity:.4}
+  .eg-ssub{padding:2px 22px 12px;font-size:16px;color:#8C93A3;font-weight:600;
+        line-height:1.3;text-align:center;text-wrap:balance}
+  .eg-sbody{overflow-y:auto;padding:4px 16px 16px;-webkit-overflow-scrolling:touch}
+  .eg-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .eg-grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  /* ⚠️ width:100% is load-bearing. A <button> keeps intrinsic sizing, so with only
+     aspect-ratio to go on the "Off" tile — whose content is a 27px word rather than
+     a percentage-sized SVG — shrink-wrapped to 37px while every other tile came out
+     110px. One definite dimension and the ratio does the rest. */
+  /* ---------- THE SELECTED MARKER HANGS OFF THE CELL, NOT INSIDE THE TILE ----------
+     ⚠️ ONE BUG, TWO REPORTS. Andjroo read the character sheet's badge as "inside the
+     bubble... it is on the wrong item, an indexing bug" and the reminder sheet's as
+     "the check is BELOW instead of above". Indexing is fine — tapping item 9 selects
+     item 9, proved with real pointer events. The marker was a `:after` on `.eg-pick`,
+     pinned to hang off the corner at right/bottom -2px, and `.eg-pick` carries
+     `overflow:hidden` so the img cannot poke past the circle. A clip does not care
+     what it was hung on: the badge got dragged back INSIDE the tile, where the
+     circular clip parks it low over the artwork. On the 82px character tile that is
+     on top of the animal; on the 110px reminder tile it is under the icon.
+     So the marker belongs to the CELL, which has nothing clipping it, and it goes
+     to the TOP right — clear of the label underneath, and the corner nimiq-ui puts
+     a marker in. Not a ✓ glyph either: drawn, for the same reason as the ✕. */
+  .eg-cell{position:relative}
+  .eg-pick{width:100%;aspect-ratio:1;border-radius:50%;background:#fff;border:5px solid #E3E7EE;
+        cursor:pointer;display:grid;place-items:center;position:relative;padding:0;overflow:hidden}
+  .eg-pick.on{border-color:var(--teal)}
+  .eg-tick{position:absolute;top:-5px;right:-5px;width:32px;height:32px;border-radius:50%;
+        background:var(--teal);border:3px solid #F3F5F8;z-index:2;pointer-events:none;
+        display:none;place-items:center}
+  .eg-cell.on .eg-tick{display:grid}
+  .eg-grid4 .eg-tick{width:27px;height:27px;top:-4px;right:-4px;border-width:2.5px}
+  .eg-pick img{width:82%;height:82%;object-fit:contain}
+  .eg-artgrid .eg-pick img{width:88%;height:88%}
+  .eg-photopick img{width:100%;height:100%;object-fit:cover}
+  .eg-pick .eg-off{font-size:19px;font-weight:800;color:#8C93A3}
+  .eg-plabel{text-align:center;font-size:11.5px;font-weight:700;color:#8C93A3;margin-top:4px;
+          text-transform:capitalize}
+  .eg-bgpick{aspect-ratio:1;border-radius:18px;overflow:hidden;border:4px solid #E3E7EE;padding:0;
+          cursor:pointer;display:block;width:100%}
+  .eg-bgpick.on{border-color:var(--teal)}
+  .eg-bgpick img{width:100%;height:100%;object-fit:cover;display:block}
+  /* Andjroo: "more backgrounds are coming, so add more spaces." An empty slot is the
+     honest way to say that — it holds the grid's shape now and it is where the next
+     one lands, rather than the row re-flowing under him when the art arrives. */
+  .eg-bgslot{aspect-ratio:1;border-radius:18px;border:4px dashed #DDE1E9;background:#EDF0F5}
+  .eg-lane{background:#fff;border-radius:16px;padding:12px 14px;margin-bottom:12px}
+  /* the same short grey uppercase section label nimiq.com and the wallet both use
+     ("ENTER ADDRESS", "TOTAL BALANCE") — and they centre it, so this centres too */
+  .eg-lane h3{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
+           color:#8C93A3;margin-bottom:9px;text-align:center}
+  /* ⚠️ A GRID, NOT WRAPPED FLEX. Andjroo, 2026-07-31: "reorganize the sound one so
+     they're uniform." Every pill was its own width — "Bell" against "Kids cheer" —
+     and a centred wrap then re-centred each ragged row, so no two rows started or
+     ended in the same place and nothing lined up with anything. Equal columns make
+     every pill the same size and put every row on the same two edges.
+     Two columns, not three: at 360px three leaves ~95px a cell and "Kids cheer"
+     needs ~106px, so the widest label is exactly the one that would have broken it. */
+  .eg-opts{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+  .eg-opt{border:0;background:#EEF1F6;border-radius:500px;padding:11px 10px;font-family:inherit;
+       font-size:14.5px;font-weight:800;color:var(--navy);cursor:pointer;text-align:center;
+       width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .eg-opt.on{background:var(--teal);color:#fff}
+
+  /* ---------- the toast ----------
+     Andjroo, 2026-07-31: "a toast notification to say coming soon, because I'm not
+     going to get to that today." The sound lists are named and silent, so choosing
+     one has to say so rather than look broken.
+     ⚠️ It RISES, like everything else that is not a screen change (his rule: things
+     come up from the bottom, except the move to the egg screen, which fades).
+     ⚠️ AND IT PARKS ABOVE THE OPEN SHEET, measured off that sheet rather than set to
+     a number. A toast pinned to the bottom of the phone is behind the sheet that
+     raised it; one dropped in the middle covers the options being chosen from.
+     Navy with the brand's bottom-right radial, never a flat fill. */
+  #eg-toast{position:absolute;left:50%;z-index:11;max-width:calc(100% - 36px);
+         transform:translate(-50%,14px);opacity:0;pointer-events:none;
+         background-color:var(--navy);
+         background-image:radial-gradient(100% 100% at bottom right,#260133,#1F2348);
+         color:#fff;font-weight:800;font-size:15px;letter-spacing:-.1px;
+         padding:13px 22px;border-radius:500px;white-space:nowrap;
+         box-shadow:0 10px 26px rgba(31,35,72,.30);
+         transition:opacity .26s cubic-bezier(.25,0,0,1),
+                    transform .26s cubic-bezier(.25,0,0,1)}
+  #eg-toast.on{opacity:1;transform:translate(-50%,0)}
+
+  /* ---------- the review strip. ?clean=1 removes it for captures. ---------- */
+  #eg-dev{position:absolute;left:0;right:0;bottom:0;z-index:12;background:rgba(31,35,72,.90);
+       color:#fff;display:flex;align-items:center;gap:6px;padding:6px 8px;overflow-x:auto;
+       font-size:11px;font-weight:800}
+  #eg-dev.eg-off{display:none}
+  #eg-dev b{opacity:.55;font-weight:800;text-transform:uppercase;letter-spacing:.4px;flex:none}
+  #eg-dev button{background:rgba(255,255,255,.14);color:#fff;border:0;border-radius:500px;
+              padding:5px 10px;font-family:inherit;font-size:11px;font-weight:800;cursor:pointer;flex:none}
+  #eg-dev button.on{background:var(--teal)}
+
+/* ---------- the host screen ----------
+   The timer is a whole page in a frame (see js/eggtimer.js for why). It gets the
+   phone, edge to edge: it draws its own background, its own dock and its own safe
+   areas, so any padding here would show as a band of app around a screen that
+   already thinks it is the app. */
+.eggtimer-host { padding: 0 !important; overflow: hidden; }
+.eggtimer-screen { position: fixed; inset: 0; background: #fff; }
+#eggtimer-frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
+/* Back sits ON the frame, in the corner the timer keeps clear (the gear used to be
+   there and Andjroo removed it, which is exactly what makes the corner available). */
+.eggtimer-back {
+  position: absolute; z-index: 2; left: 16px; width: 44px; height: 44px;
+  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  display: grid; place-items: center; padding: 0; cursor: pointer;
+  background: #fff; border: 0; border-radius: 50%;
+  box-shadow: 0 3px 10px rgba(31, 35, 72, .22);
+}
+.eggtimer-back svg { width: 22px; height: 22px; }

@@ -1,0 +1,128 @@
+/* AddressInput — Nimiq address entry field (static visual)
+   Requires: nimiq-style (css vars --nimiq-blue, --nimiq-light-blue, --nimiq-ease; html { font-size: 8px })
+   and the Fira Mono font. */
+
+.address-input {
+    --font-size: 3rem;
+    --block-height: 4.125rem;
+    --block-width: 8.5rem;
+    --block-gap-v: 0.75rem;
+    --block-gap-h: 1rem;
+
+    contain: size layout paint style;
+    width: calc(3 * var(--block-width) + 3 * var(--block-gap-h));
+    height: calc(3 * var(--block-height) + 3.5 * var(--block-gap-v));
+    position: relative;
+    background: white;
+
+    border-radius: 0.5rem;
+    --border-color: rgba(31, 35, 72, 0.1); /* Based on Nimiq Blue */
+    box-shadow: inset 0 0 0 1.5px var(--border-color);
+    transition: box-shadow .2s ease, height 0.3s var(--nimiq-ease);
+    overflow: hidden;
+}
+
+.address-input:hover {
+    --border-color: rgba(31, 35, 72, 0.14); /* Based on Nimiq Blue */
+}
+
+.address-input:focus-within {
+    --border-color: rgba(5, 130, 202, 0.4); /* Based on Nimiq Light Blue */
+}
+
+.address-input textarea {
+    --line-height: calc(var(--block-height) + var(--block-gap-v));
+
+    contain: size layout paint style;
+    position: absolute;
+    width: 100%;
+    height: calc(3 * var(--line-height));
+    line-height: var(--line-height);
+    top: calc(var(--font-size) / 24 + var(--block-gap-v) / 2);
+    left: calc(var(--font-size) / 24 * 5 + var(--block-gap-h) / 2);
+    padding: 0;
+    margin: 0;
+    border: none;
+    outline: unset !important;
+    resize: none;
+    overflow: hidden;
+    z-index: 1;
+    font-family: Fira Mono, 'monospace';
+    font-size: var(--font-size);
+    letter-spacing: calc(1.8rem - 0.6em);
+    word-spacing: calc(var(--block-gap-h) / 2);
+    color: var(--nimiq-blue);
+    background: transparent;
+    transition: color 0.2s ease;
+}
+
+.address-input textarea:focus {
+    color: var(--nimiq-light-blue);
+}
+
+.address-input.display-as-nim-address textarea {
+    text-transform: uppercase;
+    /* Mask so text/selections are only visible within the blocks */
+    mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 123"><rect x="-1" y="6" width="62" height="28"/><rect x="79" y="6" width="62" height="28"/><rect x="159" y="6" width="62" height="28"/><rect x="-1" y="47" width="62" height="28"/><rect x="79" y="47" width="62" height="28"/><rect x="159" y="47" width="62" height="28"/><rect x="-1" y="88" width="62" height="28"/><rect x="79" y="88" width="62" height="28"/><rect x="159" y="88" width="62" height="28"/></svg>');
+}
+
+@supports (mix-blend-mode: screen) {
+    .address-input.display-as-nim-address textarea {
+        color: black; /* the actual color is applied per block via the .color-overlay mix-blend-mode */
+    }
+
+    .address-input.display-as-nim-address textarea::selection {
+        color: white;
+        background: #561a51; /* with mix-blend-mode yields a color close to the default */
+    }
+
+    .address-input.display-as-nim-address textarea::-moz-selection {
+        background: #411d68; /* with mix-blend-mode yields a color close to the default */
+    }
+
+    .address-input .color-overlay {
+        contain: size layout paint style;
+        position: absolute;
+        width: calc(var(--block-width) - .5rem);
+        height: calc(var(--block-height) - .5rem);
+        mix-blend-mode: screen;
+        z-index: 1;
+        pointer-events: none;
+    }
+}
+
+.address-input ::-webkit-input-placeholder {
+    opacity: .6;
+    transition: color .2s var(--nimiq-ease);
+}
+.address-input ::-moz-placeholder {
+    opacity: .6;
+    transition: color .2s var(--nimiq-ease);
+}
+.address-input ::placeholder {
+    opacity: .6;
+    transition: color .2s var(--nimiq-ease);
+}
+
+.address-input textarea:focus::-webkit-input-placeholder {
+    color: var(--nimiq-light-blue);
+}
+.address-input textarea:focus::-moz-placeholder {
+    color: var(--nimiq-light-blue);
+}
+.address-input textarea:focus::placeholder {
+    color: var(--nimiq-light-blue);
+}
+
+.address-input .grid {
+    contain: size layout paint style;
+    position: absolute;
+    top: calc(var(--font-size) / 24 * 8 + var(--block-gap-v) / 2);
+    left: calc(var(--font-size) / 24 * 5 + var(--block-gap-h) / 2);
+    stroke: var(--border-color);
+    transition: stroke .2s ease, opacity 0.2s ease;
+}
+
+.address-input textarea:focus ~ .grid {
+    opacity: 0.5;
+}

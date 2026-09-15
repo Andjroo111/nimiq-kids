@@ -1,0 +1,73 @@
+/* nimiq.kids parent — WIDTH. What the app does once the viewport stops being a phone (#360).
+   Loaded AFTER parent.css and board.css so it wins at equal specificity.
+
+   Its own file rather than a block at the end of parent.css for two reasons. parent.css is
+   758 lines against a CI guard that fails at 800, and it is the same seam board.css already
+   took. More usefully: "what changes at width" is one idea, and reading it as one file is
+   how the next person finds out that a min-width breakpoint exists at all — the bug this
+   fixes is that there was never one, and nothing in parent.css said so.
+
+   EVERY rule here is inside the query and nothing is outside it. The phone layout parent.css
+   describes is the layout a phone gets, byte for byte. tools/parent-tablet.mjs measures 390px
+   in the same run as 800/1280/1440 for exactly that reason.
+
+   The shape is the cheap one from #360: the chrome spans, the reading column stays a column.
+   Header, bottom bar and content all line up on ONE 560px centre line, so the app reads as a
+   deliberate centred layout rather than a phone screenshot pasted onto a tablet. It is NOT a
+   two-pane tablet layout — that is a redesign, it duplicates what #340 is doing on the kid
+   side, and it should wait until a grown-up actually drives the tablet day to day. */
+
+@media (min-width: 700px) {
+  /* One number, three places. The header row, the bottom bar's buttons and the content all
+     resolve to the same left and right edge; if they ever disagree the app reads as three
+     stacked things instead of one. 560px because a card list is a reading column: wider and
+     the row titles float away from their chevrons, narrower and it is the phone again. */
+  :root { --col: 560px; }
+
+  /* The column was the APP. Now the app is the page and the column lives inside it, which is
+     what turns the header and the nav from 460px stripes into chrome. */
+  .app { max-width: none; }
+
+  /* Header: the navy radial now spans the viewport (it is .phdr that paints, and .phdr is a
+     child of the full-width .app). The ROW is what narrows, so the lockup and the corner
+     control sit on the content's own edges instead of 700px apart. */
+  .phdr-row { width: 100%; max-width: var(--col); margin: 0 auto; }
+
+  /* .view carries a 16px inner padding, so it is the column plus that padding — that is what
+     makes its CONTENT align with the header row rather than sit 16px inside it.
+     align-self, not margin: .app is a column flex container, so width is the cross axis and
+     the default `stretch` is what was pinning this to the full width. */
+  .view {
+    width: 100%; max-width: calc(var(--col) + 32px);
+    align-self: center; box-sizing: border-box;
+  }
+
+  /* The bar spans; its four buttons do not. They are direct children with no wrapper to
+     constrain, so the constraint is the bar's own padding: whatever is left over after the
+     column, split evenly. max() keeps the phone-side 8px as the floor, so this stays correct
+     through the window sizes between 700px and 576px+column where the arithmetic goes
+     negative. Buttons keep flex:1 and therefore keep their phone proportions exactly. */
+  .pnav {
+    padding-left: max(8px, calc((100% - var(--col)) / 2));
+    padding-right: max(8px, calc((100% - var(--col)) / 2));
+  }
+
+  /* Sheets become a centred dialog. A bottom sheet is a phone idiom — it is anchored to the
+     thumb — and on a 1280px screen the anchor is meaningless: it reads as a slab stuck to the
+     bottom edge with the thing it belongs to 400px above it. Centred, it is the modal it
+     always was. Radius on all four corners for the same reason: two square corners are the
+     screen edge showing through, and here there is no screen edge.
+     Landscape is the constraint that matters — 800px tall minus the browser chrome is not
+     much — so the height cap stays a dvh fraction rather than a fixed number. */
+  .scrim { align-items: center; }
+  .sheet {
+    max-width: var(--col);
+    border-radius: 16px;
+    padding-bottom: 22px;
+    max-height: min(82dvh, 760px);
+  }
+
+  /* Proof photos are phone camera shots. 94vw of a 1440px window blows one up to 1350px wide,
+     which is past the pixels it has: it stops being bigger and starts being softer. */
+  .photo-view img { max-width: min(94vw, 720px); }
+}

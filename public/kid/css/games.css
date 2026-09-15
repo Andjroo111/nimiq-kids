@@ -1,0 +1,75 @@
+/* THE GAMES SCREEN'S ROWS (#399).
+ *
+ * The screen itself (.games, .games-hd, .games-grid, .game-tile) is still in kid.css, where it
+ * has always been. This file is only what the rows added, and it is its own file because kid.css
+ * is a shared sheet and the CI guard fails a source file at 800 lines.
+ *
+ * Linked AFTER kid.css and before phone.css, so the phone block still gets the last word on
+ * sizes. */
+
+/* The rows are what scrolls. `.games` is `flex: 1` inside a fixed screen and cannot grow, so
+ * without min-height:0 here the last row of twenty-five apps is simply off the bottom with
+ * nothing to scroll — the same shape as the calendar squeezing Today (#401). */
+.games-rows {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.games-row { display: flex; flex-direction: column; gap: 14px; }
+
+/* The row headings are the app's section headings, sized and dressed in scene.css alongside
+   the board's "Today" and the Box's shelves. Nothing games-specific is left of them.
+   ⚠️ The old rule declared font-size TWICE and the lower one won, so edits to the upper line
+   looked applied and changed nothing. There is one declaration now, and it is not here. */
+
+/* The header glyph is a dock mask now, so it needs a colour to paint itself with:
+ * `background: currentColor` resolves to whatever it inherits, and the screen's own ink is
+ * the right answer. */
+.games-emoji { color: var(--navy); }
+.bg-dark .games-emoji { color: #fff; }
+
+/* A tile that is not an Android app (today: the Timer) draws the dock's own mask instead of an
+ * icon PNG, so the two Timers in this product are one drawing. Same 108px box the real icons
+ * get, with the glyph inset inside it the way an app icon's art is inset in its rounded square. */
+.game-icon-mask {
+  display: grid;
+  place-items: center;
+  background: rgba(31, 35, 72, 0.06);
+  color: var(--navy);
+}
+.game-icon-mask .k-icon { font-size: 62px; }
+
+@media (max-width: 767px) {
+  .games-rows { gap: 18px; }
+  .games-row { gap: 10px; }
+  /* ⚠️ NOT a font-size here. This line used to drop the row heading to 17px, which quietly
+     undid the 20/800 re-scale on every phone: Andjroo saw "Play, Learn and Tools are very
+     tiny" on exactly this breakpoint. Padding may shrink; the type may not. */
+  .games-row-hd { padding: 3px 11px; }
+  .game-icon-mask .k-icon { font-size: 38px; }
+}
+
+/* ---- the slab, and the wash it replaces (Andjroo, 2026-09-10) ----
+   This screen already had a surface: a full-bleed `rgba(255,255,255,.55)` over the whole
+   scene (`.games-screen::before` in kid.css), because 25 app tiles on a bright sky do not
+   read. That wash is a slab with no edges. The real one has edges, so the rows sit ON
+   something instead of the whole world going pale, and the wash steps back to let it show.
+   ⚠️ It is REDUCED, not removed: the tiles here are white on white and the dark-scene case
+   (`.games-screen.bg-dark::before`) still needs a floor under them. */
+#kid-app.games-screen::before { background: rgba(255, 255, 255, 0.22); }
+/* ⚠️ THE GAP IS THE SLAB'S, and it is load-bearing here in a way it is not on the other
+   screens. Andjroo, 2026-09-10, off the real tablet: "now Games is sitting on Tools." Measured,
+   the title pill's bottom edge and the first row heading's top edge were both at y=184 --
+   touching exactly, so two white pills stacked left-aligned read as one blob with the screen's
+   name buried in it.
+
+   The cause is that `.games` still carried `gap: var(--s3)` while the slab became its only
+   flow child, so the gap applied to nothing. Money and Grow do not need one (their cards carry
+   margins) and the board and the Box set their own; this screen's title is the only one
+   sitting directly above another pill of the same colour, so it needs the most air of the
+   five, not the least. */
+.games-slab { min-height: 0; gap: var(--s5); }

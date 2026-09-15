@@ -1,0 +1,795 @@
+/* nimiq.kids — V3 sticker chart skin: chart home, sticker kit, Treasure Box,
+   money screen adjustments. 390px-FIRST: base rules are the phone; a single
+   >=768px block scales up to the 800x1280 tablet. Chrome follows the wallet
+   language (duotone icons, navy/white, soft shadows); the CELLS and STICKERS
+   are kid-content — playful by design. */
+
+/* ---------- the scene is NOT washed ----------
+   There was a flat 60% white veil here (80% on space), then a lighter gradient
+   — both still muted the scene a kid deliberately picked, which is the whole
+   point of picking one. The reference (Little Timer) paints its scene at full
+   strength and simply sets opaque controls on top. Every card here is already
+   opaque, so the only things needing help are the BARE labels ("My week",
+   "Today", the kid's name); those get a shadow rather than the whole screen
+   getting a veil. Keep this in step with the same block in wallet.css. */
+.k-chart::before, .k-box::before { content: none; }
+/* No dark-scene flip for the kid's name any more. It sits on an opaque white
+   pill now, so flipping it to #fff on Space put white text on white -- the same
+   trap the page titles hit when they moved onto their pill. A label only needs
+   the flip while it is bare on the scene, and this one no longer is. */
+.k-chart, .k-box { position: relative; z-index: 0; }
+
+/* ---------- chart screen frame ---------- */
+/* NO background sizing here. The scene is painted on #kid-app by setScreen and
+   sized once by `.bg-image` in kid.css, because that is the only element that is
+   always exactly the viewport. These two used to size it themselves with
+   `background-size: 100% calc(100% - var(--kid-dock-h))`, and a TWO-value
+   background-size sets width and height independently: there is no aspect-ratio
+   preservation in that form, only `cover` and `contain` have it. Art at 896x1200
+   forced into 390x770 rendered every round shape as an oval. The Treasure Box was
+   worse again, because .k-box grows with its shelves (1192px measured) and the
+   percentage grew with it, so the same rule squashed the chart and stretched the
+   Box. The intent behind it was real -- keep the composition clear of the dock --
+   but that is an ART problem, a scene drawn at that aspect, not a sizing one. */
+.k-chart {
+  /* min-height:0 is load-bearing: as a flex ITEM the screen defaults to
+     min-height:auto, which floors it at its own content height. With the month
+     open that is taller than the phone, so the screen grew and pushed the last
+     card under the dock instead of letting .ch-groups scroll. */
+  /* One gap between every block, and a generous one: Andjroo asked for real air
+     above the calendar (off Sam and the language pill) and below it (onto
+     Today). 12px had the calendar card almost touching both. */
+  flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--s5);
+  /* Sam sits ON the corner's line (Andjroo: both at the top), so this screen
+     reserves only the corner's top offset and .ch-hd keeps a lane clear of it. */
+  padding: calc(env(safe-area-inset-top, 0px) + var(--kid-corner-top)) var(--kid-chrome-gutter) calc(var(--kid-dock-h, 74px) + var(--s6));
+  /* Packed from the top with ONE gap between every block -- evenly spaced, and
+     more importantly FIXED. space-between used to redistribute the slack, so
+     unfolding the calendar (which consumes slack) dragged the header and the
+     calendar itself 97px UP the screen. The whole point is that nothing above
+     the dates ever moves: Today absorbs the change instead, by shrinking into
+     its own scroll. */
+}
+/* ⚠️ .k-slab RUNS THE COLUMN ABOVE now (2026-09-10); .k-chart is padding, the header's line and
+   the dock's host. Surface and rungs: scene.css. The board's half is this gap + the grid. */
+.ch-slab { gap: var(--s5); }
+/* .ch-sec-hd lives in scene.css with the rest of the opposite-polarity chrome. */
+.ch-kid-name { text-shadow: none; }
+
+/* header: kid identity left, the language corner control right. The balance used
+   to be a third pill in here and is now its own card below (.ch-money).
+   The lane is still reserved, because a long name must not run under the corner
+   control -- it is just protecting one pill now instead of two. */
+.ch-hd { display: flex; align-items: center; gap: var(--s3); padding-right: var(--kid-corner-lane); min-height: var(--kid-corner-h); }
+/* Sam and the language pill both sit on the scene, so both need a surface of
+   their own or they vanish on a busy background. */
+.ch-kid {
+  display: flex; align-items: center; gap: var(--s2); min-width: 0;
+  /* height matched to the corner control (--kid-corner-h) so the two pills
+     share a centre line, not just a top edge */
+  height: var(--kid-corner-h); padding: 0 var(--s3) 0 var(--s1);
+  /* Opaque, like the balance chip on the other end of this row. At 0.92 the
+     scene bled through and the two pills either side of the same header did not
+     match, which is the kind of difference you see without being able to name. */
+  background: var(--card); border-radius: var(--r-pill);
+  box-shadow: var(--sh-card);
+}
+/* Sized from --kid-ident, never literally: the pill's height and the language
+   flag opposite it are calc()s off the same var (wallet.css), so a hard number
+   here is what let the tablet grow the hexagon out of its own pill. */
+.ch-kid .identicon { width: var(--kid-ident); height: var(--kid-ident); flex: none; }
+.ch-kid .identicon img { width: 100%; height: 100%; }
+.ch-kid-name {
+  font-size: 21px; font-weight: 800; color: var(--navy);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* ---------- THE MONEY CARD ----------
+   The kid's balance, on the first screen they see, at the size it deserves.
+
+   Full width and on card chrome, so the number owns a line instead of sharing
+   one. It is the money screen's account card in miniature and it is the button
+   that opens it, which is why the caret is the registry's account-list caret --
+   the same "this row leads somewhere" mark the roster uses. */
+.ch-money {
+  display: flex; align-items: center; gap: var(--s3); width: 100%;
+  background: var(--card, #fff); box-shadow: var(--sh-card); border-radius: var(--r-card);
+  padding: 14px 18px; text-align: left; color: var(--navy);
+}
+.ch-money-txt { min-width: 0; }
+.ch-money-lbl {
+  display: block; font-size: 12px; font-weight: 800; color: var(--ink-70);
+  text-transform: uppercase; letter-spacing: 0.02em;
+}
+/* Tabular figures: the balance repaints on every wallet poll, and proportional
+   digits make the whole number twitch sideways when a single digit changes. */
+.ch-money-nim {
+  display: block; font-size: 34px; font-weight: 800; line-height: 1.05;
+  letter-spacing: -0.01em; font-variant-numeric: tabular-nums;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ch-money-nim i { font-style: normal; font-size: 16px; opacity: 0.5; margin-left: 4px; }
+.ch-money-fiat { display: block; font-size: 15px; font-weight: 800; color: var(--ink-70); }
+.ch-money .caret { font-size: var(--ic-s); flex: none; margin-left: auto; color: rgba(31, 35, 72, 0.35); }
+
+/* ---------- THE CALENDAR ----------
+   Moved to public/kid/css/calendar.css at the 800-line guard. The sticker a date
+   wears is still below, with the rest of the sticker kit. */
+
+/* ---------- stickers (die-cut, centred, tilt persisted) ----------
+   A sticker sits in the MIDDLE of its slot.
+
+   It used to be positioned at the kid's own drop point (--x/--y), which was
+   right when a sticker was a small thing on a big chart cell. Those cells are
+   gone: every surface a sticker lands on now is barely larger than the sticker
+   (46px of art in a 56px slot), so ANY off-centre drop hung it outside its own
+   circle — placements were being stored at x=22%, which put the sticker's
+   centre 12px into a 56px slot (Andjroo, 2026-07-30: "they aren't centered").
+   The drop point is still captured and stored; it is the TILT that carries the
+   handmade feel at these sizes, and the tilt is kept. */
+.stk {
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%) rotate(var(--tilt, 0deg));
+  display: block; pointer-events: none;
+}
+/* CONTAIN, not cover, and that is about the art rather than about taste. Every sticker
+   PNG is cut to its own outline and keeps its own aspect: 0.68 for the alien, 1.61 for
+   the rainbow, 1.55 for the crab. `cover` fills the disc by cropping the long side, so
+   the wide ones lost 38% of their width and the tall ones lost a third of their height —
+   claws, ears and feet, clipped off by the circle (Andjroo, 2026-08-04: "a lot of them
+   are getting cut off by the circle"). `contain` fits the whole drawing instead.
+
+   ⚠️ THE PADDING IS NOT WHAT STOPS THE CLIPPING, AND BELIEVING IT WAS COST TWO SESSIONS.
+   `contain` fits the art's BOUNDING BOX to the square content box, and `border-radius`
+   clips to the circle INSCRIBED in that same square. Padding shrinks the square and the
+   circle TOGETHER, so it cannot close the gap between them: measured on a running instance
+   at the 34px calendar size, the content box is 25.22px and the clip circle is 25.25px
+   across, which leaves a square's corners 5.2px outside it at any padding. That was still
+   eating 29 of the 30 stickers — the unicorn's horn, ears and tail at 17.4% of its ink,
+   the fox at 10.7%, the shell at 9.6% — and the 46px chart slot with them, up to 14.8%.
+
+   ⚠️ SO THE FIX IS IN THE ART, AND IT IS NOT "MARGIN". A sticker cut to its own outline
+   has ink in its corners by definition; what it needs is to be cut to a CIRCLE. Every PNG
+   is now laid on a square canvas with the circle enclosing all its ink inscribed in it
+   (tools/recut-stickers.py, 2026-08-04) and nothing is clipped anywhere. The cost is that
+   art which used to reach the corners draws ~11% smaller.
+
+   The 10% stays: it is the white cut line that makes the thing read as a sticker rather
+   than a photo in a hole. It is now decoration, honestly, and it is safe to change.
+   `src/sticker-art.test.ts` is what holds the real invariant — new art that skips the
+   re-cut fails there rather than shipping clipped. */
+.stk img, .stk .stk-fallback {
+  display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: contain;
+  padding: 10%;
+  background: #fff; border: 2px solid #fff; box-sizing: border-box;
+  box-shadow: 0 1px 4px rgba(31, 35, 72, 0.3);
+}
+/* A photograph is the exception: it has no silhouette, so filling the circle is what
+   makes it read as a sticker at all. */
+.stk img.stk-photo { object-fit: cover; padding: 0; }
+.stk .stk-fallback { display: grid; place-items: center; font-weight: 800; color: var(--navy); background: #FFF2C7; }
+/* A photo sticker whose picture is on the OTHER tablet (#282). Same die-cut disc as every
+   other face, holding a camera rather than a broken-image icon: the sticker is really there,
+   the photograph just never left the device that took it. Muted on purpose — it is the one
+   face that is standing in for something. */
+.stk .stk-away {
+  display: grid; place-items: center; width: 100%; height: 100%;
+  border-radius: 50%; background: #F4F5F9; color: var(--ink-50, #7d7f96);
+  border: 2px solid #fff; box-sizing: border-box;
+  box-shadow: 0 1px 4px rgba(31, 35, 72, 0.3);
+}
+.stk .stk-away svg { width: 58%; height: 58%; display: block; }
+/* An emoji sticker: the glyph is the art, on the same white die-cut disc the
+   images sit on. Sized off the disc so one rule covers every place a sticker
+   appears — 24px on a calendar day, 46px in a card slot, 56px in the picker. */
+.stk .stk-emoji {
+  display: grid; place-items: center; width: 100%; height: 100%;
+  border-radius: 50%; background: #fff;
+  border: 2px solid #fff; box-sizing: border-box;
+  box-shadow: 0 1px 4px rgba(31, 35, 72, 0.3);
+  line-height: 1;
+  -webkit-user-select: none; user-select: none;
+}
+/* The glyph is sized per disc rather than in a relative unit, because a
+   percentage font-size resolves against the PARENT's font size, not the disc.
+   ~62% of the disc leaves the white cut line visible all the way round. */
+.stk-cal .stk-emoji { font-size: 20px; border-width: 1.5px; }
+.stk-slot .stk-emoji { font-size: 26px; }
+.stkp-tile .stk-flat .stk-emoji { font-size: 30px; }
+.stk-ghost .stk-emoji { font-size: 40px; }
+/* Treasure Box: the pack fan (42px discs) and the tear-open burst (64px). */
+.bx-fan .stk-emoji { font-size: 25px; }
+.bx-buy-face .bx-fan .stk-emoji { font-size: 31px; }
+.pack-stks .stk-emoji { font-size: 40px; }
+/* On a date, the sticker is the size of the day. The kid's x/y placement is
+   deliberately ignored at this scale (it would hang the sticker off a 24px
+   cell); the TILT is kept, because that is the part that reads as theirs —
+   but see the tilt cap below. */
+/* 34px, up from 24, and bounded by the cell rather than picked. A day is 40.8px wide at
+   390px and the tilt cap is 7deg, so a leaning square measures 34 x (cos7 + sin7) = 37.9px
+   and still clears its neighbours. This is what buys back the size `contain` and the 10%
+   padding give up: the median sticker is near square, so it now shows WHOLE at ~27px of
+   art where it used to show CROPPED at 24px. */
+.stk-cal { width: 34px; height: 34px; left: 50%; top: 50%; }
+/* The full-size art carries a 2px white cut line. At this size that is a large share of
+   the diameter and the drawing inside gets squeezed. The padding is deliberately NOT
+   overridden here: the clipping it prevents is a property of the circle, not of the size. */
+.stk-cal img, .stk-cal .stk-fallback { border-width: 1.5px; }
+
+/* An open month puts 20-plus stickers on screen at once. The gold ring still
+   says "a grown-up shined this", but the sweep and the retry wobble are 20-plus
+   infinite animations running at a size where neither is legible. */
+.cal-dates .stk-shined .stk-shine { display: none; }
+.cal-dates .stk-retry { animation: none; }
+/* And the shine ring has to shrink with the sticker. At full size a 2px ring
+   plus an 8px gold glow reads as a highlight; at this size the same treatment is a
+   fat gold donut with a small drawing lost in the hole. One crisp ring, no glow. */
+.cal-dates .stk-shined img, .cal-dates .stk-shined .stk-fallback, .cal-dates .stk-shined .stk-emoji {
+  box-shadow: 0 0 0 1.5px rgba(233, 178, 19, 0.85);
+}
+/* The tilt is capped where the node is built (calendar.js): a rotated square's
+   bounding box grows by (cos+sin), so a 20 degree lean makes a 34px sticker
+   measure 32px and push into the day beside it. */
+.stk-slot { width: 46px; height: 46px; }
+.stk-flat { position: static; transform: none; width: 100%; height: 100%; }
+.stk-shine { display: none; }
+
+/* golden shine: parent approved — a subtle metallic sweep + gold ring */
+.stk-shined img, .stk-shined .stk-fallback, .stk-shined .stk-emoji {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(233, 178, 19, 0.5), 0 2px 8px rgba(233, 178, 19, 0.45);
+}
+.stk-shined .stk-shine {
+  display: block; position: absolute; inset: 2px; border-radius: 50%;
+  overflow: hidden; pointer-events: none;
+}
+.stk-shined .stk-shine::after {
+  content: ""; position: absolute; inset: -60%;
+  background: linear-gradient(115deg, transparent 42%, rgba(255, 244, 200, 0.85) 50%, transparent 58%);
+  animation: stk-sweep 3s var(--ease) infinite;
+}
+@keyframes stk-sweep {
+  0%, 55% { transform: translateX(-75%); }
+  85%, 100% { transform: translateX(75%); }
+}
+
+/* retry: grey "try again" wobble */
+.stk-retry img, .stk-retry .stk-fallback, .stk-retry .stk-emoji {
+  border-color: var(--ink-30); filter: grayscale(0.9); opacity: 0.85;
+}
+.stk-retry { animation: stk-wobble 2.6s ease-in-out infinite; }
+@keyframes stk-wobble {
+  0%, 100% { transform: translate(-50%, -50%) rotate(var(--tilt, 0deg)); }
+  25% { transform: translate(-50%, -50%) rotate(calc(var(--tilt, 0deg) - 7deg)); }
+  75% { transform: translate(-50%, -50%) rotate(calc(var(--tilt, 0deg) + 7deg)); }
+}
+
+/* ---------- TODAY: big task cards with sticker slots ---------- */
+/* ⚠️ NOT a scroll container. .ch-groups below is the one scroller on Today, and
+   .ch-tasks lives INSIDE it, always at its full content height (.ch-group is
+   flex:none). It used to keep the `overflow-y: auto; overscroll-behavior:
+   contain` from when it WAS the list — and a scroll container that cannot
+   scroll, with contain on it, eats every scroll gesture that starts inside it
+   rather than chaining to the ancestor. With the groups open, most of the
+   screen IS these cards, so the board only scrolled from the header strips and
+   the gaps. Measured on 0.117.3: wheel/drag on a card moved .ch-groups 0px,
+   the same gesture on a group header moved it fine (Andjroo, 2026-08-27: "it's
+   like I can only go so far"). */
+.ch-tasks {
+  display: flex; flex-direction: column; gap: var(--s2);
+  padding-bottom: var(--s1);
+}
+/* ---------- practices: what a kid keeps up ----------
+   Same card as a task on purpose — a practice is not a different KIND of thing
+   to a kid, it just answers a different question ("how often this week" instead
+   of "when today"). So the only additions are what the meta line says. */
+.pr-week { font-weight: var(--fw-title); color: var(--ink-70); font-variant-numeric: tabular-nums; }
+/* Target met: the same green the app already uses for done, nothing louder. */
+.ch-practice.is-met .pr-week { color: var(--green-2); }
+.pr-streak {
+  color: var(--ink-50); font-variant-numeric: tabular-nums;
+}
+.pr-streak::before { content: "· "; color: var(--ink-30); }
+/* How much of today's practice the kid ticked. Only on a day that has been logged —
+   before that there is nothing to count, and "0 of 3" would read as three things
+   missed on a card that is still an offer. */
+.pr-steps-count { color: var(--ink-50); font-variant-numeric: tabular-nums; }
+.pr-steps-count::before { content: "· "; color: var(--ink-30); }
+
+
+/* ---------- today, grouped by time of day (progressive disclosure) ----------
+   Collapsed is the resting state: a header per part of the day, and the cards
+   only when a kid asks for them. This is also what lets the scene read. */
+.ch-groups {
+  display: flex; flex-direction: column; gap: var(--s2); min-height: 0;
+  overflow-y: auto;
+  padding-bottom: var(--s1); scroll-padding-bottom: var(--s1);
+}
+/* `flex: none` on everything .ch-groups holds. It is a SCROLLING column, so a
+   child that does not fit must push the scrollbar, never compress: with the
+   default flex-shrink:1 the overflow was paid for by squashing whoever could
+   give, and "Add a job" — the only child with no content to stop it — collapsed
+   to a 4px dashed line. Latent since the column was written; the money card
+   made the content tall enough to trigger it. */
+.ch-group { display: flex; flex-direction: column; gap: var(--s2); flex: none; }
+/* Solid #fff, matching .ch-task below: a header and the cards it opens are one
+   stack, and the header reading as a tint of the scene broke that. The 0.92
+   elsewhere (back button, corner control, scan disc) sits ON the scene alone,
+   with nothing solid beside it to be measured against, so it stays. */
+.ch-group-hd {
+  display: flex; align-items: center; gap: var(--s3); width: 100%;
+  padding: var(--s3) var(--s4); border-radius: var(--r-card);
+  background: var(--card); box-shadow: var(--sh-card);
+  color: var(--ink); font-size: var(--fs-body); font-weight: var(--fw-title); text-align: left;
+}
+.ch-group-name { flex: 1; min-width: 0; }
+.ch-group-count {
+  flex: none; font-size: var(--fs-small); font-weight: var(--fw-title); color: var(--ink-50);
+  font-variant-numeric: tabular-nums;
+}
+.ch-group.is-alldone .ch-group-count { color: var(--green-2); display: inline-flex; }
+.ch-group-chev {
+  flex: none; display: inline-flex; font-size: var(--ic-s); color: var(--ink-30);
+  transition: transform var(--t-ui) var(--ease);
+}
+.ch-group.is-open .ch-group-chev { transform: rotate(90deg); }
+/* the cards themselves are the disclosure */
+.ch-group > .ch-tasks { display: none; }
+.ch-group.is-open > .ch-tasks { display: flex; }
+
+/* Evenly distributed, not bottom-anchored: margin-top:auto pushed the whole
+   day to the floor and left one dead slab in the middle. The scene now reads
+   THROUGH the layout rather than in one gap. */
+/* Today takes whatever the calendar leaves and scrolls inside it. That is what
+   makes "the month expands downward" true: the growth is paid for HERE, at the
+   bottom, not by everything above sliding up. */
+/* ⚠️ `flex-basis` IS THE FLOOR, NOT `min-height` (#401). `min-height: 0` is load-bearing and
+   must stay: it is what lets .ch-groups shrink and scroll at all, and a `min-height: <n>px`
+   would replace it and re-arm the overflow this whole column is shaped to avoid. A basis
+   instead asks for that much height up front, so Today is served BEFORE the calendar's
+   leftovers rather than out of them, and it can still be shrunk below it when a screen is
+   genuinely too short. 30svh is about two whole job cards plus the heading: enough that the
+   list always reads as a list with more under it. */
+.ch-today {
+  min-height: 0; flex: 1 1 30svh;
+  display: flex; flex-direction: column; gap: var(--s2);
+}
+.ch-task {
+  display: flex; align-items: center; gap: var(--s3); text-align: left;
+  background: var(--card); border-radius: var(--r-card); box-shadow: var(--sh-card);
+  /* 80px only existed to hold a 56px sticker slot that now renders solely when
+     the task is done and the slot can actually receive one */
+  padding: var(--s2) var(--s3); min-height: 64px;
+}
+.ch-task-emoji { font-size: 32px; line-height: 1; flex: none; }
+.ch-task-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.ch-task-title {
+  font-size: 17px; font-weight: 800; color: var(--navy);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ch-task-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ch-timer { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; color: rgba(31, 35, 72, 0.5); }
+.ch-timer-egg { font-size: 14px; color: var(--ink-50); }
+
+.ch-slot { position: relative; width: 56px; height: 56px; flex: none; display: block; }
+.ch-slot-empty { position: absolute; inset: 4px; border: 2.5px dashed rgba(31, 35, 72, 0.28); border-radius: 50%; }
+
+/* ---------- the ring's four looks (chart.js cardState) ----------
+   The ring is the only thing on a card that says where a job stands, so the four
+   states have to be told apart at a glance and without reading:
+
+     open     dashed grey + the faintest fill.  A bare dashed outline reads as
+              decoration; the fill makes it a socket with something missing from
+              it, which is the press-me message.
+     waiting  SOLID and quiet, with the app's own hourglass. Solid because the
+              dash is what says "something goes here", and while the parent has
+              it nothing does. This is the look that pays for the rule that the
+              sticker waits: without it, "handed in" and "not started" would be
+              the same empty ring and a kid would answer the same job twice.
+     reward   dashed GREEN. The parent said yes, the sticker is earned, this is
+              where it goes. Same green the app uses for done everywhere else.
+     done     the sticker itself.
+
+   None of them is its own control: the ring sits inside .ch-task, so the card is
+   the tap target and the card's press is the ring's press. One control, one
+   accessible name. */
+.ch-slot.is-open .ch-slot-empty { background: var(--fill-5); }
+.ch-slot.is-retry .ch-slot-empty { background: var(--fill-5); }
+.ch-slot.is-waiting .ch-slot-empty {
+  border-style: solid; border-color: rgba(31, 35, 72, 0.12); background: var(--fill-5);
+}
+.ch-slot-wait {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  font-size: 22px; color: var(--ink-30);
+}
+.ch-slot.is-reward .ch-slot-empty { border-color: var(--green); }
+/* Finished AND collected: the card steps back. The INK steps back, not the card
+   — `opacity: .8` on the whole button (which is what .is-approved used to do)
+   makes a white card translucent, and a translucent card over a busy scene drags
+   the artwork up through its own title. Same rule as .ch-group-hd above: every
+   card on this screen stays solid #fff. This state used to be nearly unreachable
+   in review, and is now the resting state of every job a kid finishes.
+   Keyed off data-state so .ch-practice's own .is-done cannot inherit it. */
+.ch-task[data-state="done"] .ch-task-title { color: var(--ink-50); }
+.ch-task[data-state="done"] .ch-task-icon,
+.ch-task[data-state="done"] .ch-task-emoji { opacity: 0.7; }
+
+.slot-target { z-index: 76; }
+.slot-target::after {
+  content: ""; position: absolute; inset: -5px; border-radius: 50%;
+  border: 3px solid var(--blue); box-shadow: 0 0 0 4px rgba(5, 130, 202, 0.18);
+}
+
+.ch-empty {
+  background: rgba(255, 255, 255, 0.75); border-radius: var(--r-card); padding: 24px 18px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+/* .ch-empty-ic is a spot glyph: icons.css .k-spot sizes and tints it. */
+.ch-empty p { font-size: 16px; font-weight: 700; color: rgba(31, 35, 72, 0.6); text-align: center; }
+
+/* ---------- dock: Box | Chart | studio quartet | Money ---------- */
+/* Screens with a dock publish its height so the toast clears it (the toast is
+   the ONLY surface reporting "Waiting for Mom", and it used to cover ~75% of
+   the dock while up). */
+/* Still 74px. The labels were budgeted at ~18px of Today's scroll and cost
+   nothing in the end: the disc they replace was 54px tall, and a 23px glyph
+   over an 11px word fits the same 54px with room to spare. So the bar keeps its
+   height, the tap targets get BIGGER (54x64 against a 46px circle), and Today
+   loses no scroll. */
+/* 82, up from 74: the buttons grew 8px so a badge could sit above the glyph instead of on
+   it. This var is what every screen reserves at the bottom, so it has to move with them. */
+body:has(#kid-app.chart-screen), body:has(#kid-app.box-screen) { --kid-dock-h: 88px; }
+.ch-dock {
+  gap: 4px; justify-content: space-evenly; align-items: center;
+  padding: 10px 6px calc(10px + env(safe-area-inset-bottom));
+}
+/* Glyph over word, no disc. The discs were doing the job the word does now --
+   telling four pictures apart -- and two of them (Box, the selected one) had to
+   grow to 54px just to out-rank the others, which is rank expressed as size.
+   What the disc still owned was the SELECTED state, so that moves to colour:
+   is-on is blue glyph + blue word.
+   min-width keeps the four columns even when the words are not (German's
+   "Woche" against "Geld"), so the row does not re-space per language. */
+.ch-dock-btn {
+  /* ⚠️ 68px (62 before the icon system, 2026-09-15), and the column is BOTTOM-aligned, so the badge has a lane of its own above the
+     glyph (Andjroo, 2026-09-01: "there's eighteen minutes, but it's on top of the controller.
+     Same thing with the box. Nine is on top of the box"). At 54px centred there was nowhere
+     for a badge to go that was not over ink: the glyph is a 23px mask with no padding, so it
+     fills its box corner to corner and an iOS-style corner badge lands on the drawing. */
+  position: relative; flex: none; min-width: 64px; height: 68px;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+  padding-bottom: 2px;
+  /* 12px is the icon-tile tier of the Nimiq radius scale; there is no 16px
+     tier. Invisible at rest (the button has no fill) but it shapes the focus
+     ring, so it still has to be a real value. */
+  gap: 4px; padding: 0 4px; border-radius: 12px;
+  background: none; color: var(--navy); font-size: var(--ic-l);
+}
+.ch-dock-btn.is-on { color: var(--blue); }
+.ch-dock-box { color: var(--navy); }
+.ch-dock-money { color: var(--green-2); }
+/* Inherits the button's colour so the word and its glyph are never two hues. */
+.ch-dock-lbl {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.1px; line-height: 1;
+  color: inherit; opacity: 0.85; white-space: nowrap;
+}
+.ch-dock-btn.is-on .ch-dock-lbl { opacity: 1; }
+/* Rides the glyph, not the button: the button is now a two-row box 64px wide,
+   so a badge pinned to its own corner would float out beside the word. */
+/* Its own lane at the top of the button, clear of the glyph rather than on it, and CENTRED
+   over it. Pinned right, a wide pill ("18m") drifts toward its neighbour and reads as though
+   it belongs to the button next door; centred, a one-character badge and a three-character one
+   both sit over the thing they are counting. */
+.ch-badge {
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  min-width: 18px; height: 17px;
+  border-radius: var(--r-pill); padding: 0 5px; font-style: normal;
+  background: var(--navy); color: #fff; font-size: 11px; font-weight: 800;
+  display: grid; place-items: center;
+}
+/* GAMES (#398). The minutes badge is BLUE, not navy: the Box's navy badge counts things
+   that are new and will still be there tomorrow, and this one counts a number that is
+   running down. Two badges the same colour on one bar would read as one kind of fact. */
+.ch-badge-mins { background: var(--blue); }
+/* Routine-locked. Greyed, never hidden and never disabled: the tap still answers, because a
+   control that ignores a four-year-old reads as a broken tablet rather than as a rule. */
+.ch-dock-games.is-shut { color: var(--ink-30); }
+.ch-dock-games.is-shut .ch-dock-lbl { opacity: 1; }
+
+/* ---------- sticker picker sheet ---------- */
+.stkp-title { font-size: 20px; font-weight: 800; color: var(--navy); }
+
+/* ---------- timer menu: the one Timer dock destination ----------
+   Round glyph discs in a row, per the Little Timer reference — a stacked list
+   of full-width rows read as a settings menu and left the sheet mostly empty. */
+.tm-opts { display: flex; justify-content: center; gap: 18px; margin-top: 20px; flex-wrap: wrap; }
+/* Symbols only — the name of each one appears as the title of the sheet it
+   opens (aria-label carries it for anyone who can't see the glyph). */
+.tm-opt {
+  width: 84px; height: 84px; border-radius: 50%; flex: none;
+  display: grid; place-items: center; border: none;
+  background: rgba(31, 35, 72, 0.06); color: var(--navy); box-shadow: var(--sh-card);
+ 
+}
+.tm-opt-ic { font-size: 42px; }
+.stkp-groups { width: 100%; display: flex; flex-direction: column; gap: 14px; }
+.stkp-hd { margin-bottom: var(--s1); }
+.stkp-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+.stkp-tile {
+  width: 64px; height: 64px; border-radius: var(--r-tile); background: rgba(31, 35, 72, 0.05);
+  display: grid; place-items: center;
+}
+.stkp-tile .stk-flat { width: 52px; height: 52px; }
+.stkp-camera {
+  border: 2.5px dashed rgba(31, 35, 72, 0.3); background: transparent;
+  color: var(--muted); font-size: 22px; cursor: pointer;
+}
+
+/* ---------- placement layer (the sticker follows the finger) ---------- */
+.place-layer { position: fixed; inset: 0; z-index: 75; touch-action: none; background: rgba(31, 35, 72, 0.1); }
+.place-hint {
+  position: absolute; top: calc(12px + env(safe-area-inset-top)); left: 50%;
+  transform: translateX(-50%); max-width: 78vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: var(--navy); color: #fff; font-size: 16px; font-weight: 800;
+  padding: 10px 20px; border-radius: var(--r-pill); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+.place-cancel {
+  position: absolute; top: calc(10px + env(safe-area-inset-top)); right: 12px;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--card); box-shadow: var(--sh-card); color: var(--navy); font-size: 16px;
+  display: grid; place-items: center;
+}
+.stk-ghost {
+  position: fixed; width: 64px; height: 64px; z-index: 80; pointer-events: none;
+  filter: drop-shadow(0 10px 16px rgba(31, 35, 72, 0.35));
+}
+
+/* ---------- money screen: the v2 home under a back button ---------- */
+.k-money .k-account-header { padding-left: 52px; }
+
+/* ---------- tablet scale-up (>=768px keeps the 390 design, bigger) ---------- */
+@media (min-width: 768px) {
+  /* corner-top, NOT the whole band: Sam shares the corner's line here too, and
+     the band would push it a full corner-height below the control. */
+  .k-chart {
+    padding: calc(env(safe-area-inset-top, 0px) + var(--kid-corner-top)) var(--kid-chrome-gutter) 150px;
+    gap: var(--s7);
+  }
+  .ch-sec-hd { margin-bottom: 10px; }
+  .ch-kid { gap: 14px; }
+  /* no .identicon size here — :root's --kid-ident carries it, and the pill
+     around it follows. Setting it here is what broke the pill (it grew to 64
+     inside a 46px capsule). */
+  .ch-kid-name { font-size: 28px; }
+  .ch-money { padding: 20px 26px; gap: var(--s4); }
+  .ch-money-lbl { font-size: 15px; }
+  .ch-money-nim { font-size: 52px; }
+  .ch-money-nim i { font-size: 23px; }
+  .ch-money-fiat { font-size: 21px; }
+
+
+  .ch-tasks { gap: 16px; }
+  .ch-task { padding: 20px 18px 20px 22px; min-height: 116px; gap: 20px; }
+  .ch-task-emoji { font-size: 52px; }
+  .ch-task-main { gap: 10px; }
+  .ch-task-title { font-size: 28px; }
+  .ch-timer { font-size: 19px; gap: 6px; }
+  .ch-timer-egg { font-size: 21px; }
+  .ch-slot { width: 80px; height: 80px; }
+  .ch-slot-empty { inset: 5px; border-width: 3.5px; }
+  .ch-slot-wait { font-size: 30px; }
+  .stk-slot { width: 66px; height: 66px; }
+  .stk-slot .stk-emoji { font-size: 38px; }
+  .ch-empty { padding: 40px; gap: 12px; }
+  .ch-empty p { font-size: 24px; }
+
+  /* The bar is 80px of button plus 10px of padding either side, and the var is what every
+     screen pads its own bottom by, so the two have to be stated together or Today's last card
+     sits under the bar (which is the mismatch this block shipped with for a month). */
+  body:has(#kid-app.chart-screen), body:has(#kid-app.box-screen) { --kid-dock-h: 100px; }
+  .ch-dock { gap: 16px; }
+  /* ⚠️ ONE SIZE FOR ALL FOUR. This block used to size them as the discs they were before each
+     grew a word underneath (66px, and 80 for the two that were filled circles), so the bar
+     drew ~100px against the height the rest of the app reserves — the landscape sheet has
+     been working around exactly this. Rank is the word and the colour now, not the size. */
+  .ch-dock-btn,
+  .ch-dock-btn.is-on,
+  .ch-dock-box { width: 96px; height: 80px; font-size: var(--ic-l); }
+  .tm-opts { gap: 26px; }
+  .tm-opt { width: 132px; height: 132px; }
+  .tm-opt-ic { font-size: 64px; }
+  .ch-badge { min-width: 24px; height: 22px; font-size: 14px; border-radius: var(--r-pill); }
+
+  .stkp-title { font-size: 30px; }
+  .stkp-grid { gap: 14px; }
+  .stkp-tile { width: 96px; height: 96px; }
+  .stkp-tile .stk-flat { width: 78px; height: 78px; }
+  .stkp-tile .stk-flat .stk-emoji { font-size: 45px; }
+  .stkp-camera { font-size: 32px; }
+  .place-hint { font-size: 24px; padding: 14px 30px; }
+  .place-cancel { width: 64px; height: 64px; font-size: 22px; }
+  .stk-ghost { width: 96px; height: 96px; }
+  .stk-ghost .stk-emoji { font-size: 60px; }
+  .bx-fan .stk-emoji { font-size: 35px; }
+
+
+  .k-money .k-account-header { padding-left: 96px; }
+}
+
+/* ---------- reduced motion: the shine settles, nothing wobbles or bursts ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .stk-shined .stk-shine::after, .stk-retry,
+  .box-enter .bx-chest, .box-enter .bx-chest::after, .box-enter .bx-shelf,
+  .pack-stks .stk { animation: none; }
+  .pack-stks .stk {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--fan) * 56px), calc(-50% - 62px)) rotate(calc(var(--fan) * 8deg));
+  }
+  .box-enter .bx-chest::after { display: none; }
+}
+
+/* ---------- a kid's own jobs ----------
+   The drawn icon replaces the emoji on a card; same box, so nothing reflows. */
+.ch-task-icon { width: 34px; height: 34px; flex: none; display: block; object-fit: contain; }
+
+/* The card and its X share a positioned wrapper — the X sits ON the card rather
+   than stacking under it in the column.
+   width:100% on the card is load-bearing: .ch-task is a <button>, and a button
+   shrinks to fit its own content unless something stretches it. It used to be a
+   direct child of the .ch-tasks flex column, where align-items:stretch did that
+   for free; inside this wrapper nothing did, so every card sized itself to its
+   title and the list came out ragged (Andjroo, 2026-07-30). */
+.ch-row { position: relative; display: block; }
+.ch-row > .ch-task { width: 100%; }
+.ch-task-x {
+  position: absolute; top: -6px; right: -4px;
+  width: 26px; height: 26px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--card); box-shadow: var(--sh-card);
+  font-size: 10px; color: var(--ink-50);
+}
+
+/* "Add a job" is a dashed invitation, not another solid card competing with the
+   real ones. */
+.ch-add {
+  width: 100%; flex: none; padding: var(--s3); border-radius: var(--r-card);
+  border: 2.5px dashed rgba(31, 35, 72, 0.22);
+  background: rgba(255, 255, 255, 0.72);
+  font-size: var(--fs-body); font-weight: var(--fw-title); color: var(--ink-50);
+}
+
+/* the add sheet */
+.aj { display: flex; flex-direction: column; gap: var(--s3); }
+.aj-icons {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s2);
+  max-height: 232px; overflow-y: auto;
+}
+.aj-icon { aspect-ratio: 1; border-radius: var(--r-tile); background: var(--fill-5); display: grid; place-items: center; padding: 6px; }
+.aj-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.aj-icon-emoji { font-size: 28px; line-height: 1; } /* stands in while no icon art ships (src/task-icons.ts) */
+.aj-icon.is-on { background: rgba(5, 130, 202, 0.12); box-shadow: inset 0 0 0 2.5px var(--blue); }
+.aj-title {
+  width: 100%; padding: var(--s3) var(--s4); border-radius: var(--r-card);
+  border: 0; background: var(--fill-5);
+  font: inherit; font-size: var(--fs-body); font-weight: var(--fw-title); color: var(--ink);
+}
+.aj-title::placeholder { color: var(--ink-30); font-weight: var(--fw-body); }
+.aj-label { font-size: var(--fs-small); font-weight: var(--fw-title); color: var(--ink-50); }
+.aj-amt-row {
+  display: flex; align-items: baseline; gap: var(--s2);
+  padding: var(--s3) var(--s4); border-radius: var(--r-card); background: var(--fill-5);
+}
+.aj-amt {
+  flex: 1; min-width: 0; border: 0; background: none; padding: 0;
+  font: inherit; font-size: var(--fs-title); font-weight: var(--fw-title);
+  color: var(--ink); font-variant-numeric: tabular-nums;
+}
+.aj-amt::placeholder { color: var(--ink-30); }
+.aj-amt-unit { flex: none; font-size: var(--fs-label); font-weight: var(--fw-title); color: var(--ink-50); }
+.aj-hint {
+  font-size: var(--fs-small); font-weight: var(--fw-body); color: var(--ink-50);
+  font-variant-numeric: tabular-nums; margin-top: calc(var(--s2) * -1);
+}
+.aj-go {
+  width: 100%; padding: var(--s4); border-radius: var(--r-pill);
+  background-image: var(--nimiq-light-blue-bg, radial-gradient(100% 100% at bottom right, #265DD7, #0582CA));
+  color: #fff; font-size: var(--fs-body); font-weight: var(--fw-title);
+  box-shadow: var(--sh-cta);
+}
+
+@media (min-width: 768px) {
+  .ch-task-icon { width: 52px; height: 52px; }
+  .ch-task-x { width: 34px; height: 34px; font-size: 13px; top: -8px; right: -6px; }
+  .aj-icons { grid-template-columns: repeat(5, 1fr); max-height: 340px; }
+}
+
+/* ---------- the job card, reformatted ----------
+   With the timer gone the card says two things: what the job is, and what it
+   pays. The reward used to be a filled green capsule, which at this size was a
+   second heavy block fighting the title for the eye. It is the same green, as
+   plain text, one clear step below the title. */
+.ch-task .k-nim-pill {
+  background: none; padding: 0; border-radius: 0;
+  font-size: var(--fs-small); font-weight: var(--fw-title);
+  color: var(--green-2); font-variant-numeric: tabular-nums;
+}
+.ch-task-meta { min-height: 0; }
+
+/* Nimiq inputs carry no border and focus BLUE (rule 1 + the focus ring spec) —
+   the browser default was drawing a gold box round the amount field. */
+.aj-title:focus-visible, .aj-amt:focus-visible, .aj-amt-row:focus-within {
+  outline: none;
+}
+.aj-title:focus-visible, .aj-amt-row:focus-within {
+  box-shadow: inset 0 0 0 2px var(--blue);
+}
+
+/* ---------- the job picker ----------
+ *
+ * Tiles, because tapping one is what makes a job translatable (job-picker.js):
+ * a picked tile stores a catalog key and that row reads in the kid's own
+ * language forever, while anything typed stays in the words it was typed in.
+ * So this grid has to be FASTER than the text field under it, not merely
+ * available — hence a scrollable grid of faces, sized like the icon strip it
+ * sits beside, and no search box on the tablet (a kid is picking, not querying).
+ */
+.jp { display: grid; gap: var(--s2); }
+.jp-grid {
+  display: grid; gap: var(--s3);
+  /* The picker is the tallest thing on this sheet, so it takes the scroll. Without
+     a cap it pushed the amount field and the Add button below the fold and the
+     sheet read as a wall of tiles with no way to finish. */
+  max-height: 38vh; overflow-y: auto;
+}
+.jp-group-hd {
+  font-size: var(--fs-small); font-weight: var(--fw-title); color: var(--ink-50);
+  margin-bottom: var(--s1);
+}
+.jp-tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s2); }
+.jp-tile {
+  display: flex; align-items: center; gap: var(--s2);
+  padding: var(--s2) var(--s3); border: 0; border-radius: var(--r-card);
+  background: var(--fill-5); font: inherit; color: var(--ink-100);
+  text-align: left; min-height: 52px;
+}
+.jp-emoji { font-size: 22px; line-height: 1; flex: none; }
+/* Two lines, then ellipsis: a translated title runs longer than the English it
+ * was measured against (German especially), and a tile that clips mid-word tells
+ * a kid nothing about which job it is. */
+.jp-name {
+  font-size: var(--fs-small); font-weight: var(--fw-title); line-height: 1.2;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.jp-tile.is-on { background: var(--nq-blue-10, rgba(5,130,202,.14)); box-shadow: inset 0 0 0 2px var(--nq-blue, #0582CA); }
+.jp-none { font-size: var(--fs-small); color: var(--ink-50); padding: var(--s2); }
+@media (min-width: 700px) {
+  .jp-grid { max-height: 42vh; }
+  .jp-tiles { grid-template-columns: repeat(3, 1fr); }
+}
+/* Free-text only: a catalog tile brings its own picture (addjob.js hides this). */
+.aj-icons[hidden] { display: none; }
+
+/* ---------- the way out of a day with a bonus left in it (#341, #342) ----------
+   The chest of docs/SPEC-quest-map.md, drawn as a card because the trail it belongs on is
+   not built yet (#343, #344). It sits at the end of the group's cards, where the last thing
+   the kid finished is, and it reads as an action rather than a job: no sticker slot, no NIM
+   pill, nothing to do first. */
+.ch-finish {
+  display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 8px;
+  padding: 14px 16px; border: 2px dashed rgba(33,188,165,.45); border-radius: 16px;
+  background: rgba(33,188,165,.08); text-align: left; cursor: pointer;
+}
+.ch-finish:active { transform: scale(0.985); }
+.ch-finish-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ch-finish-title { font-size: 17px; font-weight: 700; }
+.ch-finish-sub { font-size: 13px; font-weight: 600; opacity: .65; }
+.ch-finish-mark { flex-shrink: 0; display: inline-flex; color: #21BCA5; }
+.ch-finish-mark svg { width: 26px; height: 26px; }
+
+/* A side quest names itself on its card. Without it the kid cannot tell the step they have
+   to do from the one that only pays extra, which is the whole feature. */
+.ch-bonus-tag {
+  display: inline-flex; align-items: center; margin-left: 6px; padding: 2px 8px;
+  border-radius: 999px; background: rgba(33,188,165,.16); color: #16887a;
+  font-size: 11.5px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase;
+}

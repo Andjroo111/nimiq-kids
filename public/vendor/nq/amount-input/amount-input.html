@@ -1,0 +1,47 @@
+<!-- Nimiq AmountInput snippet (include amount-input.css + @nimiq/style).
+     Classes on the root: add "has-value" when a value is entered, "focussed" while focused.
+     The hidden .width-finder spans mirror the placeholder and the current value so the
+     fit script can size the input. Keep .width-value's text in sync with the input. -->
+<div class="amount-input has-value">
+    <form class="label-input">
+        <span class="width-finder width-placeholder">0</span>
+        <div class="full-width">Width</div>
+        <span class="width-finder width-value">100.00</span>
+        <input type="text" inputmode="decimal" class="nq-input"
+            placeholder="0"
+            style="width: 50px; font-size: 8rem;"
+            value="100.00">
+    </form>
+    <span class="nim nim">NIM</span>
+</div>
+
+<script>
+    // Fits the input's width to its content and shrinks the font when the
+    // value would overflow the available space (max font size: 8rem).
+    // Re-run this after every input event, updating .width-value's text first.
+    (async () => {
+        await new Promise((r) => window.addEventListener('load', r, { once: true }));
+        await document.fonts.ready;
+
+        const maxFontSize = 8;
+        const form = document.querySelector('.amount-input .label-input');
+        const fullWidthDiv = form.querySelector('.full-width');
+        const widthPlaceholder = form.querySelector('.width-placeholder');
+        const widthValue = form.querySelector('.width-value');
+        const input = form.querySelector('input');
+
+        // Measure available width while .full-width is still in flow
+        const maxWidth = form.offsetWidth;
+        fullWidthDiv.classList.add('width-finder');
+
+        const placeholderWidth = widthPlaceholder.offsetWidth;
+        const valueWidth = widthValue.offsetWidth;
+        const fontSizeFactor = Math.min(1.0, Math.max(maxWidth / valueWidth, 1 / maxFontSize));
+        const fontSize = fontSizeFactor * maxFontSize;
+        const width = input.value
+            ? (fontSizeFactor === 1 ? valueWidth : maxWidth)
+            : placeholderWidth;
+        input.style.width = width + 'px';
+        input.style.fontSize = fontSize + 'rem';
+    })();
+</script>

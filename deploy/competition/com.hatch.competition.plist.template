@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Hatch PUBLIC competition instance. Mirrors com.hatch.app (the family install):
+     static env file sourced by zsh, NEVER 1Password `op` in the boot path (see the
+     Mini's CLAUDE.md). Install to ~/Library/LaunchAgents/com.hatch.competition.plist
+     and bootstrap FROM A REAL TERMINAL, not an agent shell:
+       launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.hatch.competition.plist
+     ⚠️ The boot line is `build:shell ... && exec server.ts`. The `&&` is
+     load-bearing and must never go back to `;`: public/dist is gitignored and built
+     here, so with a semicolon a FAILED build still execs the server and it serves the
+     previous bundle, or none at all on a fresh checkout. A missing parent-shell.js
+     renders the parent's whole money surface as raw `papp.*` keys and nothing says why.
+     With `&&` the boot fails, KeepAlive crash-loops, the autodeploy health check
+     times out and its rollback path puts the last good commit back (#119).
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.hatch.competition</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>-c</string>
+    <string>set -a; source /Users/USERNAME/secrets/hatch-competition.env; set +a; /Users/USERNAME/.bun/bin/bun run build:shell >> /Users/USERNAME/logs/hatch-competition.log 2>&amp;1 &amp;&amp; exec /Users/USERNAME/.bun/bin/bun run src/server.ts</string>
+  </array>
+  <key>WorkingDirectory</key><string>/Users/USERNAME/projects/nimiq.kids-competition</string>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>/Users/USERNAME/logs/hatch-competition.log</string>
+  <key>StandardErrorPath</key><string>/Users/USERNAME/logs/hatch-competition.log</string>
+</dict>
+</plist>

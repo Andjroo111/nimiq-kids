@@ -1,0 +1,158 @@
+/* nimiq.kids parent — THE BOARD's own stylesheet (views-board.js + views-board-goals.js).
+   Split out of parent.css, which reached 814 lines adding the sticker-theme chooser and would
+   have failed the repo's 800-line CI guard. The seam is the one the screen already has: these
+   rules describe the board and nothing else touches them.
+
+   Everything here is built from the SAME primitives as the Treasure Box manager (.set-card,
+   .bx-row-p, .pill-btn, .sheet) rather than a new look, because it is the same kind of screen.
+   Loaded AFTER parent.css so it can rely on the tokens and win at equal specificity. */
+
+/* ---- The board (per-kid page -> Jobs and routines) ----
+   Built from the SAME primitives as the Treasure Box manager (.set-card, .bx-row-p,
+   .pill-btn, .sheet) rather than a new look, because it is the same kind of screen: a
+   list of things a parent owns, each with one edit. The only new pieces below are the
+   ones carrying information the Box does not have -- an emoji face instead of a glyph,
+   a days-per-week dial, and the shared job picker. */
+.bd-sec { margin: 4px 0 -6px; }
+/* A sub-heading INSIDE a card ("Taken off the board"), one step quieter than the card's
+   own h3 and separated from the rows above it so the trail reads as a second list. */
+.bd-sub-hd {
+  font-size: 12px; font-weight: 700; color: var(--ink-50);
+  text-transform: uppercase; letter-spacing: 1px;
+  margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--hairline);
+}
+/* The face lane. A chore wears an emoji, not a Box glyph, so it is sized to sit on the
+   same 44px baseline the glyph rows use rather than to its own font metrics. */
+.bd-emoji {
+  width: 30px; flex-shrink: 0; font-size: 22px; line-height: 1;
+  display: grid; place-items: center;
+}
+/* The kid's own drawn job art (src/task-icons.ts), on the SAME job. The kid's card draws
+   it at 34px (.ch-task-icon); a manager row is smaller than a card, so 30px, which is
+   also exactly the lane the emoji fallback occupies. `object-fit: contain` because the
+   art is squared at generation but a downstream crop must never stretch it. */
+.bd-face { width: 30px; height: 30px; flex: none; display: block; object-fit: contain; }
+.bx-row-p.is-off .bd-emoji, .set-card.is-off .bd-emoji,
+.bx-row-p.is-off .bd-face, .set-card.is-off .bd-face { opacity: 0.5; }
+.set-card.is-off .bx-shelf-hd-p h3 { color: var(--ink-40); }
+
+/* Slots: 2x2, not a 4-wide row. "Nachmittags" does not fit a quarter of a 390px phone,
+   and a pill that clips its own label is worse than one more line. */
+.bd-slots { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding-top: 0; }
+.bd-slots .pill-btn { width: 100%; }
+
+/* Days a week: seven circles, because the answer is a count and a number is the shortest
+   way to show one. Circle rather than a small square (brand radius scale), 44px so it is
+   a real tap target. */
+.bd-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; justify-items: center; }
+.bd-day {
+  width: 44px; height: 44px; max-width: 100%; border: none; border-radius: 50%;
+  background: var(--ink-07); color: var(--navy); font: 700 15px inherit;
+  display: grid; place-items: center;
+  transition: transform 140ms cubic-bezier(0.25, 0, 0, 1), box-shadow 250ms cubic-bezier(0.25, 0, 0, 1);
+}
+.bd-day:active { transform: scale(0.94); }
+.bd-day.on { color: #fff; background-image: radial-gradient(100% 100% at bottom right, #265DD7, #0582CA); }
+
+/* A sheet's actions fill the row. `.set-card .btn-row .pill-btn { flex: 1 }` only reaches
+   buttons inside a settings CARD, so in a sheet a lone Save shrink-wrapped and sat against
+   the left edge with half the sheet empty beside it. Same idiom as `.ap-actions`. */
+.bd-actions .pill-btn { flex: 1; }
+
+/* ---- sticker themes: what a ladder collects toward ----
+   The row of slots is the COLLECTION, so an empty slot has to read as clearly as a full one:
+   a dashed well, not a faint version of a sticker. That is what makes a half-finished set look
+   like something worth finishing rather than like art that failed to load. */
+.bd-theme { margin: 2px 0 8px; }
+/* ⚠️ NOT `.bd-slots` — that is the routine sheet's 2-column time-of-day buttons, thirty lines
+   up, and reusing the name silently restyled them into a wrapping row. */
+.bd-set { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+.bd-set-slot {
+  width: 34px; height: 34px; border-radius: 8px;
+  border: 1.5px dashed var(--ink-30, rgba(31,35,72,.3));
+  display: grid; place-items: center; flex: none;
+}
+.bd-set-slot.is-on { border-style: solid; border-color: transparent; background: rgba(33,188,165,.1); }
+.bd-set-slot img { width: 100%; height: 100%; object-fit: contain; display: block; }
+/* The prize sits apart from the five it is won with, and says so with a gap and a gold well. */
+.bd-set-boss { margin-left: 10px; border-color: var(--gold, #E9B213); }
+.bd-set-boss.is-on { background: rgba(233,178,19,.16); }
+
+/* The chooser. A theme is picked by its ART -- "Dragons" tells a parent nothing that a row of
+   six dragons does not tell them better, and this is the only place the sticker art appears at
+   size on the parent's phone. */
+.bd-themes { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 2px; }
+.bd-theme-pick {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  padding: 8px 10px; border-radius: 10px; background: var(--fill-5, rgba(31,35,72,.05));
+  border: 2px solid transparent; font-weight: 700; font-size: 15px;
+}
+.bd-theme-pick.on { border-color: var(--blue-2, #265DD7); background: rgba(38,93,215,.08); }
+.bd-theme-art { display: flex; gap: 2px; flex: none; }
+.bd-theme-art img { width: 30px; height: 30px; object-fit: contain; display: block; }
+.bd-theme-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* A price this sheet STATES rather than takes. A stepped practice is priced by its
+   exercises, so the field is gone and this is what stands where it was: the same weight
+   the input has, so the row still reads as the answer to "what it pays". */
+.bd-row-static { font-size: 17px; font-weight: 700; padding: 2px 0 4px; }
+
+/* Reward: the number and its unit on one line, what it is worth underneath. */
+.bd-amt-row { display: flex; align-items: center; gap: 10px; }
+.bd-amt-row .nq-input { flex: 1; }
+.bd-amt-unit { font-size: 14px; font-weight: 700; color: var(--ink-50); flex-shrink: 0; }
+
+/* ---- when the tablet locks (#303) ----
+   The schedule sits UNDER the steps on the routine's card, behind a hairline: it is the same
+   routine, and a second card would say it was a second thing. The rule at the top of this file
+   holds -- rows are `.bx-row-p`, so a window reads at exactly the weight a step does. */
+.bd-locks { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--ink-07, rgba(31,35,72,.07)); }
+.bd-lock-hd { padding-top: 0; }
+.bd-lock-ic { font-size: 20px; width: 34px; text-align: center; flex: none; }
+
+/* Two native time fields with the word between them, because "6:30 to 8:30" is the shape of
+   the sentence underneath and the controls should not have a different one. */
+.bd-lock-times { display: flex; align-items: center; gap: 10px; }
+.bd-lock-times .nq-input { flex: 1; min-width: 0; text-align: center; }
+.bd-lock-sep { font-size: 14px; font-weight: 700; color: var(--ink-50); flex: none; }
+
+/* The echo. Given a tinted well rather than a hint's grey, because it is the one line in the
+   sheet that says what the switches above it will actually DO, and it changes as they move. */
+.bd-lock-echo {
+  margin: 10px 0 2px; padding: 10px 12px; border-radius: 10px;
+  background: rgba(38,93,215,.08); color: var(--navy); font-size: 14px; font-weight: 600;
+  line-height: 1.35; min-height: 20px;
+}
+
+/* Extra credit (#342): the toggle that makes a step a side quest. A pressed BUTTON, matching
+   .bd-day above, because this app has no checkbox anywhere and one control style beats two.
+   The sub-line is inside the target on purpose: the sentence explaining what the switch does
+   is the thing a parent is actually reading, so it should not be a separate tap-dead zone. */
+.bd-toggle {
+  display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 10px;
+  padding: 12px 14px; border: 1.5px solid rgba(31,35,72,.14); border-radius: 12px;
+  background: transparent; text-align: left; cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.bd-toggle:active { transform: scale(0.99); }
+.bd-toggle-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.bd-toggle-title { font-size: 14.5px; font-weight: 700; color: var(--ink-100); }
+.bd-toggle-sub { font-size: 12.5px; font-weight: 600; color: var(--ink-40); }
+.bd-toggle-dot {
+  flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%;
+  border: 2px solid rgba(31,35,72,.2); background: transparent;
+  transition: border-color .15s, background .15s, box-shadow .15s;
+}
+.bd-toggle.on { border-color: rgba(38,93,215,.45); background: rgba(38,93,215,.06); }
+.bd-toggle.on .bd-toggle-dot {
+  border-color: transparent;
+  background-image: radial-gradient(100% 100% at bottom right, #265DD7, #0582CA);
+  box-shadow: inset 0 0 0 3px #fff;
+}
+
+/* The Treasure Box row's drawn face (#404). Here and not in parent.css, which is at 792
+   lines against a CI guard that fails at 800 — the same seam this file was split off for.
+   28px matches the glyph and the pack fan beside it, so a shelf of mixed rows keeps one
+   column. `contain`, because these are cut square with the ink inset and cropping one
+   would eat the navy outline the whole art family shares. */
+.bx-item-art-p { width: 28px; height: 28px; object-fit: contain; flex: none; display: block; }

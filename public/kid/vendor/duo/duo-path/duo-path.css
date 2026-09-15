@@ -1,0 +1,119 @@
+/* duo-path: a vertical winding column of duo-nodes with a banner on top and the
+   prize at the end, on the host's colours.
+   ORIGINAL composition on duo-button's contract; load duo-button.css and
+   duo-node.css first. The wave is OURS, tuned on a 390 column: eight steps per
+   cycle at 0, .63, 1, .63, 0, -.63, -1, -.63 of --duo-path-amp (70px), which
+   keeps a 70px node inside a 390 column with 45px to spare each side. The
+   pitch is a flex gap; a node reserves its own lip, so the column stays honest.
+   The column is CLIMBED: step one at the bottom, the prize under the banner.
+   Andjroo, 2026-09-13, on a top-down draft: "the order is backwards, in Duolingo
+   you go up". .is-descend walks it down instead, for a lesson order.
+   The active step opens 32px of headroom above itself so its bubble never sits
+   on the step above (a Start over a finished step was called out on sight).
+   No connectors: duolingo.com's current path has none, and a row of dots is
+   one more thing to remove. No hue is written in this file.
+   Run: nq principles */
+
+:where(:root) {
+    --duo-path-width: 390px;
+    --duo-path-pitch: 36px;
+    --duo-path-amp: 70px;
+}
+
+.duo-path {
+    width: 100%;
+    max-width: var(--duo-path-width);
+    margin: 0 auto;
+    box-sizing: border-box;
+    padding: 16px 16px 48px;
+    font-family: var(--duo-font);
+    color: var(--duo-paper-ink);
+}
+
+/* ---- the banner: a slab in the action colour, with its own lip ----
+   --duo-head captures the inherited face colour on the banner, so the paper
+   button inside can paint its text in it after it has swapped its own face. */
+.duo-path-head {
+    --duo-head: var(--duo-face);
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 20px;
+    margin: 0 0 40px;
+    border-radius: 16px;
+    color: var(--duo-ink);
+}
+.duo-path-head::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background-color: var(--duo-head);
+    background-image: var(--duo-face-bg);
+    box-shadow: 0 var(--duo-lip) 0 var(--duo-edge, color-mix(in srgb, var(--duo-head) 80%, #000));
+}
+.duo-path-head-text { min-width: 0; }
+.duo-path-kicker {
+    margin: 0 0 4px;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    opacity: 0.85;
+}
+.duo-path-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.duo-path-head .duo-button {
+    --duo-face: var(--duo-paper);
+    --duo-face-bg: none;
+    --duo-ink: var(--duo-head);
+    --duo-edge: color-mix(in srgb, var(--duo-paper) 80%, #000);
+    flex: none;
+}
+
+/* ---- the steps ---- */
+.duo-path-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: var(--duo-path-pitch);
+}
+.duo-path.is-descend .duo-path-steps {
+    flex-direction: column;
+}
+/* physical margin, so it is above the step in either direction */
+.duo-path-step:has(.duo-node.is-active) {
+    margin-top: var(--duo-bubble-room, 32px);
+}
+.duo-path-step {
+    display: flex;
+    justify-content: center;
+    translate: var(--duo-x, 0) 0;
+}
+.duo-path-step:nth-child(8n+2),
+.duo-path-step:nth-child(8n+4) { --duo-x: calc(var(--duo-path-amp) * 0.63); }
+.duo-path-step:nth-child(8n+3) { --duo-x: var(--duo-path-amp); }
+.duo-path-step:nth-child(8n+6),
+.duo-path-step:nth-child(8n) { --duo-x: calc(var(--duo-path-amp) * -0.63); }
+.duo-path-step:nth-child(8n+7) { --duo-x: calc(var(--duo-path-amp) * -1); }
+
+/* the prize is the biggest thing on the path */
+.duo-path .duo-node.is-prize {
+    --duo-node-size: 84px;
+    --duo-node-lip: 10px;
+}

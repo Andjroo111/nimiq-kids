@@ -1,0 +1,238 @@
+/* nimiq.kids — phone layer (<=767px). The REAL Nimiq wallet is mobile-first at
+   390px; this layer makes the kid app match it, scaling UP to the 800x1280 tablet
+   (>=768px keeps the tablet chrome in kid.css / wallet.css untouched).
+
+   Method (nimiq-ui skill "Mobile wallet treatment"): re-scale the vendored
+   account-header via its OWN CSS vars (--h1-size / --body-size) + a ~48px
+   identicon, keep the component's mask fade on the chunked address (never a hard
+   ellipsis), and put the four actions in a compact icon-over-label bottom bar.
+   Values are fluid (clamp) so the 481-767px band degrades gracefully. */
+
+@media (max-width: 767px) {
+
+  /* ---------- top chrome on phones: sit closer to the edge ----------
+     There is no corner control left to place here — the language pill was the
+     only one and it went 2026-08-27 — so this is now just the back button's own
+     offset and the page gutter. The phone layer only re-scales the shared
+     values; it must NOT position the back button independently again. */
+  :root { --kid-corner-top: 10px; --kid-chrome-gutter: var(--s4); --back-size: 44px;
+          /* the four icon steps and the one stroke, one size down (kid/css/icons.css) */
+          --icon-stroke: 2.25px; --ic-s: 18px; --ic-m: 24px; --ic-l: 32px; --ic-xl: 52px; }
+  /* ---------- shared chrome ---------- */
+  .back-btn { font-size: 22px; }
+  .mega-btn { min-height: 60px; min-width: 200px; padding: 12px 28px; font-size: 20px; }
+  /* bottom comes from --kid-dock-h so the toast never covers the dock */
+  .kid-toast { font-size: 16px; padding: 12px 22px; }
+
+  /* Page titles: clear the 48px back button. */
+  .k-page-hd { padding: 10px 0 6px 60px; min-height: 56px; }
+  /* The pill's own padding at phone sizes. The old 56px was horizontal air
+     around bare type; on a white capsule it reads as a slab, so the whole set
+     takes the value the scanner was already using. */
+  .k-page-title { padding: 5px 18px; }
+
+  /* ---------- HOME: the balance card, wallet mobile pattern ---------- */
+  .k-home { padding: var(--kid-corner-band) var(--s4) calc(var(--kid-dock-h, 92px) + var(--s5)); }
+  .k-wallet-card { padding: 14px 16px 16px; }
+  /* the component's own vars, not per-element font sizes */
+  /* fluid, or at 320 the amount plus the identicon leave the name no width at
+     all -- it measured 0px there and the kid's own name vanished */
+  .k-acct { --h1-size: clamp(15px, 4.8vw, 19px); --body-size: clamp(11px, 3.4vw, 13px); }
+  .k-acct .identicon-wrapper { margin-right: 10px; }
+  .k-wallet-ic { width: 44px; height: 44px; }
+  .k-acct .meta .flex-row { gap: 10px; }
+  .k-stake-banner { margin-top: 12px; padding: 11px 13px; gap: 11px; }
+  .k-stake-ring { width: 36px; height: 36px; font-size: 19px; }
+  .k-stake-text b { font-size: 16px; }
+  .k-stake-text i { font-size: 13px; }
+  .k-rate { margin-top: 11px; padding-top: 10px; }
+
+
+  /* home feed (vendored transaction-list, phone-scaled via its vars) */
+  .k-feed-card { padding: 4px 8px 10px; margin-top: 14px; }
+  .k-feed { --body-size: 2rem; --small-size: 1.75rem; --label-size: 1.5rem; --small-label-size: 1.5rem; }
+  .k-feed .month-label { padding: 2rem 1.5rem 1rem; }
+  .k-feed .transaction { padding: 1.25rem 0.5rem; }
+  /* The component fades a label that outgrows its column (its idiom, not an
+     ellipsis). At 390 the default 1rem row gutters made that fade fire mid-word
+     on ordinary labels, so buy the column back rather than fight the mask. */
+  .k-feed .transaction > * { margin: 0 0.625rem; }
+  .k-feed .transaction .identicon, .k-feed .k-stake-tile,
+  .k-feed .k-arrow-tile { width: 5.5rem; height: 5.5rem; }
+  .k-feed-empty { padding: 28px 16px 24px; gap: 10px; }
+  .k-feed-empty p { font-size: 16px; }
+
+  /* ---------- HOME: bottom bar — Receive | Send | scan, the real wallet's bar ---------- */
+  .k-dock { gap: 10px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); }
+  .k-dock-btn { height: 56px; padding: 0 14px; gap: 8px; font-size: 17px; }
+  .k-dock-btn span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .k-dock-scan { width: 52px; height: 52px; }
+  .k-scan-stage { margin-top: 12px; width: min(82vw, 320px); }
+  .k-scan-corner { width: 30px; height: 30px; border-width: 4px; }
+  .k-scan-hint { margin-top: 14px; padding: 8px 16px; font-size: 16px; }
+
+  /* ---------- EARN: task cards live on the chart screen now ---------- */
+  .k-nim-pill { font-size: 13px; padding: 3px 8px; }
+
+  /* ---------- games launcher ---------- */
+  .games { padding: var(--kid-corner-band) var(--s4) 30px; gap: 16px; }
+  .games-hd { padding: 0 56px; gap: 10px; }
+  .games-emoji { font-size: 40px; }
+  /* 24, not 26: the screen title has to stay one step above the row headings (20/800) and in
+     family with the board's "Today" at 22. At 26 against a 20 row heading there was no ladder. */
+
+  /* ⚠️ THREE ACROSS, NOT TWO. At minmax(140px) a 390px phone lays two columns of 150px-tall
+     tiles, so the Play row alone filled the screen and the five rows this page was sorted into
+     were invisible below the fold — Andjroo, 2026-09-01: "all I see is Play... still doesn't
+     seem like everything's organized." Organising a list is worth nothing if a kid only ever
+     sees one heading. Three columns at 108px puts two and a half rows on screen, which is what
+     makes the sort readable. The 56px icon is still well over a thumb's target. */
+  .games-grid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
+  .game-tile { min-height: 108px; padding: 12px 6px 10px; gap: 6px; }
+  .game-icon { width: 56px; height: 56px; border-radius: var(--r-tile); }
+  .game-icon-fallback { font-size: 46px; }
+  .game-label { font-size: 12px; }
+  .games-empty { padding: 36px 0; }
+
+  /* ---------- task (egg) screen: the egg stays the hero, the chrome shrinks ---------- */
+  .task { padding: var(--kid-corner-band) var(--s4) 30px; gap: 10px; }
+  .task-head { padding: 0 56px; gap: 10px; }
+  .task-emoji { font-size: 40px; }
+  .task-title { font-size: clamp(22px, 6.5vw, 30px); }
+  .egg-stage :is(.egg-rig, .maker-rig, .pola-rig) { max-width: min(60vw, 340px); }
+  .task-clock { font-size: clamp(44px, 14vw, 64px); }
+  .time-bar { width: min(84vw, 420px); height: 16px; }
+  .task-actions { min-height: 80px; padding-top: 6px; }
+
+  /* ---------- waiting ---------- */
+  .waiting { gap: 16px; padding: var(--kid-corner-band) var(--s5) 30px; }
+  .w-party-icon { font-size: 72px; }
+  .w-title { font-size: 30px; }
+  .w-nim-sub { font-size: 16px; }
+  .k-nim-pill-big { font-size: 24px; padding: 6px 16px; border-radius: var(--r-pill); }
+  .w-wait { font-size: 18px; }
+  .w-hour { font-size: 20px; }
+  .w-photo img { width: 84px; height: 84px; border-radius: var(--r-card); }
+  .w-photo span { font-size: 16px; }
+  .w-actions { gap: 12px; }
+
+  /* ---------- PIN pad + amount pad: keys sized to ALWAYS fit 3-up ---------- */
+  .pin-lock { font-size: 52px; }
+  .pin-prompt { font-size: 20px; max-width: 320px; }
+  .pin-dots { font-size: 26px; min-height: 36px; letter-spacing: 10px; }
+  .pin-grid { grid-template-columns: repeat(3, clamp(72px, 24vw, 110px)); gap: 12px; }
+  .pin-grid button { height: clamp(60px, 18vw, 88px); border-radius: var(--r-card); font-size: 30px; }
+  .pinpad { gap: 16px; padding: 24px; }
+
+  /* The amount screen is a sheet now, so .k-sheet supplies its surface and
+     padding. The value and the ticker are left at the component's own sizes:
+     they are a matched pair and overriding one shifts the ticker off the
+     value's baseline. */
+  .k-amount-input { margin: 10px 0 2px; }
+  .k-amount-fiat { font-size: 18px; }
+  .k-amount-avail { font-size: 14px; margin-top: 4px; }
+  .k-pad-grid { margin-top: 10px; }
+
+  /* ---------- SEND ---------- */
+  .k-send, .k-receive, .k-grow, .k-pad-screen {
+    padding-left: var(--kid-chrome-gutter); padding-right: var(--kid-chrome-gutter);
+    padding-bottom: 36px;
+  }
+  /* the sheet carries the surface for Send and Receive */
+  .k-sheet { gap: 16px; margin-top: 14px; padding: 20px 18px 24px; max-width: 360px; }
+  .k-sheet-hd { gap: 5px; }
+  .k-sheet-title { font-size: 24px; }
+  .k-sheet-sub { font-size: 15px; max-width: 300px; }
+  .k-sheet-action { padding: 12px 24px; font-size: 16px; }
+  .k-peers { gap: 22px; }
+  .k-peer { gap: 8px; }
+  .k-peer .identicon { width: 76px; height: 76px; }
+  .k-peer-name { font-size: 16px; max-width: 96px; }
+  .k-send-foot { gap: 10px; }
+  .k-cashlink-btn { padding: 12px 20px; font-size: 16px; gap: 8px; }
+  .k-send-scan { width: 44px; height: 44px; }
+  .k-contact-plane { font-size: 52px; }
+  .k-send-route { gap: 6px; margin-top: 2px; }
+  .k-route-icon, .k-route-end .identicon { width: 48px; height: 48px; }
+  .k-route-end .k-contact-plane { font-size: 36px; }
+  .k-route-name { font-size: 16px; }
+  .k-route-link { width: 22px; margin-top: 23px; }
+
+  /* ---------- RECEIVE ---------- */
+  .k-receive-identicon { width: 88px; height: 88px; }
+  .k-receive-name { font-size: 20px; }
+  /* The registry's OWN spec, not a re-guess of it: address-display is 3rem type
+     in a 28.25rem box, and this app runs the 8px root, so that is literally
+     24px in a 226px box. Overriding it to a clamp() at 15-19px in a 300px box
+     is what made the characters look small and the blocks look sprayed apart. */
+  .k-address { font-size: 3rem; max-width: 28.25rem; padding: 10px 12px; }
+
+  .k-qr-sheet .k-qr { width: min(64vw, 240px); height: min(64vw, 240px); }
+  /* sized to keep the truncated address on one line at 320 */
+  .k-qr-address { font-size: clamp(11px, 3.4vw, 14px); }
+  .k-qr-hint { font-size: 17px; max-width: 250px; }
+
+  /* ---------- GROW ---------- */
+  .k-grow-hero { width: min(100%, 360px); gap: 4px; padding: 22px 18px 20px; margin-top: 14px; }
+  .k-grow-plant { font-size: 60px; }
+  .k-grow-amount { font-size: 40px; }
+  .k-grow-amount span { font-size: 20px; }
+  .k-grow-fiat { font-size: 16px; }
+  .k-grow-earned { font-size: 14px; padding: 6px 14px; margin-top: 6px; }
+  .k-grow-pending { font-size: 14px; padding: 10px 18px; gap: 8px; margin-top: 12px; }
+  .k-grow-hint { font-size: 15px; max-width: 320px; margin-top: 14px; }
+  .k-grow-actions { gap: 12px; margin-top: 16px; }
+  .k-grow-take { font-size: 15px; padding: 12px 22px; min-height: 48px; }
+
+  /* ---------- send result status ---------- */
+  .k-status-icon { font-size: 60px; }
+  .k-status .title { font-size: 26px; }
+  .k-status .icon-row { gap: 16px; }
+
+  /* ---------- +NIM celebration ---------- */
+  .celebrate-pill { font-size: 38px; padding: 14px 28px; border-radius: var(--r-tile); }
+
+  /* ---------- bottom sheet (studio / free timer): everything fits 360 ---------- */
+  .kid-sheet { padding: 22px 16px calc(24px + env(safe-area-inset-bottom)); gap: 16px; border-radius: var(--r-sheet) var(--r-sheet) 0 0; }
+  .sheet-hd { min-height: 44px; }
+  .sheet-close { left: 0; width: 44px; height: 44px; font-size: 20px; }
+  .sheet-name { font-size: 21px; }
+  .sheet-sub { margin-top: -8px; font-size: 14px; }
+  .mode-row { gap: 10px; }
+  .mode-btn { width: clamp(60px, 19vw, 88px); height: 60px; border-radius: var(--r-tile); font-size: 30px; border-width: 3px; }
+  .tile-grid { gap: 10px; }
+  .tile { width: clamp(84px, 26vw, 110px); height: clamp(84px, 26vw, 110px); border-radius: var(--r-tile); font-size: 30px; border-width: 3px; }
+  .tile.on::after { width: 26px; height: 26px; font-size: 15px; }
+  .tile.camera { font-size: 24px; border-width: 3px; }
+  .timer-tile { gap: 4px; padding: 6px 5px; }
+  .timer-prev { width: 40px; }
+  .timer-tile-label { font-size: 11px; }
+  .bg-tile span { font-size: 34px; }
+  /* the me-sheet at phone sizes */
+  .me-row { padding: 12px 14px; gap: 12px; font-size: 17px; border-radius: var(--r-card); }
+  .me-row-kids { gap: 6px; }
+  .me-row-kids .identicon { width: 32px; height: 32px; }
+  .me-face-more { font-size: 15px; }
+  .me-lbl { font-size: 14px; }
+  .me-section { gap: 9px; }
+  /* Four across instead of three: the scenes are pictures, they read small, and
+     more of them fit before a kid has to scroll. */
+  /* Exactly the three rows the sheet lays out, so nothing has to be scrolled to
+     see the empty slots. It still scrolls past that if the catalogue grows. */
+  .me-bgs { grid-template-columns: repeat(4, 1fr); max-height: min(50svh, 400px); }
+  .me-bgs .bg-slot { border-width: 2px; }
+  .sound-section { max-width: 100%; gap: 8px; }
+  .sound-row { gap: 10px; padding: 8px 10px; border-radius: var(--r-card); }
+  .sound-play { width: 48px; height: 48px; font-size: 19px; }
+  .sound-pick { font-size: 17px; min-height: 48px; }
+  .soon { font-size: 16px; padding: 10px; }
+}
+
+/* The 320 band: the bar's two labels and the scan glyph do not all fit at the
+   390 sizing, and "Receive" was clipping. Buy the label back from the gutters
+   rather than shrinking the type below the 12px floor. */
+@media (max-width: 360px) {
+  .k-dock { gap: 8px; padding-left: 12px; padding-right: 12px; }
+  .k-dock-btn { padding: 0 8px; gap: 6px; font-size: 16px; }
+  .k-dock-scan { width: 44px; height: 44px; }
+}

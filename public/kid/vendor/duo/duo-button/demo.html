@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>duo-button</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../../../assets/css/legacy/nimiq-style.min.css">
+<link rel="stylesheet" href="duo-button.css">
+<style>
+    html, body { margin: 0; padding: 0; background: #F8F8F8; }
+    body { font-family: 'Mulish', 'Muli', system-ui, sans-serif; }
+    /* demo chrome: a 390 column, one white card, the Nimiq map (the default tokens). */
+    .duo-button-demo { width: 390px; padding: 16px; box-sizing: border-box; }
+    .demo-card {
+        background: #FFFFFF; border-radius: 12px; padding: 20px;
+        box-shadow: 0 4px 28px rgba(0, 0, 0, 0.111);
+    }
+    .demo-label { margin: 0 0 12px; font-size: 13px; font-weight: 600; line-height: 1; color: rgba(31, 35, 72, 0.5); }
+    .demo-row { display: flex; flex-wrap: wrap; gap: 12px 10px; align-items: center; }
+    .demo-row + .demo-row { margin-top: 16px; }
+</style>
+</head>
+<body>
+<!-- duo-button demo: every state on the Nimiq map. Keep truth/demo/snippet identical. -->
+<div class="duo-button-demo">
+    <section class="demo-card">
+        <p class="demo-label">Nimiq map (the default tokens)</p>
+        <div class="demo-row">
+            <button class="duo-button" type="button">Continue</button>
+            <button class="duo-button is-secondary" type="button">Skip</button>
+        </div>
+        <div class="demo-row">
+            <button class="duo-button is-done" type="button">Done</button>
+            <button class="duo-button is-prize" type="button">Claim</button>
+            <button class="duo-button" type="button" disabled>Locked</button>
+        </div>
+        <div class="demo-row">
+            <button class="duo-button is-sm" type="button">Start</button>
+            <button class="duo-button is-sm is-secondary" type="button">Rules</button>
+            <button class="duo-button is-pressed" type="button">Pressed</button>
+        </div>
+        <div class="demo-row">
+            <button class="duo-button is-block" type="button">Check</button>
+        </div>
+    </section>
+</div>
+</body>
+</html>

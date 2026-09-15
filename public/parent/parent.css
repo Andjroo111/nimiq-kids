@@ -1,0 +1,788 @@
+/* nimiq.kids — parent companion wallet. Nimiq legacy app surface (nimiq-style.min.css sets
+   html { font-size: 8px }, so ALL custom values here are px — never rem). Registry
+   component CSS (account-header / transaction-list / address-display / identicon /
+   toast-notification) is linked separately; this file is chrome + layout only. */
+
+/* Self-hosted Mulish (kid app's variable woff2) — reliable under a strict mini-app CSP. */
+@font-face {
+  font-family: 'Mulish';
+  font-style: normal;
+  font-weight: 200 1000;
+  font-display: swap;
+  src: url('/fonts/mulish-latin-wght-normal.woff2') format('woff2');
+}
+
+:root {
+  --navy: #1F2348;
+  --ink-50: rgba(31, 35, 72, 0.5);
+  --ink-40: rgba(31, 35, 72, 0.4);
+  --ink-07: rgba(31, 35, 72, 0.07);
+  --hairline: rgba(31, 35, 72, 0.12);
+  --card-shadow: 0 4px 28px rgba(0, 0, 0, 0.09);
+}
+
+html { background: #F4F4F4; }
+body {
+  font-family: 'Mulish', 'Muli', system-ui, -apple-system, sans-serif !important;
+  font-size: 15px;
+  color: var(--navy);
+  background: #F4F4F4;
+  margin: 0;
+  min-height: 100dvh;
+  display: flex; flex-direction: column; align-items: center;
+  overflow-x: hidden;
+}
+button { font-family: inherit; cursor: pointer; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+
+/* The `hidden` ATTRIBUTE has to actually hide (#241). The browser's own `[hidden] {
+   display: none }` lives in the UA stylesheet, so ANY author rule that names a display
+   silently outranks it: `.pnav { display: flex }` kept the bottom tab bar on screen through
+   the whole first-run flow, on a screen whose four destinations do not exist yet, and
+   `.jp-tile { display: flex }` made the job picker's search filter a no-op on the tiles it
+   was filtering. Both elements are toggled by setting `.hidden`, and neither author rule
+   looked wrong on its own.
+
+   Stated once here rather than per selector, because the shape is not a property of those
+   two elements: the next `display` added above an element somebody hides is the same bug
+   again, and it would be found in a browser or not at all. `!important` rather than source
+   order, so it also holds for a stylesheet linked after this one. src/hidden-attribute.test.ts
+   pins it. The narrower `.pbadge[hidden]` / `.nq-toast[hidden]` / `.dep-visual [hidden]`
+   rules below are now redundant and kept only as local documentation. */
+[hidden] { display: none !important; }
+
+.app { width: 100%; max-width: 460px; flex: 1; display: flex; flex-direction: column; min-height: 100dvh; }
+
+/* ---- Header (navy radial, fleet chrome) ---- */
+.phdr {
+  background-image: radial-gradient(100% 100% at bottom right, #260133, #1F2348);
+  color: #fff;
+  padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+  position: sticky; top: 0; z-index: 20;
+}
+.phdr-row { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.hdr-brand { display: flex; align-items: center; min-width: 0; }
+/* One piece of artwork (hexagon + solid hand + wordmark) at 114.814x18, so height
+   alone sizes it. 27.6px tall = the 176px width the brand README documents for a
+   header, which puts the hexagon at 30.7px. Below that the high five smudged, which
+   is why these files carry the solid hand.
+   The lockup plus the corner control's "Connect wallet" pill does not fit a phone
+   under 400px, so narrower than that the wordmark drops and the bare mark carries
+   the brand. Same artwork either way, never a retyped wordmark. */
+.hdr-lockup { height: 27.6px; width: auto; display: block; }
+.hdr-mark { display: none; height: 28px; width: auto; }
+@media (max-width: 399px) {
+  .hdr-lockup { display: none; }
+  .hdr-mark { display: block; }
+}
+/* fleet chrome: the one-button corner control (nimiq-app-shell). Its dropdown
+   menu is position:absolute — never clip this row with overflow. */
+.phdr-wallet { margin-left: auto; display: flex; align-items: center; flex-shrink: 0; justify-content: flex-end; }
+
+/* ---- Scroll body ---- */
+.view { flex: 1; padding: 20px 16px 24px; display: flex; flex-direction: column; gap: 16px; }
+.view:focus { outline: none; }
+
+/* ---- Bottom navigation ---- */
+.pnav {
+  position: sticky; bottom: 0; z-index: 20;
+  display: flex; background: #fff; border-top: 1px solid var(--hairline);
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+}
+/* FIVE TABS, not four (#418). 11px and a hard ellipsis, both measured rather than guessed:
+   at 390px five tabs are 76px each, and "Einstellungen" is wider than that at 12px. Without
+   `min-width: 0` a flex item refuses to shrink below its content, which is how a label that
+   HAS an ellipsis rule still pushes the bar wider than the screen. */
+.pnav button {
+  flex: 1; min-width: 0; position: relative; border: none; background: none; color: var(--ink-40);
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  font-size: 11px; font-weight: 700; padding: 6px 2px;
+  border-radius: 8px; transition: color 0.2s cubic-bezier(0.25, 0, 0, 1);
+}
+.pnav button [data-t] { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pnav button.on { color: var(--navy); }
+.pnav-ic { display: inline-flex; height: 20px; align-items: center; }
+.pnav-ic svg { width: 20px; height: 20px; }
+.pbadge {
+  position: absolute; top: 2px; right: calc(50% - 22px);
+  min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px;
+  background: #D94432; color: #fff; font-size: 10px; font-weight: 800;
+  display: grid; place-items: center;
+}
+.pbadge[hidden] { display: none; }
+
+/* ---- Section labels (short grey uppercase, the allowed brand eyebrow) ---- */
+/* Ink measured off the wallet's own "TOTAL BALANCE": #64687F on the #F4F4F4 page.
+   This was --ink-40, which lands at #9FA0B0 — visibly paler than the reference and
+   ~2.6:1, under AA at 12px. The measured value is 5.6:1. */
+.sec-label {
+  font-size: 12px; font-weight: 700; color: #64687F;
+  text-transform: uppercase; letter-spacing: 1.2px; padding: 0 4px;
+}
+
+/* ---- Total balance (wallet home) ---- */
+.total { text-align: center; padding: 18px 0 6px; }
+.total .sec-label { padding: 0; }
+.total .fiat { font-size: 40px; font-weight: 600; line-height: 1.15; margin-top: 8px; }
+/* Only ever rendered when the hot wallet has never been read. A headline dash on its own
+   reads as a screen that failed to load; this says which fact is missing. Same ink and
+   size as the "Tap to check" it pairs with in the Family wallet row below. */
+.total .total-note { font-size: 12px; font-weight: 600; color: var(--ink-50); margin-top: 6px; }
+
+/* ---- Cards & group lists ---- */
+.card { background: #fff; border-radius: 10px; box-shadow: var(--card-shadow); }
+/* Surfaces, geometry and label ink are MEASURED off the real wallet home, not chosen:
+   references/screenshots/wallet-app/logged-in/home-overview-mobile.png sampled at 2x.
+     page  #F4F4F4   group #E7E7E9   row #DBDBDF
+     group radius 9.5 -> 10px (the brand app-card tier), row radius 5 -> 6px
+     row inset from the group edge 12px, row height 64px
+   The wallet's own surface carries a faint gradient (its row reads #DBDBDF at the left
+   edge and #D8D8DC at the right), so these match the sampled left edge; the whole scale
+   sits within 3/255 of the reference across the card. */
+.group { background: #E7E7E9; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+.group-title {
+  display: flex; align-items: center; gap: 8px; padding: 8px 10px 2px;
+  font-size: 13px; font-weight: 700; color: var(--ink-50);
+}
+.group-title svg { width: 18px; height: 18px; }
+/* A divider INSIDE an asset group ("Kids"), one step quieter than the asset header. */
+.group-sub {
+  padding: 8px 10px 2px; font-size: 13px; font-weight: 700;
+  color: var(--ink-50); letter-spacing: 0.02em;
+}
+/* The row was 0.06 ink against the group's 0.07, i.e. LIGHTER than the thing containing
+   it, which is why three surfaces read as one flat grey field. 10px vertical padding on
+   the 44px identicon gives the reference's 64px row. */
+.row {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  background: #DBDBDF; border: none; border-radius: 6px; padding: 10px 14px;
+  text-align: left; color: var(--navy); font-size: 15px;
+  transition: transform 0.2s cubic-bezier(0.25, 0, 0, 1);
+}
+button.row:active, .row-tap:active { transform: translateY(1px); }
+/* The row's own tap target, once the row stopped being a button (#300). It inherits every
+   type and colour decision from .row rather than restating them, because the two are the
+   same surface: the only thing that moved is which element carries the click. */
+.row-tap {
+  display: flex; align-items: center; gap: inherit; flex: 1; min-width: 0;
+  background: none; border: none; padding: 0; margin: 0;
+  text-align: left; color: inherit; font: inherit;
+  transition: transform 0.2s cubic-bezier(0.25, 0, 0, 1);
+}
+/* Beside the row, never inside it. `flex-shrink: 0` because the switch is the one thing here
+   that stops being usable when it is squeezed, and .row-main is the part built to give way.
+   No margin: .row's own 12px gap already separates the two, and adding one made it 24. */
+.lock-tgl { flex-shrink: 0; }
+.row .identicon { width: 44px; height: 44px; flex-shrink: 0; }
+/* A column, explicitly. `.row-label` and `.row-sub` are both <span>, so while this was a
+   plain block they laid out INLINE and a kid's staked line ran along beside their name
+   rather than under it: "Sam Staked · 1 500 / NIM", wrapping mid-phrase into the balance
+   column at 390px. `.row-label`'s own ellipsis could not save it either, since overflow
+   and text-overflow need a block box to apply to. `.row-amounts .fiat-amount` had always
+   set `display: block` for exactly this reason; this side never did. */
+.row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.row-label { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Truncates rather than wraps, for the same reason the label does: a second line here
+   grows the row and pushes the sub-line under the amounts. */
+.row-sub { font-size: 12px; font-weight: 600; color: var(--ink-50); margin-top: 1px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row-sub.staked { color: #21BCA5; }
+.row-amounts { text-align: right; flex-shrink: 0; }
+.row-amounts .amount { font-weight: 700; }
+.row-amounts .fiat-amount { display: block; font-size: 12px; font-weight: 600; color: var(--ink-50); margin-top: 1px; }
+.row .chev { color: var(--ink-40); flex-shrink: 0; display: inline-flex; }
+/* "Add a kid" — a row that is an ACTION, so it is outlined rather than filled: a solid
+   row would read as a third child sitting in the roster. The plus occupies the identicon
+   lane so the label still lines up with the kids above it. */
+.add-kid { background: none; box-shadow: inset 0 0 0 1.5px var(--hairline); color: var(--ink-50); }
+.add-kid .row-label { font-weight: 700; color: var(--ink-50); }
+.add-kid-plus {
+  width: 44px; height: 44px; flex-shrink: 0; display: grid; place-items: center;
+  font-size: 24px; font-weight: 400; line-height: 1; color: var(--ink-40);
+}
+.hex-tile { width: 44px; height: 44px; flex-shrink: 0; display: grid; place-items: center; color: var(--navy); }
+.hex-tile svg { width: 30px; height: 27px; }
+.dev-row .hex-tile { width: 36px; height: 36px; }
+.dev-row .hex-tile svg { width: 20px; height: 20px; }
+
+/* ---- Empty / loading / error states ---- */
+.pstate { text-align: center; padding: 40px 24px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+/* SIZED HERE, not by the attribute. The vendored nimiq-style sets `.nq-icon { width: 1em }`,
+   which beats the width= every duotone() call writes, so the art on every empty state
+   ("All caught up", "Nothing here yet", no kids yet) drew at 15px: a pea over a headline.
+   Card heads and rows already size their svg through .set-head and .hex-tile. */
+.pstate .duo { color: var(--navy); margin-bottom: 8px; width: 80px; height: 80px; }
+.pstate h3 { font-size: 18px; font-weight: 700; }
+.pstate p { margin: 0; color: var(--ink-50); font-size: 14px; max-width: 300px; }
+.pstate .pill-btn { margin-top: 16px; }
+
+/* ---- Per-kid page ---- */
+.kid-top { display: flex; align-items: center; gap: 4px; }
+.back-btn {
+  border: none; background: none; color: var(--navy); display: inline-flex;
+  align-items: center; gap: 6px; font-weight: 700; font-size: 14px; padding: 8px 10px 8px 4px;
+}
+.back-btn svg { width: 16px; height: 16px; }
+
+/* account-header is a 1440px desktop component — rescale via its OWN vars (skill recipe) */
+.account-header.mobile {
+  --padding: 0px;
+  --padding-bottom: 0px;
+  --h1-size: 20px;
+  --body-size: 13px;
+  padding-bottom: 0;
+  background: none;
+}
+.account-header.mobile .active-address { padding: 4px 2px 12px; }
+.account-header.mobile .active-address .identicon {
+  width: 48px; height: 48px; margin: 0;
+}
+.account-header.mobile .active-address .identicon-wrapper { margin-right: 14px; }
+.account-header.mobile .active-address .label { margin-right: 12px; margin-bottom: 2px; mask: none; }
+.account-header.mobile .active-address .copyable { margin-right: 8px; padding: 2px 0; margin-left: 0; }
+/* Real-wallet idiom: the one-line chunked address fades out at the right (never a hard cut). */
+.account-header.mobile .active-address .address {
+  mask: linear-gradient(90deg, #fff, #fff calc(100% - 32px), rgba(255, 255, 255, 0));
+  -webkit-mask: linear-gradient(90deg, #fff, #fff calc(100% - 32px), rgba(255, 255, 255, 0));
+}
+/* "No address yet" stands in the address slot, so it must not be dressed as an address: no
+   Fira Mono, no fade mask (there is nothing trailing off), and the muted weight the rest of
+   the app uses for a secondary line. It is a sentence, not a value.
+
+   `word-spacing` is the one that is not cosmetic. The component sets -0.2em, which is right
+   for the gaps inside a chunked NQ address and renders a SENTENCE as "Noaddressyet" -- seen
+   in the browser at 390px, not reasoned about. */
+.account-header.mobile .active-address .address.no-address {
+  mask: none; -webkit-mask: none; word-spacing: normal;
+  font-family: inherit; font-size: 13px; font-weight: 600; color: var(--ink-50);
+}
+/* Right column: NIM on top, fiat under it (the wallet's address-overview layout). */
+.account-header.mobile .amounts-col {
+  display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0;
+  margin-left: auto; padding-left: 12px;
+}
+.account-header.mobile .amounts-col .amount { font-size: 20px; font-weight: 700; }
+.account-header.mobile .amounts-col .fiat-amount { font-size: 13px; font-weight: 600; color: var(--ink-50); margin-top: 2px; }
+
+/* Staking panel */
+.stake-panel {
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+  background: var(--ink-07); box-shadow: none; border-radius: 8px;
+}
+.stake-panel .staking-icon { width: 40px; height: 40px; flex-shrink: 0; color: #21BCA5; }
+.stake-main { flex: 1; min-width: 0; }
+.stake-label { font-size: 13px; font-weight: 700; color: var(--ink-50); }
+.stake-value { font-weight: 700; font-size: 16px; }
+.stake-sub { font-size: 12px; font-weight: 600; color: #21BCA5; margin-top: 1px; }
+.stake-sub.pending { color: var(--ink-50); }
+
+/* Tablet lock card */
+.lock-card {
+  padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;
+  background: var(--ink-07); box-shadow: none; border-radius: 8px;
+}
+.lock-state { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; color: var(--ink-50); }
+.lock-state.active { color: var(--navy); }
+.lock-state svg { width: 15px; height: 15px; flex-shrink: 0; }
+/* The minutes a kid bought, still running under a grown-up's row (#304). Indented to the
+   state line's text rather than its icon: it is a second sentence about the same thing. */
+.lock-sub { margin: -4px 0 0 23px; font-size: 12.5px; font-weight: 600; color: var(--ink-50); }
+
+/* What each paired tablet is DOING, on the family home (#305).
+   A roster row in the vocabulary of the kids above it, because it is the same kind of tap:
+   see a thing, then act on it. The urgent one wears the app's EXISTING "needs you" red, the
+   same #D94432 as the approvals badge and .addr-warn, rather than a colour of its own — a
+   kid stuck in front of a locked screen IS a pending approval, and it taps through to that
+   exact card. The left rail is .addr-warn's idiom for the same reason.
+   22px glyph: a lock is 9x12 and letterboxes into the 30x27 tile taller than the bell beside
+   it, which made the tablet rows read louder than the pending strip they sit under. */
+.scr-row .hex-tile svg { width: 22px; height: 22px; }
+/* GENERALISED from .scr-row to .row (#272). The comment above already calls this "the app's
+   EXISTING needs-you red", and a second row now needs it: a pending approval nobody has ruled
+   on for three days. Two rows painting the same idea from two selectors is how they drift.
+   The sub-line rule below is the general one now: .scr-stale is the only carve-out, and the
+   approvals strip has no stale sub-line to be caught by it. */
+.row.urgent { box-shadow: inset 3px 0 0 #D94432; }
+.row.urgent .hex-tile { color: #D94432; }
+/* GENERALISED again (#414): a kid's own roster row now carries the tablet's sentence, so the
+   red and its one exception have to reach any urgent row, not just .scr-row. The exception is
+   the point — a tablet we have not heard from stays grey, because reddening it would say the
+   staleness is the thing that needs the parent when the line above it is. */
+.row.urgent .row-sub:not(.scr-stale) { color: #D94432; }
+/* "3 days ago" on a card nobody has ruled on. The timestamp is already the right place to say
+   it — it is the fact that changed — so this reddens what is there rather than adding a badge
+   the card has no room for. */
+.ap-when.is-stale { color: #D94432; font-weight: 700; }
+/* WRAPS, where every other .row-sub in this app truncates. That rule exists because a second
+   line there would push the sub-line under the amounts column — and these rows have no
+   amounts. The sentence IS the row's content: at 390px "Waiting for you to say yes to Morning
+   routine" ellipsed away the half naming the job, which is the half a parent acts on. */
+.scr-row .row-sub { white-space: normal; }
+/* A tablet we have not heard from is a footnote on the line above it, never a second state —
+   so it is smaller as well as quieter, or the two grey lines read as one wrapped sentence. */
+.scr-stale { color: var(--ink-40); font-size: 11px; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* How long, as four full-width rows. A pill per line and not a grid: "Until I turn it back
+   on" is the longest label in the sheet in every language, and a two-up grid sized to it
+   leaves "15 minutes" swimming. */
+.ovr-choices { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 4px; }
+.ovr-choice { gap: 10px; }
+/* The minute dial is the face the kid's Treasure Box tile wears, so it is sized like a
+   glyph and not like the 14px chevron `.pill-btn svg` assumes. */
+.ovr-choice > svg { width: 20px; height: 20px; flex: none; }
+
+/* ---- Transaction list (registry component, mobile fit) ---- */
+/* The wallet renders transactions straight on the page, no card chrome. */
+.tx-wrap { padding: 0 2px; }
+.tx-wrap .transaction-list { width: 100%; }
+.tx-wrap .transaction { padding: 10px 6px; }
+.tx-wrap .transaction .identicon { width: 40px; height: 40px; margin: 0 10px; }
+.tx-wrap .transaction .data { font-size: 14px; }
+.tx-wrap .icon-tile {
+  width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center;
+  border-radius: 50%; background: var(--ink-07); color: var(--navy);
+}
+.tx-wrap .icon-tile svg { width: 18px; height: 18px; }
+.tx-wrap .icon-tile.gold svg { width: 22px; height: 20px; }
+.tx-wrap .transaction { margin: 0 -6px; }
+.tx-wrap .icon-tile.green { background: rgba(33, 188, 165, 0.12); color: #21BCA5; }
+
+/* ---- Deposit ---- */
+.dep-card { padding: 22px 18px; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+.dep-card h2 { font-size: 19px; font-weight: 700; }
+.dep-card .sub { color: var(--ink-50); font-size: 13.5px; font-weight: 600; margin: -6px 0 0; max-width: 300px; }
+.qr-holder { padding: 8px; }
+.qr-holder canvas { width: 184px; height: 184px; display: block; }
+/* Receive-parity visual: big identicon by default, QR behind the wallet's toggle. */
+.dep-visual { min-height: 200px; display: grid; place-items: center; }
+.dep-visual [hidden] { display: none; }
+.dep-identicon { width: 148px; height: 148px; }
+.dep-identicon img { width: 100%; height: 100%; }
+/* Stretch inside the centered flex card, else the 3x3 grid shrink-wraps to exact
+   text width and the block gaps disappear. */
+.addr-panel {
+  background: var(--ink-07); border-radius: 8px; padding: 18px 22px;
+  align-self: stretch; display: grid; justify-items: center;
+}
+.dep-actions-row { display: flex; align-items: center; gap: 10px; }
+.qr-toggle {
+  width: 42px; height: 42px; border: none; border-radius: 50%;
+  background: var(--ink-07); color: var(--navy); display: grid; place-items: center;
+  transition: transform 0.2s cubic-bezier(0.25, 0, 0, 1);
+}
+.qr-toggle:active { transform: translateY(1px); }
+.qr-toggle svg { width: 20px; height: 20px; }
+/* address-display assumes the 8px root — true here; just bound its width */
+.dep-card .address-display { max-width: 250px; }
+.dep-actions { display: flex; flex-direction: column; gap: 10px; width: 100%; align-items: center; }
+.topup-row { display: flex; gap: 10px; width: 100%; max-width: 300px; }
+.topup-row .nq-input { width: 100px; flex-shrink: 0; font-size: 15px; padding: 8px 12px; }
+.topup-row .pill-btn { flex: 1; }
+.pill-btn {
+  border: none; border-radius: 999px; height: 42px; padding: 0 20px;
+  font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  text-decoration: none; /* anchors styled as pills must not underline */
+  transition: transform 0.2s cubic-bezier(0.25, 0, 0, 1), box-shadow 0.2s cubic-bezier(0.25, 0, 0, 1);
+}
+.pill-btn svg { width: 14px; height: 14px; }
+.pill-btn.blue { color: #fff; background-image: radial-gradient(100% 100% at bottom right, #265DD7, #0582CA); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+.pill-btn.navy { color: #fff; background-image: radial-gradient(100% 100% at bottom right, #260133, #1F2348); }
+.pill-btn.ghost { color: var(--navy); background: var(--ink-07); }
+.pill-btn:hover { transform: translateY(-2px); }
+.pill-btn:active { transform: translateY(1px); }
+.pill-btn:disabled { opacity: 0.5; transform: none; cursor: default; }
+/* A `wide` pill is "as wide as the container, up to a readable cap". Its container is
+   almost always a flex COLUMN whose align-items is the default `stretch`, so without
+   align-self the 300px cap lands the button hard against the left edge, under rows that
+   span the whole card. On a 390px phone the card is ~326px wide and the offset is 13px —
+   invisible, which is why it survived. On a tablet the card is ~528px and it reads as
+   debris. This was already fixed EIGHT times by hand (six inline `align-self:center`
+   and two `.bd-wide`), which is the tell that it belonged to the rule.
+   BOTH properties are needed and neither is redundant: align-self reaches a flex column
+   (.set-card, .sheet, .dep-actions) and does nothing in a block, margin-inline reaches a
+   block (.bd-locks, which is how "Add times" stayed left after the first pass) and is
+   redundant in a flex column. The one place the pair would be WRONG is a flex ROW, where
+   an auto margin eats the free space instead of centring — tools/parent-tablet.mjs walks
+   every .wide button on every screen and fails if it ever finds one there.
+   `display: flex` is load-bearing, not tidying: .pill-btn is inline-flex, and an auto
+   margin on an INLINE-level box computes to zero, so margin-inline silently did nothing
+   until this line existed. Inside a flex parent the value is blockified anyway, so this
+   changes nothing there. */
+.pill-btn.wide { display: flex; width: 100%; max-width: 300px; align-self: center; margin-inline: auto; }
+.pill-btn.sm { height: 34px; font-size: 13px; padding: 0 14px; }
+.dep-hint { font-size: 12.5px; font-weight: 600; color: var(--ink-50); }
+
+/* ---- Settings ---- */
+.set-card { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.set-head { display: flex; align-items: center; gap: 10px; }
+.set-head svg { width: 24px; height: 24px; color: var(--navy); flex-shrink: 0; }
+.set-card h3 { font-size: 15.5px; font-weight: 700; }
+.set-hint { font-size: 13px; color: var(--ink-50); font-weight: 600; }
+.nq-input { width: 100%; box-sizing: border-box; font-size: 15px; font-family: inherit; padding: 10px 14px; }
+select.nq-input { appearance: none; background: none; }
+.set-card .btn-row .pill-btn { flex: 1; }
+/* And in a SHEET. Without this a lone Save in the Treasure Box sheets shrink-wrapped and sat
+   against the left edge with the rest of the row empty; the board sheets had already fixed it
+   for themselves as `.bd-actions` (board.css). One rule for every sheet's action row. */
+.sheet .btn-row .pill-btn { flex: 1; }
+.dev-row { display: flex; align-items: center; gap: 10px; }
+.dev-main { flex: 1; min-width: 0; }
+.dev-lbl { font-weight: 700; font-size: 14px; }
+.dev-sub { font-size: 12px; color: var(--ink-50); font-weight: 600; }
+
+/* App allowlist toggles (slider-toggle idiom, px-scaled) */
+.app-toggle { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 14px; font-weight: 600; }
+.app-toggle .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tgl {
+  width: 42px; height: 26px; border-radius: 999px; border: none; position: relative;
+  background: rgba(31, 35, 72, 0.16); transition: background 0.2s cubic-bezier(0.25, 0, 0, 1);
+}
+.tgl::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px;
+  border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s cubic-bezier(0.25, 0, 0, 1);
+}
+.tgl.on { background: #21BCA5; }
+.tgl.on::after { transform: translateX(16px); }
+
+/* ---- Sheet ---- */
+.scrim {
+  position: fixed; inset: 0; background: rgba(31, 35, 72, 0.6);
+  display: none; align-items: flex-end; justify-content: center; z-index: 50;
+}
+.scrim.show { display: flex; }
+.sheet {
+  background: #fff; border-radius: 16px 16px 0 0; width: 100%; max-width: 460px;
+  padding: 22px 20px calc(22px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 14px; max-height: 82dvh; overflow-y: auto;
+  box-sizing: border-box;
+}
+.sheet h2 { font-size: 19px; font-weight: 700; }
+.sheet .sub { color: var(--ink-50); font-size: 13.5px; font-weight: 600; margin-top: -8px; }
+.sheet .qr-holder { align-self: center; }
+.copy-link {
+  border: none; background: var(--ink-07); border-radius: 8px; padding: 10px 12px;
+  font-family: 'Fira Mono', monospace; font-size: 11.5px; color: var(--ink-50);
+  word-break: break-all; text-align: left;
+}
+
+/* ---- Photo viewer ---- */
+.photo-view {
+  position: fixed; inset: 0; background: rgba(31, 35, 72, 0.85);
+  display: none; align-items: center; justify-content: center; z-index: 60;
+}
+.photo-view.show { display: flex; }
+.photo-view img { max-width: 94vw; max-height: 90dvh; border-radius: 8px; }
+
+/* ---- Toast (registry component; parent chrome: centered above the nav) ---- */
+.nq-toast {
+  left: 50%; right: auto; transform: translateX(-50%);
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  width: auto; max-width: min(400px, calc(100vw - 32px)); min-width: 250px;
+  z-index: 70; padding-right: 16px;
+  /* The vendor sets a FIXED `height: 8rem` (toast-notification.css) because upstream only
+     ever showed one short line. Ours wrap: a payout success carries a name, an amount and
+     a receipt link, and every line past the first was painted OUTSIDE the pill (Andjroo,
+     2026-09-01: "the text is hard to read, it's spilling out"). Height follows content,
+     8rem becomes the FLOOR so a one-line toast keeps the shape it always had. */
+  height: auto; min-height: 8rem;
+  padding-top: 12px; padding-bottom: 12px;
+}
+.nq-toast[hidden] { display: none; }
+.nq-toast .content { min-width: 0; padding-right: 4px; }
+/* `min-width: 0` above lets the flex child shrink; without it the text box refuses to go
+   narrower than its longest word and overflows sideways instead of wrapping. `anywhere`
+   is for the one string that has no spaces to break at: an address. */
+.nq-toast .status { white-space: normal; overflow-wrap: anywhere; line-height: 1.35; }
+/* One optional action inside a toast — today, the payout's own transaction on the block
+   explorer. Underlined rather than buttoned: it is an offer, not the toast's point. */
+.nq-toast-action {
+  display: inline-block; margin-top: 4px;
+  font-size: 14px; font-weight: 600; color: inherit;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+/* A toast is bottom-anchored, and a sheet is bottom-anchored, so a toast raised while a
+   sheet is open lands squarely on the sheet's own controls (Andjroo, screenshot: "On the
+   board" covering the When pills). The bad case is not the happy one: `finish()` keeps
+   the sheet OPEN on failure, so the error explaining what to fix was sitting on top of
+   the button you fix it with. While the scrim is up the toast goes to the TOP instead,
+   where nothing is interactive. Pure CSS: the scrim precedes the toast in index.html. */
+.scrim.show ~ .nq-toast {
+  top: calc(12px + env(safe-area-inset-top));
+  bottom: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+
+/* ---- onboarding (first run: create your family / pairing code) ---- */
+.onb { gap: 10px; }
+.onb-hex { display: inline-flex; margin-bottom: 4px; }
+.onb-hex svg { width: 52px; height: 47px; }
+.onb .nq-input { width: 100%; max-width: 300px; font-size: 15px; }
+.onb .pill-btn.wide { width: 100%; max-width: 300px; justify-content: center; }
+/* The required wallet step (parent custody only), above the name fields. A panel rather than
+   loose lines: it is one step with one action, and the border is what stops it reading as
+   more body copy above two inputs. `.pstate .pill-btn` adds a 16px top margin to every button
+   inside this card, which inside a panel this tight reads as a gap; 10px is the card's own. */
+.onb-step {
+  width: 100%; max-width: 300px; box-sizing: border-box;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 14px 14px 16px; border-radius: 8px;
+  box-shadow: inset 0 0 0 1.5px var(--hairline);
+}
+.onb-step-title { font-size: 15px; font-weight: 700; color: var(--navy); }
+.onb-step-sub { font-size: 13px; font-weight: 600; color: var(--ink-50); line-height: 1.35; }
+.onb-step .pill-btn { margin-top: 6px; }
+.onb-invited { color: var(--gold, #EC991C); font-weight: 700; font-size: 14px; }
+.onb-connected { color: #21BCA5; font-weight: 700; font-size: 14px; margin-top: 4px; }
+.onb-hint { color: var(--ink-50); font-size: 12px; }
+.onb-privacy { color: var(--ink-50); font-size: 12px; max-width: 300px; }
+/* Links are bold navy, never underlined (rule 21); padded up to a 36px tap target. */
+.onb-link { border: 0; background: none; color: var(--navy); font: 700 14px Mulish, system-ui, sans-serif;
+  cursor: pointer; padding: 11px 8px; transition: color 0.2s cubic-bezier(0.25, 0, 0, 1); }
+.onb-link:hover { color: #0582CA; }
+.onb-code { text-align: center; letter-spacing: 6px; font-variant-numeric: tabular-nums; }
+
+/* the big pairing code shown on the signed-in phone */
+.pair-code-big { text-align: center; font: 800 40px Mulish, system-ui, sans-serif; letter-spacing: 10px;
+  font-variant-numeric: tabular-nums; padding: 18px 0 10px; color: var(--navy); }
+
+/* ---- Treasure box manager (Settings -> Manage the box) ----
+   Built from the .set-card / .pill-btn / .sheet primitives already here rather
+   than a new look: this is a settings sub-page, not a new kind of screen.
+   Hidden rows stay visible and greyed, because nothing here is ever deleted --
+   `kid_purchases.item_id` is a real FK -- and a parent who hid a shelf needs to
+   find it to bring it back. Dimming is on the INK, never `opacity`, which would
+   drag the card's own shadow through it. */
+.bx-back-p { align-self: flex-start; }
+.bx-intro { margin: -2px 0 2px; }
+.bx-shelf-hd-p { display: flex; align-items: center; gap: 10px; }
+.bx-shelf-hd-p h3 { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bx-shelf-ic { color: var(--navy); flex-shrink: 0; }
+.bx-shelf-tools { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+/* 36px, not the 12px glyph inside it: a tap target is not a font-size. */
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--ink-07); color: var(--navy); flex-shrink: 0;
+  transition: transform 140ms cubic-bezier(0.25, 0, 0, 1);
+}
+.icon-btn:active { transform: scale(0.94); }
+.icon-btn:disabled { opacity: 0.35; cursor: default; }
+.icon-btn svg { width: 12px; height: 12px; }
+/* ONE glyph, turned both ways. Using chevron-left for up and chevron-right for
+   down looked right on paper and rendered as two identical up arrows: a left
+   chevron turned +90 and a right chevron turned -90 both point up. */
+.bx-shelf-tools [data-dir="-1"] svg { transform: rotate(90deg); }
+.bx-shelf-tools [data-dir="1"] svg { transform: rotate(-90deg); }
+
+.bx-row-p { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.bx-row-ic { color: var(--navy); flex-shrink: 0; }
+/* A pack row wears its own stickers, the same fan the kid sees (#34), scaled to a 44px
+   manager row: the kid's shelf tile fans 42px stickers across 66px, this fans 24px across
+   40px. Same geometry, same lean, one third the size. */
+.bx-fan-row { position: relative; display: block; width: 40px; height: 28px; flex: none; }
+.bx-fan-row .stk {
+  position: absolute; width: 24px; height: 24px;
+  left: calc(1px + var(--i) * 7px); top: calc(2px + var(--i) * 1px);
+  transform: rotate(calc(-10deg + var(--i) * 10deg));
+}
+.bx-fan-row .stk img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.bx-fan-row .stk .stk-emoji { font-size: 17px; line-height: 24px; display: block; text-align: center; }
+.bx-fan-row .stk .stk-fallback {
+  display: grid; place-items: center; width: 100%; height: 100%;
+  font-size: 12px; font-weight: 800; color: var(--navy); background: #FFF2C7; border-radius: 50%;
+}
+/* A kid's photo sticker, seen from the parent's phone. The picture lives in the tablet's own
+   storage (#282), so this side always draws the stand-in — never a broken image. */
+.bx-fan-row .stk .stk-away {
+  display: grid; place-items: center; width: 100%; height: 100%;
+  border-radius: 50%; background: #F4F5F9; color: var(--ink-50);
+}
+.bx-fan-row .stk .stk-away svg { width: 58%; height: 58%; display: block; }
+.bx-row-p.is-off .bx-fan-row { opacity: 0.55; }
+.bx-row-main { flex: 1; min-width: 0; }
+.bx-row-title { font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bx-row-sub { font-size: 12px; font-weight: 600; color: var(--ink-50); margin-top: 1px; }
+/* A NIM amount a parent set on a practice before #127 removed the field, and which nothing
+   pays. Nimiq red, the same #D94432 .addr-warn uses, because it is the app's one colour for
+   "this is not what you think it is" — and a second grey line under the weekly count would
+   read as more detail rather than as a correction. */
+.bd-unpaid { color: #D94432; }
+.bx-row-lock { color: var(--ink-40); flex-shrink: 0; display: inline-flex; padding: 0 12px; }
+.bx-empty { padding: 6px 0; }
+.bx-shelf-p.is-off .bx-shelf-hd-p h3, .bx-shelf-p.is-off .bx-shelf-ic,
+.bx-row-p.is-off .bx-row-title, .bx-row-p.is-off .bx-row-ic { color: var(--ink-40); }
+
+/* the face picker -- one palette, the same names the kid app draws with */
+.glyph-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 8px; }
+.glyph-opt {
+  height: 52px; border-radius: 12px; display: grid; place-items: center;
+  background: var(--ink-07); color: var(--navy);
+  transition: transform 140ms cubic-bezier(0.25, 0, 0, 1), box-shadow 250ms cubic-bezier(0.25, 0, 0, 1);
+}
+.glyph-opt:active { transform: scale(0.94); }
+.glyph-opt.on { box-shadow: inset 0 0 0 2px #0582CA; background: rgba(5, 130, 202, 0.08); }
+.box-glyph { display: inline-flex; align-items: center; justify-content: center; }
+.box-glyph svg { width: 100%; height: 100%; display: block; }
+.bx-kind { gap: 8px; padding-top: 0; }
+.bx-kind .pill-btn { flex: 1; }
+.bx-kind .pill-btn.on { color: #fff; background-image: radial-gradient(100% 100% at bottom right, #265DD7, #0582CA); }
+
+/* A transaction row that links to its own record on the block explorer. It is the same
+   row as any other, so the only signal it needs is that it responds to a press; a badge
+   or an icon here would compete with the amount, which is what the row is actually for. */
+.tx-wrap .transaction.has-receipt { cursor: pointer; border-radius: 6px; }
+.tx-wrap .transaction.has-receipt:active { background: var(--ink-07); }
+.tx-wrap .transaction.has-receipt:focus-visible { outline: 2px solid #0CA6FE; outline-offset: -2px; }
+
+/* Gift amount presets: three equal taps rather than a number field. */
+.give-row { display: flex; gap: 8px; margin: 4px 0 12px; }
+.give-row .give-amt { flex: 1; padding-left: 0; padding-right: 0; }
+
+/* The kid-address mismatch card. This fires when the address the SERVER reports for a kid
+   is not the one this browser watched a parent register, which is the shape a compromised
+   server rewriting `children.address` would take. It is the loudest thing on the page on
+   purpose, and it is built out of the same .set-card primitives as every other card rather
+   than a new component: the accent bar and the monospace address are the only two things
+   that differ, and both are carrying information. */
+.addr-warn { box-shadow: inset 3px 0 0 #D94432, var(--card-shadow); }
+.addr-warn .set-head h3 { color: #D94432; }
+.addr-line {
+  font-family: 'Fira Mono', 'Menlo', monospace;
+  font-size: 13px; line-height: 1.5; word-break: break-all;
+  padding: 8px 10px; border-radius: 6px; background: var(--ink-07);
+}
+
+/* ---- The job picker, parent-side ----
+   Shared markup with the kid app (public/js/lib/job-picker.js); the kid's CSS lives in
+   its own token vocabulary, so these are the parent app's px values for the same grid.
+   Searchable here and not on the tablet: a parent has a keyboard and knows the word. */
+.jp { display: grid; gap: 10px; }
+/* The picker's search field is plain markup in the shared lib (no .nq-input class), so
+   without this it renders the BROWSER's 1px border, which is the one thing a Nimiq input
+   never has (brand rule 1). Inset shadow is the border here, exactly as .nq-input does it. */
+.jp-search {
+  width: 100%; box-sizing: border-box; font-size: 15px; font-family: inherit;
+  padding: 10px 14px; border: none; border-radius: 4px; background: #fff; color: var(--navy);
+  box-shadow: inset 0 0 0 1.5px rgba(31, 35, 72, 0.1);
+  transition: box-shadow 0.2s cubic-bezier(0.25, 0, 0, 1);
+}
+.jp-search::placeholder { color: var(--ink-40); }
+.jp-search:focus { outline: none; box-shadow: inset 0 0 0 1.5px #0582CA; }
+.jp-grid {
+  display: grid; gap: 12px;
+  /* The picker is the tallest thing on the sheet. Without a cap it pushes the name, the
+     reward and the Save button below the fold and the sheet reads as a wall of tiles
+     with no way to finish. */
+  max-height: 34vh; overflow-y: auto; overscroll-behavior: contain;
+}
+.jp-group-hd { font-size: 12px; font-weight: 700; color: var(--ink-50); margin-bottom: 6px; }
+.jp-tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.jp-tile {
+  display: flex; align-items: center; gap: 8px; min-height: 48px;
+  padding: 8px 12px; border: 0; border-radius: 8px;
+  background: var(--ink-07); color: var(--navy); font: inherit; text-align: left;
+  transition: box-shadow 250ms cubic-bezier(0.25, 0, 0, 1);
+}
+.jp-emoji { font-size: 20px; line-height: 1; flex: none; }
+/* Two lines, then ellipsis: a translated title runs longer than the English it was
+   measured against (German especially), and a tile clipped mid-word names nothing. */
+.jp-name {
+  font-size: 13px; font-weight: 700; line-height: 1.25;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.jp-tile.is-on { background: rgba(5, 130, 202, 0.08); box-shadow: inset 0 0 0 2px #0582CA; }
+.jp-none { font-size: 13px; font-weight: 600; color: var(--ink-50); padding: 8px 0; }
+
+/* ---- Phone pings (#124) ---- */
+/* The QR is for the OTHER phone: the one reading this page opens the deep link instead. It
+   sits on its own white plate because a code drawn straight onto the card's grey loses
+   contrast at the size a camera needs, and centred because it is the one thing on the card
+   a parent points something at. */
+.nt-qr { display: flex; justify-content: center; padding: 14px 0; }
+.nt-qr canvas { background: #fff; border-radius: 8px; padding: 8px; }
+/* The raw webhook field, behind a disclosure. A parent who does not know what a webhook is
+   should never meet one; a parent who does can still point this at anything that takes a
+   POST. Styled as a quiet control, not a second primary action. */
+.nt-adv { margin-top: 10px; }
+.nt-adv > summary {
+  font-size: 13px; font-weight: 700; color: var(--ink-50);
+  cursor: pointer; list-style: none; padding: 4px 0;
+}
+.nt-adv > summary::-webkit-details-marker { display: none; }
+.nt-adv > summary::before { content: "+ "; }
+.nt-adv[open] > summary::before { content: "\2212 "; }
+
+/* "What they bought" (#121): the row that is still a job for the parent. Gold rather than
+   red or amber, matching the affordable-price pill in the kid's Box, because a prize a kid
+   is waiting for is a good thing that has not happened yet, not an alert. */
+.bx-row-waiting {
+  flex: none; font-size: 12px; font-weight: 800; color: #8c6b00;
+  background: rgba(233, 178, 19, 0.16); border-radius: var(--r-pill, 999px); padding: 4px 10px;
+}
+
+/* The one screen where the app volunteers arithmetic: a payout the kid's own spending has
+   already eaten into, so the amount their wallet is about to show is SMALLER than the job on
+   the board (src/kid-netting.ts). Three rows, the last one rules off, because the parent is
+   being asked to accept a number and the two above it are the reason it is that number. */
+.net-lines {
+  display: flex; flex-direction: column; gap: 10px;
+  background: var(--ink-07); border-radius: 12px; padding: 14px 16px; margin: 4px 0 2px;
+  align-self: stretch;
+}
+.net-row { display: flex; justify-content: space-between; gap: 16px; font-size: 14.5px; font-weight: 700; }
+.net-row > span:last-child { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.net-row.net-spent { color: var(--ink-50); }
+.net-row.net-total { border-top: 1px solid rgba(31, 35, 72, 0.12); padding-top: 10px; font-size: 16px; }
+
+/* The batch connect sheet's roster: who this one wallet check is for, one line each
+   (public/parent/views-connect.js). The list is there so the COUNT in the button has faces
+   behind it — a parent about to approve "2 addresses" in the Keyguard should have just read
+   the two names. Same tray as .net-lines, its own names because it holds people, not money. */
+.cb-kids {
+  display: flex; flex-direction: column; gap: 8px;
+  background: var(--ink-07); border-radius: 12px; padding: 12px 16px; margin: 4px 0 2px;
+  align-self: stretch;
+}
+.cb-kid { font-size: 14.5px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- The household's grown-ups (Settings -> Grown-ups) ----
+   Built from the .set-card / .dev-row primitives already here rather than a new look: this is
+   a settings card, not a new kind of screen. The one thing it adds is a THIRD line on a row,
+   because "pays from their own wallet" and "their approvals come out of yours" are different
+   financial arrangements and the difference has to be legible without tapping anything. */
+.gup-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+.gup-row .hex-tile { width: 36px; height: 36px; }
+.gup-row .hex-tile svg { width: 20px; height: 20px; }
+.gup-main { flex: 1; min-width: 0; }
+.gup-lbl { font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gup-you { font-weight: 600; color: var(--ink-40); }
+.gup-sub { font-size: 12px; color: var(--ink-50); font-weight: 600; }
+.gup-sub--on { display: flex; align-items: center; gap: 4px; color: #21BCA5; }
+.gup-sub--on svg { width: 14px; height: 14px; }
+/* A grown-up who cannot pay yet is not an error state — the household covers them, which is
+   exactly what happened before they arrived. Stated, not alarmed. */
+.gup-sub--off { color: var(--ink-40); }
+.gup-row--pending { opacity: 0.7; }
+.gup-mine { display: flex; flex-direction: column; gap: 8px; padding-top: 8px; border-top: 1px solid var(--ink-07); }
+.gup-addr { font: 600 12px/1.5 "Fira Code", ui-monospace, monospace; color: var(--ink-50); word-break: break-all; }
+
+/* The role picker in the invite sheet. Full-height labels so the whole block is the tap
+   target — a radio dot is 20px on a phone and the sub-line is the part that decides. */
+.gup-roles { display: flex; flex-direction: column; gap: 8px; }
+.gup-role { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border-radius: 10px;
+  background: var(--ink-07); cursor: pointer; }
+.gup-role input { margin-top: 3px; flex-shrink: 0; }
+.gup-role span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.gup-role b { font-size: 14px; font-weight: 700; }
+.gup-role i { font-style: normal; font-size: 12.5px; color: var(--ink-50); font-weight: 600; }
+
+/* Who is paying, on an approval card. The --other variant is the one that earns its pixels:
+   the bytes are pinned to somebody else's wallet, so this parent's tap cannot finish it and
+   the card has to say so before they try. */
+.gup-payer { font-size: 12.5px; font-weight: 600; color: var(--ink-50); margin-top: -4px; }
+.gup-payer--other { color: var(--navy); display: flex; flex-direction: column; gap: 2px; }
+.gup-payer--other i { font-style: normal; color: var(--ink-50); }

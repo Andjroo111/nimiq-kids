@@ -1,0 +1,720 @@
+/* nimiq.kids — kid wallet v2 chrome. The real wallet's screens, kid-sized:
+   bigger tap targets, warmer spacing, kawaii scene behind a soft white wash so
+   wallet content always reads. Custom values in px (the page runs the legacy
+   8px root via nimiq-style.min.css — vendored nq component rems are 8px-based). */
+
+/* ---------- soft wash: wallet-content screens only (the egg task screen stays vivid).
+   The wash lives on the INNER container's ::before because catalog art paints its
+   background-image on that same container (a root-level wash would sit under it). ---------- */
+/* No veil over the scene — see the note in chart.css. Wallet screens carry their
+   own opaque cards and pads; the three titles that sit bare on the scene get the
+   white pill instead (see .k-page-title below). */
+.k-home::before, .k-earn::before, .k-send::before,
+.k-receive::before, .k-grow::before, .k-pad-screen::before { content: none; }
+.bg-dark .k-grow-hint { color: #fff; text-shadow: 0 1px 4px rgba(13, 6, 24, 0.8); }
+/* The amount screen's figures used to need a .bg-dark flip of their own: they
+   sat bare on the scene, so on Space a kid read navy-on-navy. They are inside
+   the sheet now, on white, and the flip went with the bare layout. Nothing on
+   that screen changes appearance with the background any more. */
+
+/* z-index: 0 makes each screen its own stacking context, so the -1 wash sits
+   ABOVE the container's background-image (the kawaii art) but BELOW all content. */
+.k-home, .k-earn, .k-send, .k-receive, .k-grow, .k-pad-screen { position: relative; z-index: 0; }
+
+/* The fixed top chrome (the corner control and the --kid-chrome-* / --kid-corner-*
+   measurements every screen reserves) moved to css/chrome.css at the 800-line guard.
+   It is linked BEFORE this file. */
+
+/* ---------- inline icon plumbing: kid/css/icons.css (the box, the one stroke, the four steps) ---------- */
+.mega-btn .k-icon { font-size: var(--ic-m); margin-right: 6px; }
+
+/* ---------- login (identicons from the kids' real addresses) ---------- */
+.who-identicon { width: 128px; height: 128px; }
+.who-identicon img { width: 100%; height: 100%; }
+
+/* ---------- HOME: the balance card ----------
+   The kid's name, balance and address used to sit BARE on the chosen scene, which
+   is why none of them could be read on a bright one. They now ride the same opaque
+   card the feed already uses, so legibility stops depending on which sky a kid
+   picked. Fiat is the headline: dollars are the unit a kid can act on, and it is
+   what the real wallet's home screen leads with too. */
+.k-home { flex: 1; display: flex; flex-direction: column; padding: var(--kid-corner-band) var(--s6) 170px; }
+.k-wallet-card {
+  background: var(--card); border-radius: var(--r-card); box-shadow: var(--sh-card);
+  padding: 22px 26px 24px; margin-top: 4px;
+}
+/* ---------- the account header, kid-sized ----------
+   The vendored `account-header` supplies the structure and its own CSS. Scale it
+   through the component's OWN vars, which is the skill's "Mobile wallet
+   treatment" rule: --h1-size drives the label and the amount, --body-size the
+   address and the fiat. Setting font-size on those four elements directly fights
+   the component instead of configuring it, and it crushed the kid's name to a
+   single letter -- .label carries flex-grow:1 + overflow:hidden, and a competing
+   justify-content/gap left it nothing to grow into.
+   Reference: wallet-app/logged-in/nim-address-overview-mobile.png. */
+.k-acct { padding: 0; --h1-size: 34px; --body-size: 22px; }
+.k-acct .active-address { padding: 0; }
+.k-acct .identicon-wrapper { flex: none; margin-right: 18px; }
+.k-wallet-ic { width: 72px; height: 72px; }
+.k-wallet-ic img { width: 100%; height: 100%; display: block; }
+.k-acct .meta .flex-row { gap: 14px; }
+/* NIM leads on this screen. The wallet's HOME screen leads in dollars, which is
+   what this card used to copy, but the ACCOUNT screen -- the one it mirrors --
+   puts the coin amount on the label's line and hangs the fiat under it. */
+.k-acct .amount, .k-acct .fiat-amount {
+  flex: none; white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.k-acct .address { font-family: 'Fira Mono', monospace; min-width: 0; }
+
+/* The component fades the LABEL's last 3rem too (nq-bundle .label { mask: ... }),
+   and reserves margin-right: 3rem for that fade. That idiom is right for an
+   address, which is long, machine-readable and safe to trail off. A kid's name
+   is neither: it is the one word on the card that is theirs, and it should end
+   where it ends. Fade off, the reserved gutter handed back, and an ellipsis as
+   the fallback for a name long enough to actually need truncating. */
+/* Selector has to out-specify the component's own
+   `.account-header .active-address .label` (0,3,0) -- a 0,2,0 override lost
+   silently and the fade stayed on. */
+.k-acct.account-header .active-address .label {
+  -webkit-mask: none; mask: none;
+  margin-right: 12px; text-overflow: ellipsis; min-width: 2.5em;
+}
+
+/* Grow, as the reference's green staked banner under the header. It used to be
+   a pill sitting where the wallet puts the amount, so it had to move -- and the
+   banner can carry the staked figure rather than only being a door. */
+.k-stake-banner {
+  display: flex; align-items: center; gap: 18px; width: 100%; text-align: left;
+  margin-top: 20px; padding: 18px 22px; border-radius: var(--r-card);
+  background-image: radial-gradient(100% 100% at bottom right, #41A38E, #21BCA5);
+  color: #fff; box-shadow: var(--sh-cta);
+}
+.k-stake-ring {
+  flex: none; display: grid; place-items: center; width: 56px; height: 56px;
+  border-radius: 50%; background: rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
+  font-size: 30px; color: #fff;
+}
+.k-stake-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.k-stake-text b { font-size: 28px; font-weight: 700; }
+.k-stake-text i { font-style: normal; font-size: 22px; color: rgba(255, 255, 255, 0.75); }
+
+
+/* ---------- HOME: the feed (vendored transaction-list, kid-scaled) ---------- */
+.k-feed-card {
+  background: var(--card); border-radius: var(--r-card); box-shadow: var(--sh-card);
+  padding: 6px 10px 14px; margin-top: var(--s5);
+  flex: 1; min-height: 0; display: flex; flex-direction: column;
+}
+.k-feed { overflow-y: auto; min-height: 0; --body-size: 2.75rem; --small-size: 2.25rem; --label-size: 2rem; --small-label-size: 1.75rem; }
+.k-feed .month-label { padding: 3rem 2rem 1.5rem; }
+.k-feed .transaction { padding: 1.75rem 1.25rem; }
+.k-feed .transaction .identicon { width: 8rem; height: 8rem; }
+.k-feed .transaction .data .label { font-weight: 700; }
+.k-feed .transaction.k-pending { opacity: 0.65; }
+.k-row-wait { display: inline-flex; font-size: var(--ic-s); opacity: 0.6; vertical-align: -2px; }
+
+/* stake/unstake/reward rows: the staking plant in a green tile instead of a peer identicon */
+.k-stake-tile {
+  width: 8rem; height: 8rem; flex-shrink: 0; border-radius: 50%;
+  background: rgba(33, 188, 165, 0.12); color: var(--green);
+  display: flex; align-items: center; justify-content: center;
+}
+.k-stake-tile .k-icon { font-size: var(--ic-m); }
+
+/* a transfer with no counterparty address left to draw: arrows */
+.k-arrow-tile {
+  width: 8rem; height: 8rem; flex-shrink: 0; border-radius: 50%;
+  background: rgba(31, 35, 72, 0.06); color: var(--navy, #1F2348);
+  display: flex; align-items: center; justify-content: center;
+}
+.k-arrow-tile .k-icon { font-size: var(--ic-m); }
+
+.k-feed-empty { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 44px 20px 40px; }
+/* The empty feed wears the hexagon at the spot step (icons.css .k-spot), like the board's high-five. */
+.k-feed-empty p { font-size: 26px; font-weight: 700; color: rgba(31, 35, 72, 0.5); text-align: center; }
+
+/* ---------- HOME: bottom action bar (Receive | Send | scan) ----------
+   Matched to the real wallet's bar (Andjroo's own screenshot, 2026-07-30):
+     • the arrow sits BESIDE its label, not stacked above it
+     • both pills are the SAME height -- Send is distinguished by its blue fill,
+       not by being taller, which is what this had wrong
+     • they are wide and short, sharing the bar's width between them
+     • the scan glyph is bare on the right, no pill */
+body:has(#kid-app.money-screen) { --kid-dock-h: 92px; }
+.k-dock {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 24px calc(14px + env(safe-area-inset-bottom));
+  background: #fff; box-shadow: 0 -6px 30px rgba(31, 35, 72, 0.12);
+}
+.k-dock-btn {
+  flex: 1 1 0; min-width: 0;
+  display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 14px;
+  height: 84px; padding: 0 24px; border-radius: var(--r-pill);
+  background: #F2F2F4; color: var(--navy);
+  font-size: 30px; font-weight: 700;
+}
+.k-dock-btn .k-icon { font-size: var(--ic-m); }
+.k-dock-primary {
+  background: none;
+  background-image: radial-gradient(100% 100% at bottom right, #265DD7, #0582CA);
+  color: #fff; box-shadow: var(--sh-cta);
+}
+
+/* ---------- shared page chrome (Earn / Send / Receive / Grow / pad) ---------- */
+.k-page-hd { display: flex; align-items: center; gap: 20px; padding: 18px 0 10px 96px; min-height: 90px; }
+.k-page-title { text-align: center; }   /* size, weight and pill: scene.css */
+.k-section-hd { margin: var(--s3) var(--s1) 0; }
+.back-btn .k-icon { font-size: var(--ic-m); }
+
+/* the +NIM reward pill (transaction-list's incoming pill, reused as the reward tag) */
+.k-nim-pill {
+  display: inline-flex; align-items: center; align-self: flex-start;
+  color: var(--green-2); background: rgba(33, 188, 165, 0.1);
+  border-radius: var(--r-pill); padding: 4px 12px;
+  font-size: 22px; font-weight: 700; white-space: nowrap;
+}
+.k-nim-pill-big { font-size: 44px; padding: 10px 26px; border-radius: var(--r-pill); }
+
+.ch-tag .k-icon { font-size: var(--ic-l); }
+.ch-lesson-icon { font-size: 52px; color: var(--blue); }
+/* .games-empty-icon is a spot glyph: icons.css .k-spot sizes and tints it. */
+
+/* ---------- SEND: the wallet's Send Transaction sheet, kid-sized ----------
+   Reference: wallet-app/logged-in/send-transaction-enter-address-mobile.png.
+   Recipients there are a ROW of bare identicon hexagons with a name under each,
+   grouped together -- not one big card per person, which is what this screen used
+   to do and which made two people look like two separate decisions. The row rides
+   ONE white panel because these screens sit on the kid's scene where the wallet's
+   sheet is plain white. The Cashlink is the sheet's bottom secondary action, and
+   the scan glyph sits bottom-right, both exactly where the wallet puts them. */
+.k-send, .k-receive, .k-grow, .k-pad-screen {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: var(--kid-corner-band) var(--kid-chrome-gutter) 50px; /* one gutter with .k-home */
+}
+/* ⚠️ Grow's contents are CENTRED, and the slab is now the only child that `align-items`
+   reaches. Without these two lines the slab shrink-wraps the widest card and the column that
+   used to be centred on the screen is centred on nothing. Send, Receive and the amount pad
+   are sheets and have no slab, so this is scoped to Grow. */
+.grow-slab { align-items: center; align-self: stretch; }
+/* ---------- the sheet (Send + Receive) ----------
+   Structure comes from the REGISTRY: .small-page + .page-header + .page-body +
+   .page-footer + .close-button, added with `nq add`. This app loads legacy
+   nimiq-style, so html is already 8px and the registry's rem values are literal
+   px -- do not re-scale them.
+   What is overridden below is only what makes a desktop SmallPage behave as the
+   wallet's MOBILE sheet: bottom-anchored over a dimmed page, full width, square
+   bottom corners, and height driven by content instead of a fixed 564px. */
+/* Two class names on the same element, so this beats the .k-send / .k-receive
+   padding rules wherever they are declared instead of relying on source order. */
+.k-send.k-sheet-screen, .k-receive.k-sheet-screen, .k-pad-screen.k-sheet-screen {
+  padding: 0; align-items: stretch; justify-content: flex-end;
+  /* The screen is pinned to the viewport, not grown by its content. `92%` on
+     the sheet below is 92% OF THIS BOX, so a screen free to grow makes the cap
+     meaningless: with the amount sheet's pad the box grew to 911px, 92% of it
+     was 838px, and the Send button sat 67px under the fold with nothing to
+     scroll. The registry's own page-body is already `flex-grow:1;
+     overflow-y:auto`, so bounding the screen is all it needs to start working. */
+  height: 100%; max-height: 100%; overflow: hidden;
+}
+/* Rule 11: modal scrims are navy, never black. */
+.k-sheet-scrim { position: absolute; inset: 0; background: rgba(31, 35, 72, 0.6); }
+.k-sheet-screen .k-sheet {
+  position: relative; margin: 0; width: 100%; max-width: none;
+  height: auto;
+  /* ⚠️ `svh`, NOT `%` (#403). Andjroo: "receive and send look a little low, and the receive
+     cuts off the bottom QR code just a little bit." `92%` resolves against `.k-sheet-screen`
+     -> `.screen`, which is `position: fixed; inset: 0` — and iOS lays THAT out against the
+     LARGE viewport, as if the browser chrome were collapsed. So a bottom-anchored sheet was
+     measured taller than the visible glass and its last rows sat under the toolbar.
+     This is the same fix, with the same reasoning, that `.k-pad-screen` already carries
+     ~250 lines below. It was written for the amount pad and never given to Send, Receive or
+     the QR sheet, which is why only those three clipped. */
+  max-height: 92svh;
+  /* And the home indicator, which nothing on a sheet has ever accounted for: every other
+     bottom-anchored surface in this app (the dock, .kid-sheet, the toast) carries this inset
+     and the wallet sheets never did. On the tablet there was no bottom padding here AT ALL —
+     phone.css:148 is the only `.k-sheet {}` rule in the repo and it is inside a max-width
+     query, so the QR sat on the very edge of the glass. */
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  border-radius: var(--r-card) var(--r-card) 0 0;
+  align-self: flex-end;
+  /* min-height:0 lets .page-body actually shrink and scroll; without it a flex
+     item refuses to go below its content height and the overflow escapes. */
+  min-height: 0;
+}
+.k-sheet-screen .page-body { min-height: 0; }
+/* Back, title and X on ONE grid row, so they are centred against each other
+   rather than each against the header box. The registry pins .close-button
+   .top-right at a fixed `top: 2rem`, which put the X 10.4px above the title
+   here and would drift again with any title size or a subtitle underneath.
+   1fr auto 1fr keeps the title centred no matter what the sides contain, and
+   explicit grid-column means the QR sheet can omit the back arrow without the
+   title sliding left into the empty slot. */
+.k-sheet-screen .page-header { position: relative; text-align: center; }
+.k-sheet-bar {
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  align-items: center; gap: 12px; width: 100%;
+}
+.k-sheet-bar .page-header-back-button {
+  grid-column: 1; justify-self: start;
+  position: static; padding-top: 0; display: flex; align-items: center;
+}
+.k-sheet-bar .nq-h1 { grid-column: 2; margin: 0; }
+/* `relative`, NOT `static`. The point of the override is to undo the registry's
+   `.top-right` absolute pinning; either value does that. But .nq-button-s hangs an
+   absolutely-positioned ::before hit-halo (inset -1.5rem) off this button, and a
+   STATIC button is not a containing block for it -- so the halo resolved against
+   `.k-sheet-screen .page-header` (position: relative) and stretched across the whole
+   378px header row. That put the X's hit area over the BACK ARROW on every sheet:
+   tapping back on the amount screen abandoned the send instead of stepping up to the
+   recipient picker. `relative` keeps the halo on the 24px button where it belongs. */
+.k-sheet-bar .close-button { grid-column: 3; justify-self: end; position: relative; }
+/* margin-inline:auto, not just text-align:center. The phone rules cap this at
+   300px, and a block narrower than its container sits at the LEFT unless its
+   margins are auto -- the text was centred inside a box that was not, so the
+   line drifted further off-centre the wider the sheet got (23px at 430). */
+.k-sheet-sub {
+  margin: 10px auto 0; font-size: 26px; font-weight: 600;
+  color: rgba(31, 35, 72, 0.5); text-align: center;
+}
+
+/* Tap-to-copy: `copyable` goes ON the address-display, not around it. The
+   registry composes them as ONE element -- `.address-display.copyable` is a
+   real rule in the bundle, because copyable is a PROP of AddressDisplay
+   upstream rather than a wrapper.
+   Wrapping produced a box inside a box, and left the digits grey:
+   .address-display declares its own `color`, so it never inherited the blue the
+   copyable was setting on the parent. On the same element it applies directly,
+   which is what turns the panel AND the numbers blue together.
+   .background and .tooltip are position:absolute, so they take no grid cell,
+   and the width problem the wrapper created disappears with the wrapper. */
+.k-address.copyable { cursor: pointer; }
+.k-address .background { border-radius: inherit; }
+/* The component centres its tooltip with a hard-coded margin-left of -3.75rem,
+   half the width of the English word. translateX(-50%) centres any label in any
+   locale; the animated variant is restated because it owns the same transform. */
+.k-address .tooltip {
+  left: 50%; margin-left: 0; transform: translate3d(-50%, 1rem, 0);
+}
+.k-address.copied .tooltip { transform: translate3d(-50%, 0, 0); }
+
+/* ---------- the NIM Address sheet (Receive's QR view) ---------- */
+.k-qr-sheet .page-body { gap: 26px; }
+.k-qr-sheet .k-qr { width: min(70vw, 340px); height: min(70vw, 340px); }
+/* ONE line, like the wallet's. That is the whole reason the address is
+   truncated here at all -- if it wraps, the 3x3 grid on Receive would have been
+   the better thing to show. */
+.k-qr-address {
+  margin: 0; font-family: 'Fira Mono', monospace; font-size: 24px;
+  color: rgba(31, 35, 72, 0.5); text-align: center; letter-spacing: 0.02em;
+  white-space: nowrap; max-width: 100%;
+}
+/* The one saturated element on the sheet, which is where the wallet puts its
+   only colour here too. Light-blue ON WHITE is a text colour (rule 20 bans it
+   on navy, not on a white sheet). */
+.k-qr-hint {
+  margin: 0 auto; max-width: 340px; text-align: center; text-wrap: balance;
+  font-size: 26px; font-weight: 600; color: var(--nimiq-light-blue);
+}
+/* the quiet line above a secondary action, the wallet's "Address unavailable?" */
+.k-sheet-prompt {
+  margin: 0 0 16px; font-size: 24px; font-weight: 600;
+  color: rgba(31, 35, 72, 0.5); text-align: center;
+}
+.k-sheet-screen .page-body {
+  display: flex; flex-direction: column; align-items: center; gap: 22px;
+  overflow-y: auto;
+}
+.k-sheet-screen .page-footer { display: flex; flex-direction: column; align-items: center; }
+/* The amount sheet's body is four SHORT blocks, not the two tall ones Send and
+   Receive put here, so the shared 22px gap spends 66px separating things that
+   belong together. In the reference the fiat sits immediately under the value
+   and the balance line under that: one cluster, one reading. Only the route is
+   a separate thought, and it keeps a real gap of its own. */
+.k-pad-screen .page-body { gap: 4px; }
+.k-pad-screen .k-send-route { margin-bottom: 6px; }
+/* `hidden` is a UA style, so ANY author `display` beats it. .address-display
+   sets display:grid and .qr-code sets display:block, which means both stayed on
+   screen while their .hidden property read true -- the Receive toggle looked
+   like it worked and showed the address and the QR at once. */
+.k-address[hidden], .k-qr[hidden] { display: none; }
+
+/* ENTER ADDRESS: the wallet's grey uppercase label over the 3x3 input grid.
+   The registry ships address-input as a static visual only, so the live
+   formatting lives in send.js; this is only its label and placement. */
+.k-enter-label {
+  margin: 6px 0 0; font-size: 22px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: rgba(31, 35, 72, 0.4); text-align: center;
+}
+.k-address-input { margin-top: -6px; }
+
+/* relative so the scan glyph can sit in the corner without displacing the pill */
+.k-sheet-foot {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  gap: 18px; width: 100%;
+}
+/* the footer's own action, the wallet's "Create request link" slot */
+.k-sheet-action {
+  padding: 18px 34px; border-radius: var(--r-pill);
+  background: rgba(31, 35, 72, 0.07); color: var(--navy);
+  font-size: 26px; font-weight: 700;
+}
+
+/* Inside the sheet now, so it carries no surface of its own. */
+.k-peers {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 40px;
+  max-width: 640px;
+}
+.k-peer {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  background: none; box-shadow: none; min-width: 0;
+}
+.k-peer .identicon { width: 132px; height: 132px; }
+.k-peer .identicon img { width: 100%; height: 100%; }
+.k-peer-name {
+  font-size: 28px; font-weight: 700; color: var(--navy); max-width: 160px;
+  text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* the sheet's foot: Cashlink as the secondary, scan glyph to its right.
+   NOT pushed to the bottom: the wallet's sheet is sized to its content, and the
+   space above this row is filled there by the address grid this app deliberately
+   does not have -- so margin-top:auto just opened a void. */
+.k-cashlink-btn {
+  display: flex; align-items: center; gap: 12px;
+  padding: 18px 34px; border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.92); box-shadow: var(--sh-card);
+  font-size: 26px; font-weight: 700; color: var(--navy);
+}
+.k-cashlink-icon { font-size: var(--ic-m); color: var(--blue); }
+/* Bare, and pinned to the corner, which is where the wallet keeps it. The white
+   disc this used to wear was for when the glyph sat on the kid's scene; on the
+   sheet there is nothing for it to lift away from, so it was only decoration.
+   Absolute so the Cashlink pill stays centred in the row rather than being
+   shoved off-centre by a sibling. */
+/* The box stays big; only the background and shadow go. The visible circle came
+   from those two, never from the size, so dropping width/height as well left a
+   24px tap target -- a <button> shrinks to its glyph unless something stretches
+   it. 56/44 keeps the target honest while the control still reads as bare. */
+.k-send-scan {
+  position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+  flex: none; display: grid; place-items: center;
+  width: 56px; height: 56px;
+  background: none; box-shadow: none; color: var(--navy);
+  transition: opacity 160ms var(--ease);
+  opacity: 0.55;
+}
+.k-send-scan:hover, .k-send-scan:focus-visible { opacity: 1; }
+.k-send-scan:active { opacity: 1; }
+.k-send-scan .k-icon { font-size: var(--ic-l); }
+
+.k-contact-plane { font-size: 84px; color: var(--blue); }
+
+/* ---------- amount sheet (Send step 2, Grow stake / unstake) ----------
+   The wallet's SET AMOUNT screen: sender and recipient either side of a
+   connector, then the boxed amount with its ticker, then the fiat.
+   Reference: shots/wallet-ref/send-amount.png. */
+.k-send-route {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: start;
+  gap: 10px; width: 100%; margin-top: 6px;
+}
+.k-route-end { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
+.k-route-icon, .k-route-end .identicon { width: 76px; height: 76px; flex: none; }
+.k-route-end .identicon img { width: 100%; height: 100%; }
+.k-route-end .k-contact-plane { font-size: 60px; }
+/* A name is allowed one line and then an ellipsis. The wallet truncates the
+   address here for the same reason: this row identifies, it does not spell out. */
+.k-route-name {
+  max-width: 100%; font-size: 26px; font-weight: 700; color: var(--navy);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* The connector sits on the identicons' centre line, not the row's: the names
+   below make the row taller than the icons and would drag it down. */
+.k-route-link {
+  width: 34px; height: 2px; border-radius: 1px; margin-top: 37px;
+  background: rgba(31, 35, 72, 0.2);
+}
+
+/* The registry's amount-input. The value's size is set on the COMPONENT ROOT,
+   never on the input: the fit script writes font-size on the input every
+   keystroke and reads its max off this rule, so the two move together by
+   construction (pad.js `maxFontRem`). The ticker is 0.5em rather than the
+   component's hardcoded 4rem, which is the same 2:1 the component ships at
+   (8rem : 4rem) but expressed as a ratio, so it tracks the value instead of
+   drifting the moment the value scales. */
+.k-amount-input { margin: 22px 0 4px; font-size: 8rem; }
+.k-amount-input .nim { font-size: 0.5em; line-height: 1.1; }
+.k-amount-fiat { font-size: 30px; font-weight: 600; color: rgba(31, 35, 72, 0.5); text-align: center; }
+.k-amount-avail { font-size: 24px; font-weight: 700; color: rgba(31, 35, 72, 0.4); margin-top: 6px; text-align: center; }
+/* In the footer now, so it needs a gap from the balance line above rather than
+   from the fiat, and one under itself before the action. */
+.k-pad-grid { margin: 4px 0 18px; position: relative; }
+.k-pad-grid button .k-icon { font-size: var(--ic-l); }
+/* The footer holds the pad AND the action, so it stacks them and stops the
+   registry's default row layout spreading them side by side. */
+.k-pad-screen .page-footer { gap: 0; }
+
+/* ---- the pad is ELASTIC, and that is the whole point ----
+   A fixed four-row pad is roughly half a phone viewport, so any layout that
+   sizes it from a constant is sizing the most important content out of frame.
+   Measured on Andjroo's phone (440pt wide): at the full 956 everything fitted, at
+   806 with Safari's chrome the fiat and the balance were cut, and at 750 with
+   the URL bar expanded the amount itself went. Safari CHANGES that height while
+   you scroll, so there is no constant to tune -- shaving pixels only moves which
+   phone breaks.
+   So the content never shrinks and the pad absorbs the variance: the body is
+   flex-shrink 0, the footer takes what is left, and the pad's four rows divide
+   it. min-height on the key holds the 36px tap floor (44 for comfort); below
+   about a 690px viewport that floor wins and the body scrolls again, which is
+   shorter than any phone this runs on. */
+/* Sized from the VIEWPORT, not from flex leftovers. Two goes at distributing
+   free space failed for the same reason both times: flex-grow only divides
+   space that already exists, and a content-sized sheet has none -- so the rows
+   sat at their floor on every screen and "elastic" was a fiction. A row height
+   in svh is simply what the pad is: a fraction of the screen.
+   -------------------------------------------------------------------------
+   ⚠️ svh, NOT vh, and this is the whole reason the first version still came out
+   cut off on Andjroo's phone while every headless check said it fitted.
+   **On iOS Safari `vh` is the LARGE viewport**: it measures the screen as if the
+   URL bar and toolbar were collapsed, and it does NOT shrink while they are
+   showing. So `8vh` resolved against ~890px on a phone whose visible area was
+   ~745px, every clamp picked its biggest value, and the layout was sized for a
+   screen taller than the one it was on. Chromium resolves vh to the real
+   viewport, so a headless sweep can never reproduce this.
+   `svh` is the viewport at its SMALLEST -- all browser chrome showing -- so
+   sizing against it fits in every state and never re-flows as the bars animate
+   (which `dvh` would). The plain-vh line above each is the fallback for
+   browsers that predate svh; an unsupported value is simply dropped, so the svh
+   line wins wherever it is understood.
+   Values are also a step down from the first pass, per Andjroo: smaller. */
+.k-pad-screen .k-pad-grid {
+  grid-auto-rows: clamp(42px, 7.2vh, 62px);
+  grid-auto-rows: clamp(42px, 7.2svh, 62px);
+  grid-template-rows: none;
+  gap: clamp(6px, 1.1vh, 10px);
+  gap: clamp(6px, 1.1svh, 10px);
+  /* The space under the pad is bigger than the space between its own rows, so
+     the action reads as a separate thing rather than a fifth key. 6px was
+     smaller than the row gap and the button looked stuck to the pad. Scales on
+     the same axis as everything else here, or it would eat the headroom back
+     on a short screen. */
+  margin: 4px 0 clamp(12px, 2.4vh, 24px);
+  margin: 4px 0 clamp(12px, 2.4svh, 24px);
+}
+.k-pad-screen .k-pad-grid button { height: auto; }
+/* This sheet carries a pad, so it cannot afford the generous chrome the Send
+   and Receive sheets use: header, body and sheet padding together were 86px of
+   air on a screen that is 70px short at 806. Trimmed only here. */
+/* ⚠️ Same specificity as the base rule above and LATER in the file, so this owns the
+   padding outright — the safe-area inset has to be restated here or the pad screen is
+   the one sheet that loses it again (#403). */
+.k-pad-screen .k-sheet {
+  padding-top: 12px; gap: 8px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+}
+.k-pad-screen .page-header { padding-top: 10px; padding-bottom: 10px; }
+.k-pad-screen .page-body { padding-bottom: 4px; }
+/* The `92svh` cap this screen used to declare for itself is the base rule's now (#403):
+   Send, Receive and the QR sheet had the identical bug and were fixed by moving it up rather
+   than by copying it three more times. The reasoning lives at `.k-sheet-screen .k-sheet`. */
+/* Everything on this screen scales off the same axis, because they all compete
+   for the same vertical budget. The route identifies two people and does not
+   need 76px of identicon to do it on a short phone; the amount is the largest
+   single block in the body; the action is a pill whose 96px was set for a
+   tablet. Only the pad has a hard floor, since a key below 42px stops being
+   tappable, and none of the rest does. */
+.k-pad-screen .k-route-icon, .k-pad-screen .k-route-end .identicon {
+  width: clamp(36px, 4.8vh, 62px); height: clamp(36px, 4.8vh, 62px);
+  width: clamp(36px, 4.8svh, 62px); height: clamp(36px, 4.8svh, 62px);
+}
+.k-pad-screen .k-route-name {
+  font-size: clamp(13px, 1.9vh, 21px);
+  font-size: clamp(13px, 1.9svh, 21px);
+}
+.k-pad-screen .k-amount-input {
+  font-size: clamp(34px, 6vh, 54px);
+  font-size: clamp(34px, 6svh, 54px);
+  margin: 0;
+}
+.k-pad-screen .k-amount-fiat {
+  font-size: clamp(14px, 2.3vh, 26px);
+  font-size: clamp(14px, 2.3svh, 26px);
+}
+.k-pad-screen .k-amount-avail {
+  font-size: clamp(12px, 1.8vh, 21px);
+  font-size: clamp(12px, 1.8svh, 21px);
+  margin-top: 2px;
+}
+.k-pad-screen .mega-btn {
+  min-height: clamp(44px, 6.2vh, 72px); font-size: clamp(16px, 2.5vh, 28px);
+  min-height: clamp(44px, 6.2svh, 72px); font-size: clamp(16px, 2.5svh, 28px);
+  padding: 8px 32px;
+}
+
+/* ---------- RECEIVE ---------- */
+/* .k-sheet supplies the surface, the padding and the width. This only adds what
+   Receive needs on top of it. */
+.k-receive-card { position: relative; }
+.k-receive-identicon { width: 150px; height: 150px; }
+.k-receive-identicon img { width: 100%; height: 100%; }
+.k-receive-name { font-size: 34px; font-weight: 700; color: var(--navy); }
+/* the vendored address-display assumes the 8px root; size it for the tablet in px */
+.k-address { box-sizing: border-box; font-size: 30px; max-width: 420px; background: var(--fill-5); border-radius: var(--r-card); padding: 10px 14px; }
+/* ⚠️ `.k-qr` on its own is DEAD and was removed (#403): the only `.k-qr` in the app is the
+   canvas inside `.k-qr-sheet` (receive.js showQrSheet), and `.k-qr-sheet .k-qr` outranks a
+   bare class at both breakpoints — min(70vw,340px) here, min(64vw,240px) in phone.css. The
+   260px it declared had not applied to anything for as long as the QR has been its own sheet. */
+
+/* ---------- GROW (staking) — the ONE calculated break: the green hero ---------- */
+.k-grow-hero {
+  width: min(92vw, 560px); border-radius: var(--r-card); margin-top: 20px; position: relative;
+  background-image: radial-gradient(100% 100% at bottom right, #41A38E, #21BCA5);
+  color: #fff; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 40px 30px 34px; box-shadow: var(--sh-cta);
+}
+.k-grow-amount { font-size: 72px; font-weight: 700; line-height: 1.1; }
+.k-grow-amount span { font-size: 36px; font-weight: 700; opacity: 0.75; }
+.k-grow-fiat { font-size: 28px; font-weight: 600; color: rgba(255, 255, 255, 0.6); }
+.k-grow-earned { margin-top: 10px; font-size: 24px; font-weight: 700; background: rgba(255, 255, 255, 0.16); border-radius: var(--r-pill); padding: 8px 20px; }
+.k-grow-pending {
+  display: flex; align-items: center; gap: 12px; margin-top: 18px; position: relative;
+  background: var(--card); border-radius: var(--r-pill); box-shadow: var(--sh-card);
+  padding: 14px 26px; font-size: 24px; font-weight: 700; color: var(--navy);
+}
+.k-grow-pending .k-icon { font-size: var(--ic-m); color: var(--orange); }
+.k-grow-pending b { color: var(--orange); }
+.k-grow-hint { font-size: 26px; font-weight: 600; color: rgba(31, 35, 72, 0.55); text-align: center; max-width: 520px; margin-top: 24px; position: relative; }
+.k-grow-actions { display: flex; flex-direction: column; align-items: center; gap: 18px; margin-top: 28px; position: relative; }
+.k-grow-take {
+  font-size: 24px; font-weight: 700; color: var(--navy);
+  background: rgba(31, 35, 72, 0.07); border-radius: var(--r-pill); padding: 16px 32px; min-height: 64px;
+}
+
+/* ---------- status screens (send result) ---------- */
+.k-status-screen { display: grid; }
+.k-status { position: fixed; inset: 0; }
+.k-status .wrapper { border-radius: 0; }
+.k-status .icon-row { display: flex; flex-direction: column; align-items: center; gap: 26px; }
+.k-status-icon { font-size: 96px; color: #fff; }
+.k-status .title { color: #fff; font-size: 44px; text-align: center; }
+.k-status .spacer { flex: 1; }
+.k-status .wrapper { display: flex; flex-direction: column; align-items: center; padding: 40px; }
+
+/* ---------- waiting / PIN / celebration (v2 NIM styling) ---------- */
+.w-party-icon { font-size: 120px; color: var(--gold); }
+.w-nim { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.w-nim-sub { font-size: 28px; font-weight: 700; color: rgba(31, 35, 72, 0.55); }
+.w-hour { font-size: 34px; }
+.pin-lock-icon { font-size: var(--ic-xl); color: var(--navy); }
+.w-photo span { color: var(--green-2); }
+
+.celebrate-pill { font-size: 72px; padding: 22px 46px; border-radius: var(--r-tile); background: #fff; }
+.k-nim-pill-fly { animation: k-pill-fly 2.2s var(--ease) forwards; }
+@keyframes k-pill-fly {
+  0% { transform: scale(0.3); opacity: 0; }
+  18% { transform: scale(1.08); opacity: 1; }
+  30% { transform: scale(1); }
+  70% { transform: scale(1) translateY(0); opacity: 1; }
+  100% { transform: scale(0.5) translateY(-46vh); opacity: 0; }
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .k-grow-plant, .k-nim-pill-fly { animation: none; }
+}
+
+/* What a coin is worth today. NIM trades well under a cent, so this carries the
+   precision the number actually needs — a kid told their money is worth "$0.00"
+   has been told something false. */
+/* The price of a coin is not part of the balance, so it does not get to read as
+   another line of it. Nimiq's separators are the 1px hairline, whitespace, and a
+   surface of its own -- nothing else (no tinted band: .nq-card-footer carries
+   only padding, and a one-sided accent rule is rule 19). */
+.k-rate {
+  margin-top: 16px; padding-top: 14px;
+  /* the corner control's divider, same value */
+  border-top: 1px solid rgba(31, 35, 72, 0.08);
+  font-size: var(--fs-micro); font-weight: var(--fw-body); color: var(--ink-50);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- SCAN: the bar's third control, and the camera screen ----------
+   The real wallet's bottom bar is Receive | Send | scan, and the scan is a BARE
+   glyph outside the two pills, not a third pill (see the logged-in reference
+   shots, and the shell's own corner-control note: "Send light-blue RIGHT, bare
+   scan glyph"). Giving it a pill would read as a third equal action; it is not. */
+.k-dock-scan {
+  flex: none; display: grid; place-items: center;
+  width: 72px; height: 72px; border-radius: 50%;
+  background: none; color: var(--navy); opacity: 0.4;
+  transition: opacity 160ms var(--ease);
+}
+.k-dock-scan:hover, .k-dock-scan:focus-visible { opacity: 0.7; }
+.k-dock-scan .k-icon { font-size: var(--ic-l); }
+
+/* ---------- SCAN ----------
+   The kid's scene stays (Andjroo, 2026-07-31) -- the wallet's full-screen dark
+   room lost the background the kid chose, and they own that on every screen.
+   The stage itself is OPAQUE: at rgba(31,35,72,0.9) the candy artwork read
+   through the camera area, which is what made this screen unreadable. Aiming
+   marks are the wallet's corner brackets, from shots/wallet-ref/scanner.png. */
+.k-scan {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: var(--kid-corner-band) var(--kid-chrome-gutter) 40px;
+}
+.k-scan-stage {
+  position: relative; margin-top: 20px; width: min(86vw, 520px); aspect-ratio: 1;
+  border-radius: var(--r-card); overflow: hidden;
+  background-color: var(--nimiq-blue);
+  background-image: var(--nimiq-blue-bg);
+  box-shadow: var(--sh-card);
+}
+.k-scan-stage video { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Brackets, not a glyph: they frame where the code goes instead of competing
+   with it, and they stay legible at any stage size. */
+.k-scan-frame {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 62%; aspect-ratio: 1; pointer-events: none;
+}
+/* The radius goes on the ONE corner each bracket actually turns. Rounding all
+   four curls the loose ends too, and four brackets that each curve twice read
+   as parentheses rather than as the corners of a frame. */
+.k-scan-corner {
+  position: absolute; width: 46px; height: 46px;
+  border: 5px solid rgba(255, 255, 255, 0.55);
+}
+.k-scan-corner.tl { top: 0; left: 0; border-right: 0; border-bottom: 0; border-radius: 12px 0 0 0; }
+.k-scan-corner.tr { top: 0; right: 0; border-left: 0; border-bottom: 0; border-radius: 0 12px 0 0; }
+.k-scan-corner.bl { bottom: 0; left: 0; border-right: 0; border-top: 0; border-radius: 0 0 0 12px; }
+.k-scan-corner.br { bottom: 0; right: 0; border-left: 0; border-top: 0; border-radius: 0 0 12px 0; }
+/* A word sitting bare on the kid's sky gets a solid white surface, on every
+   screen that does it. The title used to be navy type held up by a white
+   text-shadow, which is a way of admitting the contrast is not there rather
+   than fixing it — and on a dark background it flipped to white type over a
+   dark shadow, so the same word had two looks depending on the scene.
+   .k-page-title is exactly the screens with no card behind their title (Grow
+   and the scanner, grep it), so the rule is theirs and the scanner's .k-scan
+   scoping is gone. The amount pad was the third until it became a sheet; its
+   title is the sheet's own .nq-h1 now. Being opaque, the pill also retires the
+   .bg-dark flip: navy on white reads on Space and on Meadow alike. */
+.k-page-title { padding: 8px 28px; }
+.k-scan-hint {
+  margin-top: 20px; padding: 12px 26px; border-radius: var(--r-pill);
+  background: var(--card); box-shadow: var(--sh-card);
+  font-size: 26px; font-weight: 700; text-align: center;
+  color: var(--navy); max-width: 520px; text-wrap: balance;
+}
+
+/* Money moves take ~6s on chain. `is-working` is the visible half of that wait: the
+   button says what it is doing and a soft pulse says it is still alive. Motion is
+   deliberately slow — a fast spinner next to a child's money reads as alarm. */
+.mega-btn.is-working { opacity: .82; animation: k-working 1.6s ease-in-out infinite; }
+@keyframes k-working { 0%, 100% { opacity: .82; } 50% { opacity: 1; } }
+.k-amount-hint { margin-top: .5rem; font-size: 1.5rem; color: var(--nimiq-blue, #1F2348); opacity: .65; text-align: center; }
+
+/* A feed row that links to its own record on the block explorer. Same row as any other:
+   the only signal is that it presses, since the amount is what the row is there to say. */
+.k-feed .transaction.k-receipt { cursor: pointer; }
+.k-feed .transaction.k-receipt:active { background: rgba(31, 35, 72, 0.06); }

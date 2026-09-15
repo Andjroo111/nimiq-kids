@@ -1,0 +1,28 @@
+{
+  "name": "nimiq.kids",
+  "version": "0.120.4",
+  "private": true,
+  "type": "module",
+  "description": "A family ecosystem where kids do chores, routines and activities, and parents reward them in NIM.",
+  "scripts": {
+    "build:shell": "bun build src/app-shell.ts src/parent-shell.ts --outdir public/dist --target browser --minify",
+    "build": "bun run build:shell",
+    "dev": "bun run build:shell && bun run --watch src/server.ts",
+    "start": "bun run src/server.ts",
+    "check": "bun tsc --noEmit",
+    "test": "bun test",
+    "seed": "bun run src/scripts/seed.ts",
+    "shots": "node tools/shots.mjs"
+  },
+  "dependencies": {
+    "@nimiq/core": "2.5.1",
+    "@nimiq/mini-app-sdk": "^0.1.0",
+    "hono": "^4.12.25",
+    "nimiq-app-shell": "github:Andjroo111/nimiq-app-shell#v0.9.2",
+    "nimiq-settlement": "github:Andjroo111/nimiq-settlement#v0.3.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.0",
+    "typescript": "^5.7.0"
+  }
+}

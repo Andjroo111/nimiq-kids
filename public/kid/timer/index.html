@@ -1,0 +1,2321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>The timer · nimiq.kids</title>
+<!-- ⚠️ THE BUILD AND THE BACKGROUND ARE DECIDED HERE, BEFORE THE BODY EXISTS.
+     The module below is deferred by definition — it cannot run until the whole
+     document has parsed — and the background it picks is a 96KB JPEG the kid looks
+     straight at. Discovered from the module it started at 318ms and did not finish
+     until 1598ms at 1.6 Mbps: 0.48s of bytes taking 1.28s, because by the time it
+     was asked for the pipe was already full of art. Asked for here it goes out with
+     the first bytes of the page.
+     ⚠️ ONE TOKEN, MINTED ONCE. A preload only helps if it carries the SAME `v` the
+     module later puts on bgImg.src. A different one is two downloads, not none — so
+     BUILD and VER are minted here and the module reads them back rather than
+     deriving the same string twice and hoping. -->
+<script>
+  /* ⚠️ THE APP'S SERVER READS THE NEXT LINE WITH A REGEX, so its spelling is an
+     interface: src/timer-build.ts scans this file for the BUILD declaration to mint
+     the token every asset under /kid/timer/ is stamped and cached against. No spaces
+     round the equals, single quotes, and it must be the FIRST such declaration in the
+     file — the scan takes the first match, including one inside a comment. Get it
+     wrong and the token becomes `undefined-<mtime>`: still unique, so nothing looks
+     broken, and the stamp quietly stops naming a build. */
+  const BUILD='tmr-a0865a';
+  window.TIMER_BUILD = BUILD;
+  window.TIMER_VER = new URLSearchParams(location.search).get('v') || BUILD;
+  try {
+    /* ⚠️ NO SCENES SHIP (2026-09-15): bg/ is empty while the backgrounds are redrawn, so
+       there is nothing to preload. TIMER_BGS is the one list; the module reads it too. */
+    window.TIMER_BGS = [];
+    var bg = (JSON.parse(localStorage.getItem('kidtimer3') || '{}').bg) || '';
+    if (!/^[a-z]+$/.test(bg)) bg = '';   // it is a stored value; it is not trusted
+    if (window.TIMER_BGS.some(function (b) { return b[0] === bg; })) {
+      var l = document.createElement('link');
+      l.rel = 'preload'; l.as = 'image';
+      l.href = 'bg/' + bg + '.jpg?v=' + encodeURIComponent(window.TIMER_VER);
+      document.head.appendChild(l);
+    }
+  } catch (e) {}
+</script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --navy:#1F2348; --teal:#21BCA5; --red:#F2554B; --amber:#E9B213;
+    --sky:#2BC4DE;                 /* the light blue the running controls are */
+    --ink:#4A4F63;                 /* the countdown digits: softer than the outline */
+    --grey:#D8DCE4;
+    /* SF Pro Rounded wherever it exists, which on Andjroo's phone is everywhere.
+       The reference's whole personality is a rounded face; system-ui is not one. */
+    --font:ui-rounded,'SF Pro Rounded','Hiragino Maru Gothic ProN',Mulish,system-ui,sans-serif;
+  }
+  /* ⚠️ WHITE, NOT #0d1020. The dark used to be the desktop letterbox either side of
+     the phone column, and on the family TABLET that is what the letterbox actually
+     was: two navy bars down a 1024px screen (Andjroo, 2026-08-27: "the background
+     doesn't fit the whole screen"). The background is full-bleed now — see #bgImg —
+     so the only thing this paints is the RUN screen, where the scene has collapsed
+     into the badge and everything around it is meant to be white. */
+  html,body{height:100%;overflow:hidden;background:#fff}
+  body{font-family:var(--font);color:var(--navy);-webkit-font-smoothing:antialiased}
+
+  /* The controls' column. On a desktop or a tablet it is a 430px lane so the egg,
+     the dial and Start stay a thumb apart instead of stretching across a 1024px
+     screen, and every number layout() derives is a share of THIS box.
+     ⚠️ TRANSPARENT, AND THE BACKGROUND IS NO LONGER INSIDE IT. It used to paint
+     #fff and hold #bgImg, so the scene could never be wider than the lane and the
+     tablet showed two navy bars. #bgImg and #conf are fixed to the VIEWPORT now
+     (below); this box holds only what is meant to be column-width. The white the
+     run screen needs comes from `body`. */
+  #app{position:fixed;inset:0;margin:0 auto;max-width:430px;background:transparent;
+       overflow:hidden;isolation:isolate;z-index:1}
+
+  /* ---------- the scene: the background AND the egg, clipped as one ----------
+     Andjroo, 2026-07-31: "on the main screen the background takes up the whole
+     thing behind the egg. Once the start button is pressed then we see the little
+     egg and that's where it's in the circle."
+     So the badge is not a second element that appears — it is this same layer with
+     its clip closed down onto a circle. The background does not cross-fade into a
+     disc, it BECOMES one, and the egg rides the same move.
+     ⚠️ The rig iframe lives here permanently and is never re-parented. Moving an
+     iframe between parents RELOADS its document, which would restart the rig
+     mid-run and lose the countdown. Everything is transform + clip-path.        */
+  /* ⚠️ overflow:hidden as well as the clip. clip-path hides the iframe's ink but
+     leaves its 720px box in the scroll extent, so the phone reports 41px of
+     sideways overflow at the badge scale — invisible, and still real. */
+  /* ⚠️ THE CLIP IS ON THE BACKGROUND, NOT ON THE SCENE. Andjroo, 2026-07-31: the
+     shells "need to fall to the side where they're falling out of that circle."
+     They could not: the rig lived inside the clipped layer, so anything it drew
+     past the badge's edge was cut off by the same circle that makes the badge.
+     Clipping `#bgImg` alone keeps the move exactly as it was — the background is
+     still the thing that BECOMES the disc — while leaving the rig free to throw a
+     shell past the rim. `#scene` keeps overflow:hidden, which is a different job:
+     the 720px iframe's box would otherwise put 41px of sideways scroll on a phone. */
+  #scene{position:absolute;inset:0;z-index:1;overflow:hidden}
+  /* ⚠️ FIXED TO THE VIEWPORT, OUTSIDE #app, AND THE CLIP IS THEREFORE IN SCREEN
+     COORDINATES. This is the whole of the tablet fix: the image is the screen, the
+     controls are the column, and the two stopped being the same box. layout() adds
+     the column's own gutter to --clipX so the disc still opens on the egg — on a
+     phone that gutter is 0 and every number is the one it always was.
+     ⚠️ z-index 0, under #app (1) and under #conf (2). #app isolates, so anything
+     outside it is wholly above or wholly below it; the background is below. */
+  #bgImg{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:0;
+         clip-path:circle(var(--clipR) at var(--clipX) var(--clipY));
+         transition:clip-path .52s cubic-bezier(.4,0,.2,1)}
+  /* ⚠️ SIZED, NOT SCALED. This used to be a 720x560 iframe with a CSS
+     transform:scale() on it. Two things go wrong with that: the compositor is
+     free to rasterise a transformed iframe as a layer at its layout resolution
+     and then stretch it, and the rig inside cannot tell how big it is really
+     being drawn — so it cannot pick its own canvas resolution. Giving the frame
+     its true css size makes both problems disappear, and the rig measures
+     itself. The set->run collapse animates the box instead of a transform. */
+  #rigWrap{position:absolute;pointer-events:none;
+           transition:left .52s cubic-bezier(.4,0,.2,1),top .52s cubic-bezier(.4,0,.2,1),
+                      width .52s cubic-bezier(.4,0,.2,1),height .52s cubic-bezier(.4,0,.2,1)}
+  #rig{width:100%;height:100%;border:0;display:block;background:transparent}
+  /* the badge's own edge, drawn over the clip so the disc has a rim like the ref */
+  #badgeRim{position:absolute;z-index:2;border-radius:50%;pointer-events:none;
+            box-shadow:0 10px 30px rgba(31,35,72,.18);opacity:0;transition:opacity .4s}
+  body.run #badgeRim,body.hatch #badgeRim{opacity:1}
+
+  /* ---------- screens: a crossfade, never a slide ----------
+     Andjroo: "they have things come up from the bottom EXCEPT for when it
+     transitions to the actual screen of the egg, it just like fades in."
+     Sheets rise. Screens fade. Those are the only two moves in here.            */
+  .screen{position:absolute;inset:0;z-index:3;opacity:0;pointer-events:none;
+          transition:opacity .42s ease}
+  .screen.on{opacity:1;pointer-events:auto}
+
+  /* ---------- set screen ---------- */
+  /* the numbers, on the shell. The egg is BLANK here — Andjroo picked "the egg is
+     faceless while you set it, the face arrives the moment Start is pressed." */
+  #dial{position:absolute;z-index:4;pointer-events:none;text-align:center}
+  #dialTitle{font-weight:800;color:var(--teal);letter-spacing:-.3px}
+  /* ⚠️ inline-flex, not flex. #dial spans the page so the title can centre on it,
+     and a block-level #cols inherits that full width — which the selection band,
+     pinned left:0/right:0 inside it, then draws edge to edge across the phone
+     instead of across the numbers. Shrink-wrapping the columns is what keeps the
+     band inside the egg where it belongs. */
+  #cols{display:inline-flex;align-items:flex-start;justify-content:center;position:relative;
+        padding:0 16px}
+  .colhead{font-weight:800;color:#9AA0B0;text-align:center}
+  .colwrap{position:relative}
+  /* ⚠️ A real scroll container, not a fake one. iOS momentum and scroll-snap do the
+     feel for free; a pointer-driven list has to reimplement both and never matches. */
+  .col{overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;
+       pointer-events:auto;overscroll-behavior:contain;touch-action:pan-y}
+  .col::-webkit-scrollbar{display:none}
+  .col .n{display:grid;place-items:center;scroll-snap-align:center;font-weight:800;
+          color:var(--navy);font-variant-numeric:tabular-nums;transition:opacity .12s linear}
+  /* NO RED LINES. Andjroo, 2026-07-31: "I don't want to use red lines but they have
+     like the darker color solid and then a faded version for the number below it."
+     The selection is a soft band behind the row, and min/sec are told apart by the
+     colon sitting in it rather than by two underlines. */
+  #band{position:absolute;left:0;right:0;border-radius:14px;background:rgba(33,188,165,.22);
+        box-shadow:inset 0 0 0 2px rgba(33,188,165,.30);pointer-events:none;z-index:-1}
+  #colon{position:absolute;left:50%;transform:translate(-50%,-50%);font-weight:800;
+         color:var(--navy);pointer-events:none}
+
+  /* the + moved off the bottom of the egg. Andjroo: "we could have it up and to the
+     right" — it is a speech bubble, because what it adds is something to say.
+     ⚠️ ONE path, not a circle with a CSS tail stuck on it. The tail was a rotated,
+     skewed square with two borders, and its corners never met the circle's edge —
+     "a little jankety". A disc and a tail are one outlined shape, so they are one
+     arc and two lines, and the stroke runs round the whole of it without a join to
+     get wrong. */
+  /* ⚠️ IT RIDES THE EGG INTO THE BADGE, so it animates on the same curve #rigWrap
+     does. Andjroo, 2026-08-27: he set "thumbs up" / "shoes on", pressed Start, and it
+     "just goes away automatically" — it did: the bubble lived inside #scSet, which
+     fades out, so the run screen showed no sign of the thing he had chosen and (with
+     the sound off) never said it either. It is a child of #app now and layoutRun()
+     parks it on the badge's shoulder. */
+  #plus{position:absolute;z-index:5;background:none;border:0;padding:0;cursor:pointer;
+        filter:drop-shadow(0 4px 10px rgba(31,35,72,.26));
+        transition:left .52s cubic-bezier(.4,0,.2,1),top .52s cubic-bezier(.4,0,.2,1),
+                   width .52s cubic-bezier(.4,0,.2,1),height .52s cubic-bezier(.4,0,.2,1),
+                   opacity .42s ease}
+  /* Off the set screen it is a LABEL, not a control: nothing about a running
+     countdown should be one tap from a modal sheet. And with no reminder chosen
+     there is nothing to say, so the bare + does not follow the egg over. */
+  body:not(.set) #plus{pointer-events:none}
+  body:not(.set) #plus:not(.set){opacity:0}
+  #plus svg{display:block;width:100%;height:100%;overflow:visible}
+  /* Andjroo, 2026-07-31: setting a reminder must not recolour the bubble, it must
+     put the reminder IN it. So the bubble goes white and becomes the same little
+     white tile the icon is drawn for in the sheet — the choice is the state, and
+     the colour stays out of it. */
+  #plus .bub{fill:var(--teal)}
+  #plus.set .bub{fill:#fff}
+
+  .bigbtn{position:absolute;left:24px;right:24px;border:0;border-radius:22px;cursor:pointer;
+          font-family:inherit;font-weight:800;color:#fff;letter-spacing:-.2px;padding:0}
+  /* Start is the SAME teal as the selection band, the chosen tiles and the bubble.
+     Andjroo, 2026-07-31 — the reference's green was a second accent doing nothing
+     the teal was not already doing. One accent, used everywhere. */
+  #start{background:var(--teal);box-shadow:0 0 0 6px #fff,0 8px 18px rgba(31,35,72,.20)}
+  #start:active{transform:translateY(2px)}
+
+  #tray{position:absolute;left:0;right:0;display:flex;justify-content:center;z-index:4}
+  .trayb{background:#fff;border:0;border-radius:50%;display:grid;place-items:center;
+         cursor:pointer;box-shadow:0 3px 10px rgba(31,35,72,.22);padding:0;position:relative}
+  .trayb .dot{position:absolute;right:2px;bottom:2px;width:14px;height:14px;border-radius:50%;
+              background:var(--teal);border:2.5px solid #fff}
+
+  /* ---------- run + hatch ---------- */
+  #mutes{position:absolute;right:14px;z-index:6;display:flex;gap:6px;
+         top:calc(env(safe-area-inset-top,0px) + 12px)}
+  body.set #mutes{display:none}
+  .mute{background:none;border:0;cursor:pointer;padding:4px;display:grid;place-items:center}
+
+  #clockRow{position:absolute;left:0;right:0;z-index:4;display:flex;align-items:center;
+            justify-content:center;gap:14px}
+  #clock{font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-1px}
+  .step{border:0;border-radius:50%;background:var(--grey);color:#fff;cursor:pointer;
+        display:grid;place-items:center;padding:0;flex:none}
+  .step:active{background:#c3c8d2}
+
+  #runCtl{position:absolute;left:0;right:0;z-index:4;display:flex;justify-content:center;gap:18px}
+  /* Andjroo, 2026-07-31: pause, stop and done all want a shadow underneath. It is a
+     LEDGE, not a blur — a grey slab sitting a little proud of the button on every
+     side, the way the reference's buttons sit on the page. Pressing shortens it
+     rather than removing it, so the button travels down onto its own shadow. */
+  .ctl,#done,#btnJobDone{box-shadow:0 9px 0 2px #D6DBE4, 0 15px 20px rgba(31,35,72,.14)}
+  .ctl:active,#done:active,#btnJobDone:active{transform:translateY(5px);
+       box-shadow:0 4px 0 2px #D6DBE4, 0 8px 12px rgba(31,35,72,.12)}
+  .ctl{background:var(--sky);border:0;border-radius:20px;cursor:pointer;display:grid;
+       place-items:center;padding:0}
+  #done{background:var(--red)}
+  /* the run screen's primary action, wearing the hatch Done's ledge in the accent
+     Start already uses — same slot, same shape, different job. */
+  #btnJobDone{background:var(--teal)}
+  /* ---------- JOB MODE: the card above the egg ----------
+     Transcribed from public/vendor/nqp/tooltip/tooltip.css at ITS rem scale (8px):
+       padding 1.5rem -> 12px · radius .5rem -> 4px · font-size 1.75rem -> 14px
+       shadow 0 1.125rem 2.275rem -> 0 9px 18.2px · arrow 2.25x2rem -> 18x16px
+     --nimiq-blue is #1F2348, which is already this file's --navy. */
+  /* ⚠️ A BAND, NOT A POINT — top AND bottom, with the content sitting at the bottom of
+     it. The card hangs off the egg (bottom) but must never climb into the host's back
+     chevron (top), and the chevron's position depends on `env(safe-area-inset-top)`,
+     which is 0 in every headless render and ~47px on Andjroo's phone. Anchoring only
+     the bottom and letting the card grow upward is therefore a bug that CANNOT be seen
+     in a screenshot here: on a notched phone a two-line job would grow straight under
+     the chevron. Bounding the box in CSS lets env() do the arithmetic; justify-content
+     keeps a short card hugging the egg instead of floating in the middle of the band. */
+  #jobCard{position:absolute;left:0;right:0;z-index:5;pointer-events:none;
+           display:flex;flex-direction:column;align-items:center;
+           top:calc(env(safe-area-inset-top, 0px) + 66px)}
+  /* ⚠️ margin-top:auto, NOT justify-content:flex-end — they agree while the content
+     fits and disagree in exactly the case this band exists for. flex-end overflows past
+     the START edge, so a card too tall for the band grows UP through the chevron, which
+     is the one thing the floor was added to prevent (measured: 2.4px through a 113px
+     floor, and far worse for two lines). An auto margin resolves to 0 when there is no
+     spare space, so the card pins to the top of the band and overflows DOWNWARD instead
+     — onto the egg, which is art, rather than onto the back button, which is a tap
+     target. Same result whenever it fits, which is every phone without a notch. */
+  #jobCardBox{margin-top:auto}
+  /* ⚠️ WIDTH IS NOT WHAT KEEPS THIS OFF THE HOST'S BACK CHEVRON — HEIGHT IS.
+     The chevron occupies a band at the very top (app draws it at safe-area + 14px, 44
+     tall, so y 14..58). The card is anchored to the egg and grows UPWARD, so the only
+     way it reaches the chevron is by getting TALL. Narrowing it is exactly the wrong
+     lever: a narrower card wraps to more lines, gets taller, and climbs further into
+     the thing the narrowing was meant to avoid.
+     So it is wide enough for a four-word job to stay on ONE line, which is both what
+     Andjroo asked for and what keeps the card shortest. The two-line clamp on #jobName
+     is the real guarantee: it bounds the height, and a bounded height cannot reach the
+     band. Verified at 390 and 360 — see tools/eggtimer-jobflow.py, which asserts the
+     card clears both the egg and the chevron. */
+  #jobCardBox{max-width:calc(100% - 44px);display:flex;align-items:center;gap:10px;
+      padding:12px 14px;border-radius:4px;color:#fff;
+      background:radial-gradient(100% 100% at bottom right, #260133, var(--navy));
+      box-shadow:0 9px 18.2px rgba(0,0,0,.11)}
+  /* The job's REAL icon, the same asset the chart card and the done sheet draw.
+     ⚠️ Hidden by its own onerror rather than left as a broken-image glyph — the app
+     falls back to the emoji when it has no icon, and so must this. */
+  #jobIcon{width:30px;height:30px;object-fit:contain;flex:none}
+  #jobEmoji{font-size:24px;line-height:1;flex:none}
+  #jobCardText{min-width:0}
+  /* Two lines at most, so the card's height is bounded and it cannot climb into the
+     host's back chevron however long a parent names a job. */
+  #jobName{font-weight:700;font-size:14px;line-height:1.3;letter-spacing:-.1px;
+           overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;
+           -webkit-box-orient:vertical;overflow:hidden}
+  /* the length the parent set. Tabular, like every other number on this screen. */
+  #jobTime{font-weight:700;font-size:14px;line-height:1.3;opacity:.65;
+           font-variant-numeric:tabular-nums}
+  /* the triangle, masked out of the component's own SVG so it is the same shape at
+     the same 18x16, and filled with the gradient colour where it meets the box. */
+  #jobArrow{display:block;width:18px;height:16px;background:#23123e;
+      mask-image:url('data:image/svg+xml,<svg viewBox="0 0 18 16" xmlns="http://www.w3.org/2000/svg"><path d="M9 7.12c-.47 0-.93.2-1.23.64L3.2 14.29A4 4 0 0 1 0 16h18a4 4 0 0 1-3.2-1.7l-4.57-6.54c-.3-.43-.76-.64-1.23-.64z" fill="white"/></svg>');
+      -webkit-mask-image:url('data:image/svg+xml,<svg viewBox="0 0 18 16" xmlns="http://www.w3.org/2000/svg"><path d="M9 7.12c-.47 0-.93.2-1.23.64L3.2 14.29A4 4 0 0 1 0 16h18a4 4 0 0 1-3.2-1.7l-4.57-6.54c-.3-.43-.76-.64-1.23-.64z" fill="white"/></svg>');
+      /* ⚠️ mask-size MUST be stated. The component's triangle SVG carries a viewBox and
+         no width/height, so it has no intrinsic size, and the default `mask-size:auto`
+         resolves that to nothing — the element is the right 18x16 with the right fill
+         and is masked out completely. Invisible, with every property looking correct. */
+      mask-size:100% 100%;-webkit-mask-size:100% 100%;
+      mask-repeat:no-repeat;-webkit-mask-repeat:no-repeat;
+      transform:scaleY(-1)}
+  /* `hidden` loses to any display rule, and #cols and #dialTitle both carry one. */
+  [hidden]{display:none!important}
+
+  /* the pie. Ours is deliberately NOT where theirs is — Andjroo, 2026-07-31.
+     Three placements are live so he can pick one, and it drags anywhere.
+     ⚠️ "Beside the clock" cannot be an absolute overlay: at 390px a 112px disc
+     parked on the left of a centred row lands straight on top of the + stepper AND
+     the leading digit. Beside means IN the row — so the pie is re-parented into it
+     and flexbox does the spacing, rather than three numbers being kept in sync. */
+  #pie{z-index:5;cursor:grab;touch-action:none;flex:none;
+       filter:drop-shadow(0 3px 8px rgba(31,35,72,.22))}
+  #pie.free{position:absolute}
+  #pie.dragging{cursor:grabbing}
+  #pieHost{position:absolute;inset:0;z-index:5;pointer-events:none}
+  #pieHost>*{pointer-events:auto}
+  body.set #pieHost,body.hatch #pieHost,body.set #rimArc,body.hatch #rimArc{display:none}
+  #rimArc{position:absolute;z-index:5;pointer-events:none}
+
+  /* ⚠️ THE WHOLE SCREEN. Andjroo, 2026-07-31: "the confetti needs to be happening
+     across the entire screen, not just inside of the circle." It was a canvas the
+     size of the badge with a 50% radius on it, so every piece was born inside the
+     disc and clipped at its edge — the burst could not travel. Full bleed, no
+     radius, and confetti.js sizes its field off the canvas it is handed. */
+  /* ⚠️ AND IT IS FIXED TO THE VIEWPORT TOO, for the same reason the background is:
+     inside a 430px column on a tablet, "across the entire screen" was across the
+     middle third of it. burstPops() already scales the pop count by the canvas AREA,
+     so widening the field raises the count on its own. */
+  #conf{position:fixed;inset:0;z-index:2;pointer-events:none}
+
+  /* ---------- sheets: these are the things that come up from the bottom ----------
+     ⚠️ THE OVERLAY IS THE SCREEN AND THE LANE IS THE COLUMN. #app is a 430px column;
+     a scrim inside it dimmed only the column, which on a tablet reads as a lit
+     background with one dark stripe down the middle of it. So the scrim, the four
+     sheets and the toast sit out here, above #app (1) and #conf (2), and #sheetCol
+     puts the column back around the sheets alone — which is why every .sheet rule
+     below is untouched and still measures from `left:0;right:0`.
+     ⚠️ pointer-events:none on the way in. This layer covers the whole screen at all
+     times; without it the dial, Start and the dock are dead the moment it exists.
+     The scrim takes its own taps back when it is on, and a sheet always takes its. */
+  #overlay{position:fixed;inset:0;z-index:3;pointer-events:none}
+  #sheetCol{position:absolute;inset:0;margin:0 auto;max-width:430px}
+  #scrim{position:absolute;inset:0;z-index:8;background:rgba(31,35,72,.34);opacity:0;
+         pointer-events:none;transition:opacity .3s}
+  #scrim.on{opacity:1;pointer-events:auto}
+  /* ⚠️ min-height, not just content. Andjroo, 2026-07-31, on the backgrounds sheet:
+     "the card should slide up a little bit more." A one-row sheet is 250px tall and
+     stops well short of the ones beside it, so the same gesture lands in a different
+     place depending on which button opened it. The floor is what makes them agree. */
+  .sheet{position:absolute;left:0;right:0;bottom:0;z-index:9;background:#F3F5F8;
+         pointer-events:auto;
+         border-radius:22px 22px 0 0;transform:translateY(100%);
+         transition:transform .38s cubic-bezier(.32,.72,0,1);
+         min-height:46%;max-height:88%;display:flex;flex-direction:column;
+         padding-bottom:calc(env(safe-area-inset-bottom,0px) + 10px)}
+  .sheet.on{transform:translateY(0)}
+  /* ---------- THE SHEETS ARE CENTRED, AND THE ✕ IS TOP RIGHT ----------
+     Andjroo, 2026-07-31: "who came out of the egg is not centered, it should be
+     centered" and then "taking back my notes... seems like everything is to the
+     left." Both readings were of the same thing: the header was centred while the
+     ✕ and the sub-line were left, so the sheet never committed either way.
+     Settled by the nimiq-ui skill rather than by taste — Nimiq's own bottom sheets
+     (references/screenshots/wallet-app/logged-in/receive-nim-address-qr-mobile.png,
+     send-transaction-enter-address-mobile.png) put the title CENTRED, the section
+     labels CENTRED, and the close button as a CIRCLED X pinned to the TOP RIGHT.
+     The left slot is the back arrow's, and these sheets have no back. */
+  .shead{padding:16px 56px 6px}
+  .shead h2{text-align:center;font-size:19px;font-weight:800;text-wrap:balance}
+  /* ⚠️ NOT the ✕ character. Andjroo: "the ✕ is far too small and not correct." A
+     text glyph is whatever weight and size the font feels like — at 19px it came
+     out a hairline cross about 11px across, with no tap target under it. This is
+     the registry's close-button (`nq info close-button`): the @nimiq/style close
+     icon, which is a filled disc with the X knocked out of it, carried at 20%
+     opacity and 40% on press. Drawn, so it is the same mark at every size. */
+  .sclose{position:absolute;top:12px;right:12px;z-index:3;width:44px;height:44px;
+          background:none;border:0;padding:0;cursor:pointer;color:var(--navy);
+          display:grid;place-items:center}
+  .sclose svg{display:block;opacity:.2;transition:opacity .3s cubic-bezier(.25,0,0,1)}
+  .sclose:hover svg,.sclose:active svg{opacity:.4}
+  .ssub{padding:2px 22px 12px;font-size:16px;color:#8C93A3;font-weight:600;
+        line-height:1.3;text-align:center;text-wrap:balance}
+  .sbody{overflow-y:auto;padding:4px 16px 16px;-webkit-overflow-scrolling:touch}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  /* ⚠️ width:100% is load-bearing. A <button> keeps intrinsic sizing, so with only
+     aspect-ratio to go on the "Off" tile — whose content is a 27px word rather than
+     a percentage-sized SVG — shrink-wrapped to 37px while every other tile came out
+     110px. One definite dimension and the ratio does the rest. */
+  /* ---------- THE SELECTED MARKER HANGS OFF THE CELL, NOT INSIDE THE TILE ----------
+     ⚠️ ONE BUG, TWO REPORTS. Andjroo read the character sheet's badge as "inside the
+     bubble... it is on the wrong item, an indexing bug" and the reminder sheet's as
+     "the check is BELOW instead of above". Indexing is fine — tapping item 9 selects
+     item 9, proved with real pointer events. The marker was a `:after` on `.pick`,
+     pinned to hang off the corner at right/bottom -2px, and `.pick` carries
+     `overflow:hidden` so the img cannot poke past the circle. A clip does not care
+     what it was hung on: the badge got dragged back INSIDE the tile, where the
+     circular clip parks it low over the artwork. On the 82px character tile that is
+     on top of the animal; on the 110px reminder tile it is under the icon.
+     So the marker belongs to the CELL, which has nothing clipping it, and it goes
+     to the TOP right — clear of the label underneath, and the corner nimiq-ui puts
+     a marker in. Not a ✓ glyph either: drawn, for the same reason as the ✕. */
+  .cell{position:relative}
+  .pick{width:100%;aspect-ratio:1;border-radius:50%;background:#fff;border:5px solid #E3E7EE;
+        cursor:pointer;display:grid;place-items:center;position:relative;padding:0;overflow:hidden}
+  .pick.on{border-color:var(--teal)}
+  .tick{position:absolute;top:-5px;right:-5px;width:32px;height:32px;border-radius:50%;
+        background:var(--teal);border:3px solid #F3F5F8;z-index:2;pointer-events:none;
+        display:none;place-items:center}
+  .cell.on .tick{display:grid}
+  .grid4 .tick{width:27px;height:27px;top:-4px;right:-4px;border-width:2.5px}
+  /* Delete, on a kid's own photo only. TOP-LEFT because .tick owns top-right, and on
+     the CELL for the same reason the tick is: .pick clips to its circle, so a badge
+     hung on the button gets dragged back inside and parks over the face. */
+  .del{position:absolute;top:-5px;left:-5px;width:30px;height:30px;border-radius:50%;
+       background:#8C93A3;border:3px solid #F3F5F8;z-index:3;padding:0;cursor:pointer;
+       display:grid;place-items:center;transition:background 120ms,transform 120ms}
+  .grid4 .del{width:26px;height:26px;top:-4px;left:-4px;border-width:2.5px}
+  /* Armed: the photo steps back and the badge goes red, so "one more tap ends this"
+     reads without words to a child who cannot yet read the label. */
+  .cell.arming .pick{opacity:.4}
+  .cell.arming .del{background:var(--red);transform:scale(1.15)}
+  .pick img{width:82%;height:82%;object-fit:contain}
+  .artgrid .pick img{width:88%;height:88%}
+  .photopick img{width:100%;height:100%;object-fit:cover}
+  .pick .off{font-size:19px;font-weight:800;color:#8C93A3}
+  .plabel{text-align:center;font-size:11.5px;font-weight:700;color:#8C93A3;margin-top:4px;
+          text-transform:capitalize}
+  .bgpick{aspect-ratio:1;border-radius:18px;overflow:hidden;border:4px solid #E3E7EE;padding:0;
+          cursor:pointer;display:block;width:100%}
+  .bgpick.on{border-color:var(--teal)}
+  .bgpick img{width:100%;height:100%;object-fit:cover;display:block}
+  /* Andjroo: "more backgrounds are coming, so add more spaces." An empty slot is the
+     honest way to say that — it holds the grid's shape now and it is where the next
+     one lands, rather than the row re-flowing under him when the art arrives. */
+  .bgslot{aspect-ratio:1;border-radius:18px;border:4px dashed #DDE1E9;background:#EDF0F5}
+  .lane{background:#fff;border-radius:16px;padding:12px 14px;margin-bottom:12px}
+  /* the same short grey uppercase section label nimiq.com and the wallet both use
+     ("ENTER ADDRESS", "TOTAL BALANCE") — and they centre it, so this centres too */
+  .lane h3{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
+           color:#8C93A3;margin-bottom:9px;text-align:center}
+  /* ⚠️ A GRID, NOT WRAPPED FLEX. Andjroo, 2026-07-31: "reorganize the sound one so
+     they're uniform." Every pill was its own width — "Bell" against "Kids cheer" —
+     and a centred wrap then re-centred each ragged row, so no two rows started or
+     ended in the same place and nothing lined up with anything. Equal columns make
+     every pill the same size and put every row on the same two edges.
+     Two columns, not three: at 360px three leaves ~95px a cell and "Kids cheer"
+     needs ~106px, so the widest label is exactly the one that would have broken it. */
+  .opts{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+  .opt{border:0;background:#EEF1F6;border-radius:500px;padding:11px 10px;font-family:inherit;
+       font-size:14.5px;font-weight:800;color:var(--navy);cursor:pointer;text-align:center;
+       width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .opt.on{background:var(--teal);color:#fff}
+
+  /* ---------- the toast ----------
+     Andjroo, 2026-07-31: "a toast notification to say coming soon, because I'm not
+     going to get to that today." The sound lists are named and silent, so choosing
+     one has to say so rather than look broken.
+     ⚠️ It RISES, like everything else that is not a screen change (his rule: things
+     come up from the bottom, except the move to the egg screen, which fades).
+     ⚠️ AND IT PARKS ABOVE THE OPEN SHEET, measured off that sheet rather than set to
+     a number. A toast pinned to the bottom of the phone is behind the sheet that
+     raised it; one dropped in the middle covers the options being chosen from.
+     Navy with the brand's bottom-right radial, never a flat fill. */
+  #toast{position:absolute;left:50%;z-index:11;max-width:calc(100% - 36px);
+         transform:translate(-50%,14px);opacity:0;pointer-events:none;
+         background-color:var(--navy);
+         background-image:radial-gradient(100% 100% at bottom right,#260133,#1F2348);
+         color:#fff;font-weight:800;font-size:15px;letter-spacing:-.1px;
+         padding:13px 22px;border-radius:500px;white-space:nowrap;
+         box-shadow:0 10px 26px rgba(31,35,72,.30);
+         transition:opacity .26s cubic-bezier(.25,0,0,1),
+                    transform .26s cubic-bezier(.25,0,0,1)}
+  #toast.on{opacity:1;transform:translate(-50%,0)}
+
+  /* ---------- NOTHING IS SEEN UNTIL IT HAS BEEN LAID OUT, AND UNTIL IT IS WHOLE ----
+     Andjroo, 2026-08-01: "there is a weird little pop up where it looks like there's
+     almost a list of things", and then "it kind of does it in different parts rather
+     than all being loaded at once."
+
+     Both are this one cover. EVERY dimension on the set screen comes from layout() —
+     the dial's position, the column height, the bubble, Start, the tray — and none of
+     them has a CSS size to fall back on, so a paint that beats layout() shows the
+     minute column at its natural 1440px: sixty numbers running down the phone. That
+     is the list he saw. It was one network round trip wide (see the confetti note in
+     the module), which is why it never got longer on a faster connection and never
+     went away on a slower one.
+
+     A cover in the MARKUP, not a class toggled by script, because the thing being
+     guarded against is script not having run yet. It is opaque from the first paint
+     for free, and it is what the fade at the end of the load fades OUT — so the
+     background, the chrome and the egg stop being three arrivals and become one.
+     ⚠️ IT MUST NOT BE ABLE TO STICK. reveal() is armed on a timer before anything
+     that could throw (see boot), so a broken load shows a broken timer rather than a
+     white rectangle. */
+  #preboot{position:fixed;inset:0;z-index:99;background:#fff;pointer-events:none;
+           transition:opacity .34s ease}
+  #preboot.gone{opacity:0}
+
+  /* ---------- the review strip. ?clean=1 removes it for captures. ---------- */
+  #dev{position:fixed;left:0;right:0;bottom:0;z-index:12;background:rgba(31,35,72,.90);
+       color:#fff;display:flex;align-items:center;gap:6px;padding:6px 8px;overflow-x:auto;
+       font-size:11px;font-weight:800}
+  #dev.off{display:none}
+  #dev b{opacity:.55;font-weight:800;text-transform:uppercase;letter-spacing:.4px;flex:none}
+  #dev button{background:rgba(255,255,255,.14);color:#fff;border:0;border-radius:500px;
+              padding:5px 10px;font-family:inherit;font-size:11px;font-weight:800;cursor:pointer;flex:none}
+  #dev button.on{background:var(--teal)}
+
+</style>
+</head>
+<body class="set">
+
+<!-- ⚠️ THE BACKGROUND AND THE CONFETTI ARE OUTSIDE #app ON PURPOSE, and it is the
+     tablet that made them move. #app is a 430px column; while these lived inside it
+     the scene could not be wider than the column, so a 1024px screen showed the
+     picture down the middle with two navy bars either side. Fixed to the viewport
+     they are the whole screen, and #app keeps only what is meant to be a column.
+     ⚠️ THE CLIP STILL BELONGS TO THE BACKGROUND (see the #scene note below): the
+     background BECOMES the badge. What changed is the coordinate space it is clipped
+     in, which layout() now converts for. -->
+<img id="bgImg" alt="" />
+<canvas id="conf"></canvas>
+
+<div id="app">
+
+  <!-- the egg. The background used to be in here with it, clipped as one thing;
+       the clip is still the background's, one level up. -->
+  <div id="scene">
+    <!-- ⚠️ the version is load-bearing. Without it Safari happily reuses a cached
+         wiggle.html forever, so the page reloads and the RIG does not — which is
+         exactly how three rounds of fixes can look identical on a phone. -->
+    <div id="rigWrap"><iframe id="rig" scrolling="no" title="egg"></iframe></div>
+  </div>
+  <div id="badgeRim"></div>
+
+  <!-- ⚠️ NOT INSIDE A SCREEN. It is the same bubble on the set screen and on the run
+       screen — placed by layoutSet() at the egg's shoulder and by layoutRun() at the
+       badge's, so it travels with the egg instead of fading out with #scSet. -->
+  <button id="plus" aria-label="add a reminder">
+    <!-- disc r32 at (50,44); the tail hangs off the arc between 105° and 160°.
+         large-arc=1 sweep=0 takes the 305° way round, i.e. everywhere the tail
+         is not, so the outline closes through the tip in one stroke. -->
+    <svg viewBox="0 0 100 100">
+      <clipPath id="discClip"><circle cx="50" cy="44" r="29.3"/></clipPath>
+      <path class="bub" d="M41.72 74.91 A32 32 0 1 0 19.93 54.94 L16.4 80.6 Z"
+            stroke="#3E4358" stroke-width="5.4" stroke-linejoin="round"/>
+      <path id="plusGlyph" d="M50 30v28M36 44h28" fill="none" stroke="#fff"
+            stroke-width="7.6" stroke-linecap="round"/>
+      <!-- The chosen reminder rides inside the disc, centred on (50,44).
+           ⚠️ The TALLEST icon sets this box, not the average one. Sized by ink
+           area, a toothbrush fills its 256 box top to bottom while a heart fills
+           about two thirds of it — so a box tuned to make the heart look right
+           pushes the brush's tip and handle straight through the navy outline.
+           56 keeps the worst case inside r29.3, and the clip is the guarantee. -->
+      <image id="plusIcon" x="22" y="16" width="56" height="56"
+             clip-path="url(#discClip)" style="display:none"/>
+    </svg>
+  </button>
+
+  <!-- ================= SET ================= -->
+  <section class="screen on" id="scSet">
+    <!-- the gear went 2026-07-31 on Andjroo's call: "we can get rid of the gear icon
+         in the top left, I think that's good with not having that for right now."
+         (He had raised and retracted this once before; this is the decision.) -->
+
+    <div id="dial">
+      <div id="dialTitle">Set Timer</div>
+      <div id="cols">
+        <div id="band"></div>
+        <div class="colwrap"><div class="colhead" id="hMin">Min</div><div class="col" id="colMin"></div></div>
+        <div class="colwrap"><div class="colhead" id="hSec">Sec</div><div class="col" id="colSec"></div></div>
+        <div id="colon">:</div>
+      </div>
+    </div>
+
+    <!-- ================= JOB MODE: the job, said ABOVE the egg =================
+         Andjroo, 2026-08-01: the title and icon sat ON the egg and "just doesn't look
+         very well positioned"; the icon was the raw emoji glyph where every other
+         surface in the app draws the job's real icon asset. All three facts — icon,
+         name, and the length the PARENT set — move off the shell and into a card in
+         the space above it, and the egg gets its face back.
+
+         ⚠️ THE CARD IS THE VENDORED NIMIQ TOOLTIP, not a lookalike. Same masked
+         triangle SVG, same radius, padding, shadow and blue-bg gradient as
+         public/vendor/nqp/tooltip/tooltip.css, which is what the copy-address toast
+         and the roadmap page already use. This file cannot LINK it — it is a
+         standalone document with its own stylesheet and no nimiq-style — so the values
+         are transcribed, and transcribed at the right scale: nimiq-style sets
+         `html{font-size:8px}`, so its 1.5rem padding is 12px here, not 24px. -->
+    <div id="jobCard" hidden>
+      <div id="jobCardBox">
+        <img id="jobIcon" alt="" draggable="false" hidden />
+        <span id="jobEmoji" hidden></span>
+        <div id="jobCardText">
+          <div id="jobName"></div>
+          <div id="jobTime"></div>
+        </div>
+      </div>
+      <i id="jobArrow"></i>
+    </div>
+
+
+    <button class="bigbtn" id="start">Start</button>
+
+    <div id="tray">
+      <!-- ⚠️ THE EGG IN THIS GLYPH IS OUR EGG, DRAWN FROM egg-outline.json.
+           Andjroo, 2026-07-31: "the egg shape does not match ours." It did not: it was
+           a hand-authored bezier that happened to be egg-ish, so the button that opens
+           the egg sheet showed a different egg from the one on the screen behind it.
+           Both paths are replaced at boot from the same curve the rig clips its shell
+           to, so a recut of the art moves this icon with it. The `d`s below are only
+           the fallback if the fetch fails. -->
+      <button class="trayb" data-sheet="egg" aria-label="hatch surprises">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#2C3149" stroke-width="1.9"
+             stroke-linejoin="round" stroke-linecap="round">
+          <path id="glyphEgg" d="M12 2.4c3.6 0 6.4 5.2 6.4 10.1A6.4 6.4 0 0 1 12 21.6a6.4 6.4 0 0 1-6.4-9.1C5.6 7.6 8.4 2.4 12 2.4z"/>
+          <path id="glyphCrack" d="M6.2 13.4l2.6-1.7 2.5 1.7 2.5-1.7 2.5 1.7"/>
+        </svg>
+        <i class="dot" id="dotEgg" style="display:none"></i>
+      </button>
+      <button class="trayb" data-sheet="music" aria-label="sounds">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="#2C3149">
+          <path d="M20 3.6 8.6 6v9.2a3.4 3.4 0 1 0 1.8 3V9.1l7.8-1.6v5.3a3.4 3.4 0 1 0 1.8 3z"/>
+        </svg>
+        <i class="dot" id="dotMusic" style="display:none"></i>
+      </button>
+      <button class="trayb" data-sheet="bg" aria-label="background">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2C3149" stroke-width="1.9"
+             stroke-linejoin="round">
+          <rect x="2.6" y="4.6" width="18.8" height="14.8" rx="3.2"/>
+          <circle cx="8.4" cy="10" r="1.7" fill="#2C3149" stroke="none"/>
+          <path d="M3.4 16.6l4.5-4a2 2 0 0 1 2.7 0l3 2.7 2-1.7a2 2 0 0 1 2.6 0l2.4 2.1"/>
+        </svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- the two mute icons live OUTSIDE the screens: the reference carries them
+       through the hatch too, and they are the same two controls either way -->
+  <div id="mutes">
+    <button class="mute" id="mMusic" aria-label="music"></button>
+    <button class="mute" id="mBell" aria-label="end sound"></button>
+  </div>
+  <div id="pieHost">
+    <svg id="pie" width="120" height="120" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="52" fill="#fff" stroke="#4A4F63" stroke-width="7"/>
+      <path id="pieWedge" fill="var(--red)"></path>
+      <line id="pieHand" x1="60" y1="60" x2="60" y2="12" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/>
+      <circle cx="60" cy="60" r="52" fill="none" stroke="#4A4F63" stroke-width="7"/>
+    </svg>
+    <svg id="rimArc"><circle id="rimC" fill="none" stroke="var(--red)" stroke-linecap="round"/></svg>
+  </div>
+
+  <!-- ================= RUN ================= -->
+  <section class="screen" id="scRun">
+    <div id="clockRow">
+      <button class="step" id="stepUp" aria-label="add a minute">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4"
+             stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <div id="clock">00:00</div>
+      <button class="step" id="stepDn" aria-label="take a minute off">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4"
+             stroke-linecap="round"><path d="M5 12h14"/></svg>
+      </button>
+    </div>
+
+    <div id="runCtl">
+      <button class="ctl" id="btnPause" aria-label="pause">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="#fff" id="icPause">
+          <rect x="6.4" y="4.6" width="4.2" height="14.8" rx="1.6"/>
+          <rect x="13.4" y="4.6" width="4.2" height="14.8" rx="1.6"/>
+        </svg>
+      </button>
+      <button class="ctl" id="btnStop" aria-label="stop">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="#fff">
+          <rect x="6" y="6" width="12" height="12" rx="2.4"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- JOB MODE: the one thing the kid can say on this screen, so it is the screen's
+         one big bottom button — the same slot and the same shape Start uses on the set
+         screen and Done uses after the hatch. It is not one of the round #runCtl
+         controls: those are wordless by design and this is the primary action, which
+         on this screen has always been a labelled pill.
+         ⚠️ IT CARRIES WORDS. Andjroo has ruled against a bare glyph twice — the
+         unlabelled circular-arrow on the demo page ("hard to understand what that even
+         means") and PR #94 R3, reversed to put labels back under the sheet tiles. The
+         text arrives from the host, because the app has five locales and this file has
+         none.
+         ⚠️ TEAL, not a new green. The reference's green was a second accent doing
+         nothing the teal was not already doing, so Start, the selection band, the
+         chosen tiles and the bubble are one accent — and so is this. -->
+    <button class="bigbtn" id="btnJobDone" hidden></button>
+  </section>
+
+  <!-- ================= HATCH ================= -->
+  <section class="screen" id="scHatch">
+    <div id="hatchClock"></div>
+    <button class="bigbtn" id="done">Done</button>
+  </section>
+
+
+</div>
+
+<!-- ⚠️ THE SCRIM IS THE SCREEN, THE SHEET IS THE COLUMN, and they had to leave #app to
+     be both. While these lived inside the 430px column the dim went with them, so on the
+     tablet a sheet came up over a fully-lit background with a dimmed stripe behind it —
+     the column showing through as a bright-edged panel. Out here the scrim covers
+     everything the kid can see; #sheetCol re-imposes the column on the sheets alone, so
+     not one sheet rule below had to change. -->
+<div id="overlay">
+  <div id="scrim"></div>
+  <div id="sheetCol">
+  <!-- ================= SHEETS ================= -->
+
+    <!-- ⚠️ ONE close button, written once and stamped into all four on boot. The old
+         markup had four hand-written ✕ glyphs and they had already drifted — one sheet
+         carried a dead "?" beside it, two carried a spacer span, and a fix to "the ✕"
+         meant finding every copy. `sclose()` below is the only definition. -->
+    <section class="sheet" id="shReminder">
+      <div class="shead"><h2>Add a Reminder</h2></div>
+      <div class="ssub">Remind your child what to do next when the timer ends.</div>
+      <div class="sbody"><div class="grid3" id="remGrid"></div></div>
+    </section>
+
+    <section class="sheet" id="shEgg">
+      <div class="shead"><h2>Hatch Surprises</h2></div>
+      <div class="ssub">Who can come out of the egg.</div>
+      <div class="sbody"><div class="grid4" id="eggGrid"></div></div>
+      <input id="shoot" type="file" accept="image/*" capture="environment" hidden />
+    </section>
+
+    <section class="sheet" id="shMusic">
+      <div class="shead"><h2>Sounds</h2></div>
+      <div class="ssub">One while the timer runs, one for when it ends.</div>
+      <div class="sbody" id="musicBody"></div>
+    </section>
+
+    <section class="sheet" id="shBg">
+      <div class="shead"><h2>Background</h2></div>
+      <div class="ssub">Fills the screen while you set the timer, then becomes the circle.</div>
+      <div class="sbody"><div class="grid4" id="bgGrid"></div></div>
+    </section>
+    <div id="toast" role="status" aria-live="polite"></div>
+  </div>
+</div>
+
+<!-- the review strip, outside #app so a sheet's screen-wide scrim cannot bury it -->
+<div id="dev">
+  <b>pie</b>
+  <button data-pie="badge">top left</button>
+  <button data-pie="clock">by the clock</button>
+  <button data-pie="rim">the rim itself</button>
+  <b style="margin-left:6px">go</b>
+  <button id="dvHatch">hatch now</button>
+  <button id="dvReset">reset</button>
+  <span style="flex:none;margin-left:auto;background:var(--teal);color:#fff;
+               padding:5px 10px;border-radius:500px" id="dvBuild"></span>
+</div>
+
+<!-- last, and outside #app, so it covers the desktop letterbox too. See the CSS. -->
+<div id="preboot"></div>
+
+<script type="module">
+/* ⚠️ MINTED IN THE HEAD, READ HERE. The head needs both to preload the background
+   before this module exists; deriving the same strings twice is how the preload and
+   the real request end up with different `v` and the 96KB is fetched twice. */
+const BUILD=window.TIMER_BUILD;
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const Q=new URLSearchParams(location.search);
+const CLEAN=Q.has('clean');
+if(CLEAN)$('dev').classList.add('off');
+
+/* ---------- JOB MODE ----------
+   The same screen, opened against one of the kid's jobs instead of against nothing.
+   Andjroo, 2026-08-01: tapping "use timer" on a job card showed a DIFFERENT egg from
+   the one the dock opens — a placeholder SVG (kid/js/egg.js) that predates this rig
+   and was never swapped. One egg everywhere; this is how the job reaches this screen.
+
+   Everything below is gated on the flag and nothing above it changes, so the dock
+   timer and the standalone tuning host behave exactly as they did.
+
+   What job mode is: the length is the JOB's, so the dial has nothing to spin and the
+   +/- steppers would lie about a duration the server owns. What it is not: a second
+   clock. The app's countdown stays authoritative and corrects ours through `sync`
+   (see RIG.setLeft in wiggle.html) — a job's clock is the server's.
+
+   ⚠️ THE HOST OWNS EVERY WORD. This file has no i18n and the app has five locales,
+   so labels arrive in `init` rather than being written here. English below is the
+   standalone fallback, not a default the app can accidentally ship. */
+const JOB=Q.has('job');
+const JT={ secs:0, title:'', emoji:'', started:false,
+           s:{ start:'Start', done:"I'm done!" } };
+/* the host is the app frame; standalone there is no host and post() is a no-op that
+   keeps every call site free of a null check. */
+const HOST=(JOB&&window.parent!==window)?window.parent:null;
+const post=(k,d)=>{ if(HOST)HOST.postMessage({job:k,...d},'*') };
+
+/* Swapped in SYNCHRONOUSLY, before the first layout() and while #preboot still
+   covers the screen, so job mode is never a second arrangement the kid watches the
+   screen change into. tools/eggtimer-rawdom.py is what holds that line. */
+function applyJob(){
+  if(!JOB)return;
+  /* What job mode takes away, and why each one:
+       cols     the length came with the job; there is nothing to spin
+       plus     the reminder is the job — it is already named on the screen
+       stepUp   +/- would move a duration the SERVER owns; the clock would say one
+       stepDn     thing and the task another
+       btnPause the server's clock does not pause, so a pause button would be a
+                lie the moment the kid came back. Leaving and returning resumes,
+                which is what the back chevron already does. (The job screen it
+                replaces had no pause either.)
+       btnStop  the host draws a back chevron top-left and leaving is what that is
+                for
+     — which is all of #runCtl, so the ROW goes rather than its contents: an empty
+     flex row still occupying the bottom of the screen is a gap where the kid's one
+     button should be.
+     ⚠️ Hidden, not removed. layout() still measures and sizes all of them, so job
+     mode shares one code path with the dock rather than growing a second. */
+  /* ⚠️ THE WHOLE DIAL GOES, not just its columns. The job's name and length used to be
+     written across the shell inside #dial — Andjroo, 2026-08-01: "it just doesn't look
+     very well positioned on top of the egg". They are a card above the egg now, so
+     there is nothing left in #dial to place. */
+  for(const id of ['dial','plus','stepUp','stepDn','runCtl']) $(id).hidden=true;
+  for(const id of ['jobCard','btnJobDone']) $(id).hidden=false;
+}
+applyJob();
+/* m:ss for the job's length. The run screen's own clock is mmss() further down and
+   pads the minutes; a job announced as "05:00" reads like a stopwatch, so the one
+   place a duration is stated rather than counted says 5:00. */
+const jobClock=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
+/* The same fallback chain the app's own card uses: the icon asset, else the emoji,
+   else nothing at all rather than a broken-image glyph in the middle of the card. */
+function showEmojiIcon(){
+  const e=$('jobEmoji');
+  e.textContent=JT.emoji||'';
+  e.hidden=!JT.emoji;
+}
+
+/* ---------- ONE ARRIVAL ----------
+   Andjroo, 2026-08-01: "it kind of does it in different parts rather than all being
+   loaded at once." It did, and measurably: at 1.6 Mbps the chrome landed at ~200ms,
+   the egg at ~1350ms and the background at ~1598ms. Three appearances of one screen.
+   The cover (#preboot, see its CSS) holds all three and lets go once — when the
+   background has DECODED and the rig has actually put ink on its canvas, which is a
+   later moment than the rig merely existing.
+   ⚠️ ARMED FIRST. Nothing below this line is allowed to leave the cover up. If the
+   rig never hooks, if the art 404s, if layout() throws — the timer arrives at CAP in
+   whatever state it got to. A white rectangle that never goes away is a worse bug
+   than a staggered load, so the failsafe is set before there is anything that could
+   fail.
+   ⚠️ CAP IS A BREAKAGE FAILSAFE, NOT A PATIENCE BUDGET, and that is why it is not
+   tighter. Measured cold, 390px (tools/whole.py):
+
+       kbps    background   egg drawn   whole
+        400        4.63s       5.15s     5.15s
+        700        2.63s       2.98s     2.98s
+       1600        1.08s       1.35s     1.35s
+       4000        0.33s       0.63s     0.63s
+       8000        0.20s       0.45s     0.45s
+
+   The two are never more than ~0.35s apart, so waiting for both costs almost nothing
+   over waiting for the slower one alone — the whole point of holding them together.
+   A cap of 1200ms looked prudent and was not: it fired BEFORE the egg on anything
+   under about 1.9 Mbps, which is exactly the connection this was built for, and gave
+   back the staggered load it exists to prevent. It is set past the honest 1.6 Mbps
+   case instead. Second opens are 0.03s, so this only ever governs a cold one. */
+const CAP=2500;
+let revealed=false, arrived;
+/* what the heavy art waits on. NOT "the egg has inked" — if the background is the
+   slow one, starting 2.2MB while it is still in flight is the exact mistake this
+   whole change is about. */
+const afterReveal=new Promise(r=>{ arrived=r });
+function reveal(){
+  if(revealed)return; revealed=true;
+  arrived();
+  const c=$('preboot'); if(!c)return;
+  c.classList.add('gone');
+  c.addEventListener('transitionend',()=>c.remove(),{once:true});
+}
+setTimeout(reveal,CAP);
+/* the two things that have to be true for the screen to be whole. Each resolves at
+   most once and neither can reject the pair — a background that fails to decode is
+   still a timer, so it settles rather than holding the cover to the cap. */
+let eggInk;
+const eggReady=new Promise(res=>{ eggInk=res });
+let bgSettle=()=>{};
+const bgReady=new Promise(res=>{
+  const im=$('bgImg');
+  if(!im)return res();
+  const done=()=>res();
+  bgSettle=done;   // for the paint below to call when there is no scene to load at all
+  im.addEventListener('load',()=>{ (im.decode?im.decode():Promise.resolve()).then(done,done) });
+  im.addEventListener('error',done);
+});
+Promise.all([bgReady,eggReady]).then(reveal);
+
+/* ---------- VER: the cache key for everything this page pulls ----------
+   ⚠️ NOT the same thing as BUILD. BUILD is hand-typed and says which draft this is;
+   VER is what every asset URL is stamped with, and the host supplies it. Standalone
+   there is no host and BUILD stands in — the review server is `no-store` anyway, so
+   nothing there can go stale. In the app the server mints VER from the vendored
+   timer's own file times (src/timer-build.ts), which is the only version that
+   cannot be forgotten: editing a file changes it whether or not anyone bumps BUILD.
+   ⚠️ The app serves `/kid/timer/*?v=…` as IMMUTABLE off the back of this. A URL
+   that is not stamped with VER is a URL that gets re-downloaded on every open;
+   one stamped with a STALE VER is a file that can never arrive. Use VER.
+   ⚠️ Read back from the head, not re-derived — see the BUILD note above. */
+const VER=window.TIMER_VER;
+
+/* ⚠️ BOTH builds, unmissable. Andjroo, 2026-07-31: "I'm still seeing the exact
+   same version" — three rounds of work reached the Mini and the tunnel and never
+   his phone, and there was nothing on screen that would have told him. */
+$('dvBuild').textContent=BUILD+' · rig …';
+
+
+/* ---------- what the parent has chosen ----------
+   ⚠️ bump LS whenever a default changes, or the new one silently loses to whatever
+   is already in the browser. `kidtimer2` = the pie moved to the top left corner. */
+/* ⚠️ kidtimer3, because the DEFAULT changed. Andjroo, 2026-07-31: "instead of the pie
+   chart... it should be that red circle that goes around the edge." The rim was already
+   one of the three placements behind the review strip; it is the one that ships. Every
+   browser that has run this carries pie:'badge' in kidtimer2, and a stored value beats a
+   new default every time — which is exactly the trap the old key's own comment warns
+   about. Bump the key whenever a default changes. */
+const LS='kidtimer3';
+/* ⚠️ `during` IS A BED, NOT 'none'. Andjroo, 2026-08-27, on the run after sound came
+   back: sound being ON is not the same as sound being HEARD — the sheet still opened
+   with "No music" ticked, so the fix he asked for landed and the timer still ran in
+   silence until he went and picked something. 'bounce' rather than 'lullaby' because
+   the reminder list this timer is built around is mostly get-ready (shoes on, get
+   dressed, brush teeth, clean up, time to eat) and a lullaby at 7am is the wrong
+   room; Lullaby is one tap away on the same sheet for the ones that are bedtime.
+   ⚠️ 'none' STAYS THE FIRST TILE. It is a real choice and it is where a parent looks
+   to turn the music off — this changes which tile arrives ticked, not the lane. */
+const S={min:2, sec:0, bg:'city', heroes:null, reminder:'off',
+         during:'bounce', end:'chime', muteMusic:false, muteBell:false,
+         pie:'rim', pieXY:null};
+try{ Object.assign(S, JSON.parse(localStorage.getItem(LS)||'{}')) }catch(e){}
+/* ⚠️ MIGRATED, NOT BUMPED. `hero` was one id; it is a LIST now (Andjroo, 2026-07-31 —
+   "I want the kid to be able to select multiple characters, so that way it's
+   randomized as well"). Bumping LS would have taken his background, his reminder and
+   his sounds down with it for a field that translates in one line. */
+if(S.hero&&!S.heroes){ S.heroes=[S.hero] }
+delete S.hero;
+if(S.heroes&&!Array.isArray(S.heroes))S.heroes=[S.heroes];
+const save=()=>{ try{ localStorage.setItem(LS,JSON.stringify(S)) }catch(e){} };
+
+/* ⚠️ MIGRATED, NOT BUMPED, the same call as the `hero` -> `heroes` line above — and it
+   sits below `save` because it is the one migration that has to WRITE. The hatch default
+   changed from one animal to all of them (see heroSet), and this file's own rule says
+   bump LS when a default changes — but S.heroes was MATERIALISED into storage the first
+   time the roster loaded, so every tablet that has ever opened the timer carries
+   ["hero-bear"] and would beat the new default forever. Bumping the key would take the
+   background, the reminder and the sounds with it for a field that translates in one
+   line. Clearing it lets heroSet() re-derive.
+   ⚠️ AND ONLY A SET THAT IS INDISTINGUISHABLE FROM THE OLD AUTO-DEFAULT. A stored set
+   of one is what the old floor produced on its own; two or more is somebody's actual
+   choice and this must not reach into it. Latched, so a kid who then picks exactly one
+   animal on purpose keeps it. */
+if(!S.allHeroesDefault){
+  S.allHeroesDefault=1;
+  if(!S.heroes||S.heroes.length<=1)S.heroes=null;
+  save();
+}
+/* ⚠️ AND THE SAME CALL FOR THE BED, for the same reason: `during` was written to
+   storage the first time anything on the sounds sheet was touched, so a new default
+   loses to a stored 'none' forever. Only 'none' is converted, because 'none' is what
+   the old default produced on its own — any other value is somebody's pick.
+   ⚠️ THE WINDOW IS WHY THIS IS SAFE. Sound was globally off from 2026-08-03 to
+   2026-08-27 (see SOUND_ON), so nobody could have chosen 'none' by listening to the
+   alternatives and preferring silence. Latched, so a parent who turns the music off
+   after this ships keeps it off. */
+if(!S.bedDefault){
+  S.bedDefault=1;
+  if(S.during==='none')S.during='bounce';
+  save();
+}
+
+/* ⚠️ THE BACKGROUND IS ASKED FOR THE LINE AFTER IT IS KNOWN. This used to sit down
+   with the background picker, 600 lines below, which meant the <img> did not start
+   decoding until every grid, lane and handler in this file had been built. The head
+   has already put the same URL in flight (see the preload up there) — this is the
+   element adopting that response, so the two must agree on `v` exactly. */
+/* Scenes were [city, meadow, ocean, space] until 2026-09-15; the JPEGs left with the rest of
+   the generated art and the list is empty until the new ones land (the head script owns it,
+   so the preload and this agree). A stored S.bg that names nothing keeps the white stage: an
+   <img> that never gets a src draws nothing, and bgReady is settled by hand so the reveal
+   does not sit on the CAP waiting for a load that was never started. */
+const BGS=window.TIMER_BGS||[];
+const bgSrc=k=>BGS.some(([id])=>id===k)?'bg/'+k+'.jpg?v='+VER:null;
+if(bgSrc(S.bg))$('bgImg').src=bgSrc(S.bg); else bgSettle();   // no load, no wait: reveal on the egg alone
+/* Andjroo's list, in his order: "there's an off button, there's a good job, you did
+   it, hooray... time to get ready, time to clean up, time to brush your teeth."
+   The glyphs are monoline stand-ins — the illustrated set is an art pass. */
+const REMINDERS=[
+  ['off','Off'],['goodjob','Good job'],['youdidit','You did it'],['hooray','Hooray'],
+  ['love','Love you'],['shoes','Shoes on'],['socks','Get dressed'],
+  ['bath','Bath time'],['bed','Bedtime'],['tidy','Clean up'],
+  ['teeth','Brush teeth'],['eat','Time to eat'],['screenoff','Screens off'],
+];
+/* Andjroo, 2026-07-31: "add a 'no music' option at the end" meant ADD ONE — the END
+   LANE had no way out at all, only the during lane did. Read as a position instead, it
+   moved the during lane's opt-out to last, and he corrected it: "the no music part
+   should be the first thing on the sounds page." Off is the first choice in both
+   lanes now, the way Off is the first tile on the reminder sheet. */
+const DURING=[['none','No music'],['lullaby','Lullaby'],['bounce','Bouncy'],['space','Floaty'],['clock','Ticking']];
+const ENDING=[['none','No sound'],['chime','Chime'],['fanfare','Fanfare'],['bell','Bell'],['cheer','Kids cheer'],['pop','Pop']];
+/* which cracks the app rolls between. ⚠️ ASK THE RIG, never write the list down.
+   This was `[1,2,3,4,5]` and the set became four on 2026-08-22: rollFrom() kept
+   offering 5, setPattern(5) refused it, rollPattern() returned null WITHOUT
+   updating lastPat, and the next roll was then free to repeat the one just
+   played. So a stale literal did not fail loudly — it quietly broke the
+   never-twice-running rule, which is the exact complaint the roll exists to fix
+   (tools/crackroll.py caught it, nine repeats in forty runs).
+   RIG.patterns() is cut by crack_art.py and cannot drift from the art. */
+let CRACK_PATTERNS=[];
+
+/* ---------- the rig ---------- */
+const rigFrame=$('rig');
+/* ⚠️ VER, not BUILD — the rig is 196KB and it must be cacheable in the app, so
+   the URL has to change whenever the vendored copy does. The rig reads this `v`
+   back out and stamps its OWN art with it (see wiggle.html), so one token from
+   the server versions every byte under /kid/timer/. */
+rigFrame.src='wiggle.html?embed=1&v='+encodeURIComponent(VER);
+let RIG=null, GEO={stage:{w:720,h:560}, egg:{x:179,y:70,w:362,h:432}, ring:{x:360,y:280,r:262}};
+let heroes=[];
+/* ⚠️ THE HOST CAN SPEAK BEFORE THE RIG EXISTS. `init` arrives as soon as the host
+   sees this document, and hooking window.RIG is a poll against an iframe that is
+   still loading 196KB — so a job that is already running would ask a null rig to
+   resume. Anything in job mode that touches RIG waits on this instead of assuming. */
+let rigOk; const whenRig=new Promise(r=>{ rigOk=r });
+
+rigFrame.addEventListener('load',()=>{
+  const w=rigFrame.contentWindow;
+  const tryHook=()=>{
+    if(w.RIG){ RIG=w.RIG; GEO=RIG.geom(); heroes=RIG.heroes();
+      $('dvBuild').textContent=BUILD+' · '+RIG.build;
+      /* ⚠️ `heroes` is the DRAWN roster, read once, here. The kid's photos are
+         pushed into the rig straight after, so re-reading RIG.heroes() later would
+         hand back the drawn ones AND the photos and the grid would show every
+         photo twice. buildEggGrid() joins the two lists itself. */
+      /* ⚠️ The photos have to be registered BEFORE the set is read back, or a kid's
+         own character is filtered out of its own selection as a dead id and the
+         first tap after a reload silently re-adds it. */
+      Promise.all(PHOTOS.map(p=>RIG.addHero(p.id,p.name,p.src)))
+        .then(()=>{ S.heroes=heroSet(); save(); if(rebuilt('shEgg'))buildEggGrid() });
+      S.heroes=heroSet();
+      $('dotEgg').style.display=heroSet().length?'block':'none';
+      /* ⚠️ FACE ON IN JOB MODE. sleep() is faceless because the dial used to be written
+         across the shell; a job says itself in the card above the egg, so the shell is
+         bare and a bare faceless shell is just an egg nobody has met. See RIG.rest(). */
+      if(JOB&&RIG.rest)RIG.rest(); else RIG.sleep();
+      layout(); rigOk();
+      /* ⚠️ THE RIG EXISTING IS NOT THE EGG BEING ON SCREEN. window.RIG is published
+         at the end of the rig's start(), one frame before its first draw() — reveal
+         on this and the cover comes off an empty canvas. onInk fires on the first
+         frame that actually painted. Older rigs have no onInk; treat those as ready
+         rather than holding the cover to the cap. */
+      RIG.onInk?RIG.onInk(eggInk):eggInk();
+      /* ⚠️ AND THE HEAVY ART STARTS ONLY AFTER WE HAVE ARRIVED. 2.2MB of patterns
+         and characters used to load the instant the rig's own second wave resolved,
+         which is still inside this screen's load — it is what made a 96KB background
+         take 1.28s. The ticked characters go first because a run rolls only between
+         those; the rest follow on idle. */
+      if(RIG.loadRest)afterReveal.then(()=>RIG.loadRest(heroSet())); }
+    else setTimeout(tryHook,60);
+  };
+  tryHook();
+});
+
+/* ---------- layout: every number here is a share of the phone, not a pixel ----------
+   The two egg positions are computed from what the rig MEASURES (RIG.geom()), so a
+   recut of the art moves the badge with it instead of leaving the egg off-centre. */
+const L={};
+function layout(){
+  const W=$('app').clientWidth, H=$('app').clientHeight;
+  L.W=W; L.H=H;
+  L.cx=W/2;
+  L.badgeR=Math.min(W*.44, H*.21);
+  L.badgeY=H*.35;
+  // the egg on the set screen: the ref's egg is ~77% of the width, centred at 35%
+  /* ⚠️ JOB MODE MOVES THE EGG DOWN AND IN, and it has to. At .35 with a .44 height the
+     shell's top edge lands ~110px down a 844px phone, and the mutes and the host's back
+     chevron already live in most of that — so a card above the egg had about 60px to
+     exist in and needs half as much again. This is the one number that buys the space
+     the card is meant to occupy; everything else on the screen is placed off H. */
+  const jobRoom=JOB?.88:1;
+  L.setEggH=Math.min(H*.44*jobRoom, W*.95*(GEO.egg.h/GEO.egg.w));
+  L.setEggW=L.setEggH*(GEO.egg.w/GEO.egg.h);
+  L.setEggY=JOB?H*.43:H*.35;
+
+  /* ⚠️ THE COLUMN'S OWN OFFSET, because the background is not in the column.
+     #bgImg and #conf are fixed to the VIEWPORT (see their CSS) while every number
+     above is a share of #app, so anything handed to the background has to cross that
+     gap. On a phone the column IS the screen and SX is 0, which is why this reads as
+     the same code it was; on the tablet it is what keeps the disc on the egg instead
+     of opening 300px to its left. SW/SH are read off the background itself rather
+     than from window.inner*, so the iframe the app hosts this in is measured and not
+     the browser window behind it. */
+  const SW=$('bgImg').clientWidth||W, SH=$('bgImg').clientHeight||H;
+  const SX=Math.round((SW-W)/2);
+
+  // scene clip: wide open on set, the badge on run/hatch
+  const set=document.body.classList.contains('set');
+  // ⚠️ the FULL screen's diagonal, not the column's, or the corners stay unpainted
+  $('bgImg').style.setProperty('--clipR', set? Math.hypot(SW,SH)+'px' : L.badgeR+'px');
+  $('bgImg').style.setProperty('--clipX', (SX+L.cx)+'px');
+  $('bgImg').style.setProperty('--clipY', (set? SH/2 : L.badgeY)+'px');
+
+  // the rig itself: scale + place so the right thing lands in the right spot
+  let k,tx,ty;
+  if(set){ k=L.setEggH/GEO.egg.h;
+           tx=L.cx-(GEO.egg.x+GEO.egg.w/2)*k; ty=L.setEggY-(GEO.egg.y+GEO.egg.h/2)*k }
+  else   { k=L.badgeR/GEO.ring.r;
+           tx=L.cx-GEO.ring.x*k;              ty=L.badgeY-GEO.ring.y*k }
+  const rw=$('rigWrap');
+  rw.style.left=tx+'px'; rw.style.top=ty+'px';
+  rw.style.width=(720*k)+'px'; rw.style.height=(560*k)+'px';
+
+  const rim=$('badgeRim');
+  rim.style.cssText+=`;left:${L.cx-L.badgeR}px;top:${L.badgeY-L.badgeR}px;
+                      width:${L.badgeR*2}px;height:${L.badgeR*2}px`;
+  // the canvas is the whole SCREEN now, not the badge and not the column — see #conf
+  const cf=$('conf');
+  cf.style.cssText+=`;left:0;top:0;width:${SW}px;height:${SH}px`;
+
+  layoutSet(W,H); layoutRun(W,H); placePie();
+}
+
+/* How far a text element's INK sits from the centre of its own box, in css px.
+   Positive means the ink is low. A Range is the browser reporting where it drew the
+   glyphs, so this needs no font metrics, survives a fallback resolving to a different
+   face on a different device, and costs one reflow inside a layout that is already
+   reading offsetHeight. Returns 0 for anything with no text yet. */
+function inkShift(el){
+  if(!el||!el.firstChild)return 0;
+  const rg=document.createRange(); rg.selectNodeContents(el);
+  const r=rg.getBoundingClientRect(); if(!r.height)return 0;
+  const b=el.getBoundingClientRect();
+  return (r.top+r.bottom)/2-(b.top+b.bottom)/2;
+}
+
+function layoutSet(W,H){
+  const eggT=L.setEggY-L.setEggH/2, eh=L.setEggH;
+  const d=$('dial');
+  d.style.cssText+=`;left:0;right:0;top:${eggT+eh*.20}px`;
+  $('dialTitle').style.fontSize=Math.round(eh*.105)+'px';
+  /* ⚠️ A JOB'S NAME IS NOT "Set Timer". #dial is pinned left:0/right:0 so the title
+     can centre on the phone, and a two-word label never noticed — but "Put your
+     laundry away" inherited that full width and ran clean off both sides of the egg,
+     with the emoji pushed past the screen edge. The title belongs INSIDE the egg it
+     is written on, so in job mode it is measured against the egg and not the phone:
+     narrower, a size down, and clamped to two lines rather than growing until it
+     pushes the time out of the shell. */
+  if(JOB){
+    const tw=Math.round(L.setEggW*.80);
+    $('dialTitle').style.cssText+=`;font-size:${Math.round(eh*.082)}px;max-width:${tw}px;
+       margin:0 auto;line-height:1.12;display:-webkit-box;-webkit-line-clamp:2;
+       -webkit-box-orient:vertical;overflow:hidden`;
+  }
+
+  const rowH=Math.round(eh*.125), colW=Math.round(L.setEggW*.30);
+  $('cols').style.marginTop=Math.round(eh*.03)+'px';
+  /* JOB MODE: the card sits in the gap above the shell, its triangle just touching the
+     top of the egg. Measured AFTER it has its content — the card is two lines for a
+     long job title and one for a short one, and it has to hang off the egg either way
+     rather than off a guessed height. */
+  if(JOB){
+    const card=$('jobCard');
+    /* ⚠️ SCALED TO THE PHONE, like everything else on this screen. The vendored tooltip
+       is a fixed 14px card built for a desktop wallet; dropped in at that size next to a
+       320px egg and a 40px clock it reads as a footnote. The component's PROPORTIONS are
+       what carry the style — padding, radius and the arrow all stay in ratio to the text
+       exactly as tooltip.css has them — while the text itself comes off the egg, which is
+       the one thing on this screen every other size is derived from. */
+    /* ⚠️ TUNED AGAINST THE CHEVRON, not by eye. The card is anchored to the egg and
+       grows UPWARD, so its type size decides how far up it climbs — and the host's back
+       chevron ends at 58px. At .085 (28px) a two-line title put the card's top at y=11,
+       clean through it. At the first attempt's flat 14px it read as a footnote next to a
+       320px egg and a 60px clock. This sits between the two and keeps a two-line card
+       clear of the chevron at both phone widths. */
+    const fs=Math.round(clamp(eh*.062,15,22));
+    $('jobName').style.fontSize=fs+'px';
+    $('jobTime').style.fontSize=Math.round(fs*.88)+'px';
+    for(const id of ['jobIcon','jobEmoji']) $(id).style.cssText+=
+      `;width:${Math.round(fs*2)}px;height:${Math.round(fs*2)}px;font-size:${Math.round(fs*1.5)}px`;
+    $('jobCardBox').style.cssText+=`;gap:${Math.round(fs*.7)}px;
+       padding:${Math.round(fs*.75)}px ${Math.round(fs*.95)}px;
+       border-radius:${Math.round(fs*.42)}px`;
+    $('jobArrow').style.cssText+=`;width:${Math.round(fs*1.3)}px;height:${Math.round(fs*1.15)}px`;
+    /* ⚠️ ANCHORED BY ITS BOTTOM, 10px clear of the shell — NOT by a top computed from a
+       measured height. Measuring is a race this screen loses: layout() runs when `init`
+       arrives, the icon is an <img> that has not loaded yet, and the card is two lines
+       shorter than it will be. Positioning its top off that height then let it GROW
+       DOWNWARD onto the egg the moment the icon landed — a wrong position that only
+       appears on the frame after the one you are looking at. Anchored at the bottom it
+       grows upward, into the empty space that is there for it, and no measurement or
+       reload hook is involved.
+       ⚠️ The mutes are NOT a constraint above it: `body.set #mutes{display:none}`. The
+       host's back chevron is (safe-area + 14px, 44px tall, at left:16), and the name is
+       clamped to two lines so the card cannot climb into it. */
+    /* ⚠️ Only the BOTTOM is set here. The top is a CSS floor carrying env() (see the
+       rule), because the inset is not knowable to script — writing a top from JS would
+       silently drop the one constraint that only exists on a real device. */
+    card.style.cssText+=`;bottom:${Math.round(H-(eggT-10))}px`;
+  }
+  for(const h of ['hMin','hSec']) $(h).style.cssText+=`;font-size:${Math.round(eh*.062)}px;width:${colW}px`;
+  for(const c of ['colMin','colSec']){
+    const el=$(c);
+    el.style.cssText+=`;width:${colW}px;height:${rowH*3}px;padding:${rowH}px 0`;
+    el.querySelectorAll('.n').forEach(n=>{ n.style.height=rowH+'px'; n.style.fontSize=Math.round(rowH*.86)+'px' });
+  }
+  /* ---------- the band sits behind the middle row, ON THE INK ----------
+     Andjroo, 2026-08-01: "on the green selector where it's over the two minutes, the
+     starting position, it's like at the bottom rather than centered. It just needs to
+     move down slightly and center on the time."
+
+     He is right, and it was not the band: the band's box and the row's box are exactly
+     co-located, to 0.0px. It is the DIGITS that sit low inside their own row — measured
+     6.68px low at 390px — so a band centred on the row reads high against every number
+     in the column.
+
+     ⚠️ MEASURED PER RENDER, NOT A CONSTANT, AND NOT THE FONT'S METRICS. The obvious
+     derivation — half the font's ascent/descent against half the glyph's — predicts
+     -0.28px where the pixels say +6.68px, because it models where `place-items:center`
+     puts the baseline and gets it wrong. And a constant taken from this box would be
+     the wrong constant on Andjroo's phone: the whole point of the font stack is that it
+     resolves to SF Pro Rounded there and to something else in a headless render, with
+     a different ink box. A Range over the text is the browser telling us where it
+     actually drew, and it tracked the rendered pixels to 0.32px. */
+  const headH=$('hMin').offsetHeight||Math.round(eh*.08);
+  const rowInk=inkShift($('colMin').querySelector('.n'));
+  $('band').style.cssText+=`;top:${headH+rowH+rowInk}px;height:${rowH}px`;
+  /* the colon lands its OWN ink on the line the digits' ink sits on — it is smaller
+     text in the same font, so its offset is its own and sizing has to come first. */
+  $('colon').style.cssText+=`;top:${headH+rowH*1.5+rowInk}px;font-size:${Math.round(rowH*.7)}px`;
+  $('colon').style.top=(headH+rowH*1.5+rowInk-inkShift($('colon')))+'px';
+
+  // the bubble's art is 100 wide but its disc is only 64 of that, so the box is
+  // scaled off the disc — otherwise the tail's overhang shrinks the + itself
+  /* ⚠️ THE SHOULDER, BUT ON SCREEN. The bubble is placed off the egg's own width, and
+     the egg is as wide as the phone lets it be — so on a 360px phone the shoulder is
+     already past the right edge and the bubble hung 6px off it. (4px of that predates
+     the geom fix; reading the DRAWN curve made the egg 2% wider for the same height,
+     which pushed it the rest of the way.) `right` is not a taste margin, it is where
+     the mutes sit, so the bubble stops on the same line the rest of the chrome does. */
+  const pw=Math.round(Math.min(92,L.setEggW*.31));
+  const px=Math.min(L.cx+L.setEggW*.30, W-14-pw);
+  $('plus').style.cssText+=`;width:${pw}px;height:${pw}px;
+      left:${px}px;top:${eggT-eh*.02}px`;
+
+  const sh=Math.round(Math.min(76,H*.09));
+  $('start').style.cssText+=`;top:${H*.69-sh/2}px;height:${sh}px;font-size:${Math.round(sh*.52)}px`;
+
+  const tb=Math.round(Math.min(64,W*.165));
+  $('tray').style.cssText+=`;top:${H*.88-tb/2}px;gap:${Math.round(tb*.42)}px`;
+  document.querySelectorAll('.trayb').forEach(b=>{ b.style.width=tb+'px'; b.style.height=tb+'px' });
+}
+
+function layoutRun(W,H){
+  /* The countdown row is sized from what is left, not from a chosen number. With
+     the pie beside the clock there is ~60px less to spend, so the digits come down
+     a size — that trade is real and it is the reason to look at all three. */
+  const inRow=(S.pie==='clock' && !S.pieXY);
+  const pieW=inRow?Math.round(Math.min(62,W*.16)):0;
+  const gap=Math.round(inRow?W*.028:W*.045);
+  const st=Math.round(Math.min(inRow?42:50,W*.125));
+  const room=W-28-pieW-st*2-gap*(inRow?4:2);
+  const cs=Math.round(clamp(room/3.05, 42, Math.min(66,W*.17)));
+  $('clockRow').style.cssText+=`;top:${H*.665-cs*.7}px;gap:${gap}px`;
+  $('clock').style.fontSize=cs+'px';
+  document.querySelectorAll('.step').forEach(b=>{ b.style.width=st+'px'; b.style.height=st+'px' });
+
+  const cw=Math.round(Math.min(112,W*.30)), ch=Math.round(cw*.72);
+  $('runCtl').style.cssText+=`;top:${H*.845-ch/2}px`;
+  document.querySelectorAll('.ctl').forEach(b=>{ b.style.width=cw+'px'; b.style.height=ch+'px' });
+  $('done').style.cssText+=`;top:${H*.845-ch/2}px;height:${ch}px;font-size:${Math.round(ch*.52)}px`;
+  /* JOB MODE: the same box as the hatch's Done, one screen earlier. Sized off ch like
+     Done rather than off the set screen's `sh`, because it sits at .845 with Done and
+     not at .69 with Start — the slot decides the size, not the role. */
+  $('btnJobDone').style.cssText+=`;top:${H*.845-ch/2}px;height:${ch}px;font-size:${Math.round(ch*.52)}px`;
+  $('hatchClock').style.cssText+=`;position:absolute;left:0;right:0;text-align:center;
+     top:${H*.665-cs*.7}px;font-size:${cs}px;font-weight:800;color:var(--ink);
+     font-variant-numeric:tabular-nums;letter-spacing:-1px`;
+
+  /* ---------- the reminder, still on screen while the clock runs ----------
+     Andjroo, 2026-08-27: he chose "thumbs up" / "shoes on", pressed Start, and the
+     pick "just goes away". Same bubble as the set screen, moved onto the badge's
+     upper-right shoulder so the egg is still the thing saying it.
+     ⚠️ OUTSIDE THE RIM ARC, not tangent to the badge. When S.pie is 'rim' the red
+     countdown ring is drawn at badgeR + 10 (placePie), so a bubble placed off badgeR
+     alone sits under it for the whole run. `pr` clears the ring at its widest.
+     ⚠️ .72 on both axes puts the disc at 45°, which is where it sits on the set
+     screen too — the shoulder, not the corner. */
+  const pw=Math.round(clamp(L.badgeR*.46,44,76));
+  const pr=L.badgeR+14+pw*.44;
+  $('plus').style.cssText+=`;width:${pw}px;height:${pw}px;
+      left:${Math.min(L.cx+pr*.72-pw*.50, W-10-pw)}px;
+      top:${L.badgeY-pr*.72-pw*.44}px`;
+
+  for(const [id,on] of [['mMusic',S.muteMusic],['mBell',S.muteBell]]) drawMute(id,on);
+}
+
+/* the two little icons top right: music first, then the sound at the end */
+function drawMute(id,off){
+  const note=`<path d="M20 3.6 8.6 6v9.2a3.4 3.4 0 1 0 1.8 3V9.1l7.8-1.6v5.3a3.4 3.4 0 1 0 1.8 3z"/>`;
+  const bell=`<path d="M12 2.6a5.6 5.6 0 0 0-5.6 5.6c0 5-2 6.4-2 6.4h15.2s-2-1.4-2-6.4A5.6 5.6 0 0 0 12 2.6z"/>
+              <path d="M13.6 18.6a1.9 1.9 0 0 1-3.2 0"/>`;
+  const body=id==='mMusic'?note:bell;
+  const fill=id==='mMusic'?'#B9BFCB':'none';
+  const cross=off?`<path d="M17.4 17.4l4.4 4.4M21.8 17.4l-4.4 4.4" stroke="#B9BFCB" stroke-width="2.6" stroke-linecap="round" fill="none"/>`:'';
+  $(id).innerHTML=`<svg width="30" height="30" viewBox="0 0 24 26" fill="${fill}"
+     stroke="${id==='mMusic'?'none':(off?'#B9BFCB':'#E9B213')}" stroke-width="1.9"
+     stroke-linejoin="round" stroke-linecap="round">
+     <g fill="${id==='mMusic'?(off?'#B9BFCB':'#B9BFCB'):(off?'none':'#E9B213')}"
+        stroke="${id==='mMusic'?'none':(off?'#B9BFCB':'#E9B213')}">${body}</g>${cross}</svg>`;
+}
+
+/* ---------- the pie: ours, somewhere theirs is not ----------
+   Theirs sits bottom-right INSIDE the badge, over the egg. All three of these keep
+   it off the egg; which one ships is Andjroo's pick, and it drags anywhere from
+   there. `clock` re-parents into the countdown row so flexbox spaces it; the other
+   two float over the app.                                                        */
+function placePie(){
+  const pie=$('pie'), arc=$('rimArc'), rim=S.pie==='rim';
+  pie.style.display=rim?'none':'block';
+  arc.style.display=rim?'block':'none';
+  if(rim){
+    const pad=10, R=L.badgeR+pad, S8=8;
+    arc.setAttribute('width',R*2+S8*2); arc.setAttribute('height',R*2+S8*2);
+    arc.style.cssText+=`;left:${L.cx-R-S8}px;top:${L.badgeY-R-S8}px`;
+    const c=$('rimC');
+    c.setAttribute('cx',R+S8); c.setAttribute('cy',R+S8); c.setAttribute('r',R);
+    c.setAttribute('stroke-width',9);
+    return;
+  }
+  const inRow = S.pie==='clock' && !S.pieXY;
+  const d=Math.round(inRow ? Math.min(62,L.W*.16) : Math.min(98,L.W*.25));
+  pie.setAttribute('width',d); pie.setAttribute('height',d);
+  if(inRow){
+    pie.classList.remove('free');
+    pie.style.left=pie.style.top='';
+    if(pie.parentElement!==$('clockRow')) $('clockRow').insertBefore(pie,$('clockRow').firstChild);
+    return;
+  }
+  pie.classList.add('free');
+  if(pie.parentElement!==$('pieHost')) $('pieHost').insertBefore(pie,$('pieHost').firstChild);
+  let x,y;
+  if(S.pieXY){ x=S.pieXY[0]*L.W; y=S.pieXY[1]*L.H }
+  else{
+    /* Andjroo, 2026-07-31: "the pie should be in the top left corner... it could
+       overlap just a hair on the background."
+       So the left edge is the margin and the HEIGHT is solved, not chosen: sit the
+       disc's centre on the circle of radius (badgeR + d/2 − HAIR) about the badge
+       and take the upper intersection with x = margin. That is the highest it can
+       be while still touching, so it reads as tucked into the corner and the bite
+       it takes out of the scene stays the same hair on every screen size. */
+    const HAIR=10, m=Math.round(L.W*.046);
+    x=m;
+    const R=L.badgeR+d/2-HAIR, dx=L.cx-(x+d/2);
+    y=L.badgeY-(Math.abs(dx)<R?Math.sqrt(R*R-dx*dx):0)-d/2;
+  }
+  pie.style.left=clamp(x,4,L.W-d-4)+'px';
+  pie.style.top =clamp(y,Math.max(4,L.H*.055),L.H-d-4)+'px';
+}
+function drawPie(frac){
+  const f=clamp(frac,0,1);
+  if(S.pie==='rim'){
+    const c=$('rimC'), R=+c.getAttribute('r'), C=2*Math.PI*R;
+    c.setAttribute('stroke-dasharray',C); c.setAttribute('stroke-dashoffset',C*(1-f));
+    c.setAttribute('transform',`rotate(-90 ${c.getAttribute('cx')} ${c.getAttribute('cy')})`);
+    return;
+  }
+  const a=-Math.PI/2, b=a+Math.PI*2*f, R=52;
+  const x1=60+R*Math.cos(a), y1=60+R*Math.sin(a);
+  const x2=60+R*Math.cos(b), y2=60+R*Math.sin(b);
+  $('pieWedge').setAttribute('d', f>=.9999
+    ? `M60 8 A52 52 0 1 1 59.9 8 Z`
+    : f<=0 ? '' : `M60 60 L${x1} ${y1} A${R} ${R} 0 ${f>.5?1:0} 1 ${x2} ${y2} Z`);
+  $('pieHand').setAttribute('x2',x2); $('pieHand').setAttribute('y2',y2);
+}
+/* draggable, because everything on Andjroo's screens is */
+(function dragPie(){
+  const pie=$('pie'); let on=false,dx=0,dy=0;
+  pie.addEventListener('pointerdown',e=>{
+    // lifting it out of the countdown row: freeze it exactly where it already is,
+    // so the first frame of the drag is not a jump to some other corner
+    if(!pie.classList.contains('free')){
+      const r=pie.getBoundingClientRect(), a=$('app').getBoundingClientRect();
+      $('pieHost').insertBefore(pie,$('pieHost').firstChild);
+      pie.classList.add('free');
+      pie.style.left=(r.left-a.left)+'px'; pie.style.top=(r.top-a.top)+'px';
+    }
+    on=true; pie.classList.add('dragging');
+    dx=e.clientX-pie.offsetLeft; dy=e.clientY-pie.offsetTop;
+    try{ pie.setPointerCapture(e.pointerId) }catch(_){}       // can throw; never let it kill the gesture
+  });
+  pie.addEventListener('pointermove',e=>{                      // e.buttons is 0 under a finger
+    if(!on)return; e.preventDefault();
+    const d=pie.clientWidth;
+    pie.style.left=clamp(e.clientX-dx,4,L.W-d-4)+'px';
+    pie.style.top =clamp(e.clientY-dy,4,L.H-d-4)+'px';
+  });
+  const up=()=>{ if(!on)return; on=false; pie.classList.remove('dragging');
+    S.pieXY=[pie.offsetLeft/L.W, pie.offsetTop/L.H]; save(); layoutRun(L.W,L.H) };
+  pie.addEventListener('pointerup',up); pie.addEventListener('pointercancel',up);
+})();
+
+/* ---------- the scroll columns ---------- */
+function fillCol(el,vals){
+  el.innerHTML=vals.map(v=>`<div class="n">${String(v).padStart(2,'0')}</div>`).join('');
+}
+const MINS=Array.from({length:60},(_,i)=>i);
+const SECS=[0,5,10,15,20,25,30,35,40,45,50,55];
+fillCol($('colMin'),MINS); fillCol($('colSec'),SECS);
+
+/* ⚠️ The list is NEVER rebuilt while a finger is on it — the handler only reads the
+   scroll offset and sets opacity. Rebuilding under the gesture is what made an
+   earlier picker in this project twitch once and then ignore the finger. */
+function wireCol(el,vals,onPick){
+  const rowH=()=>el.querySelector('.n')?.offsetHeight||40;
+  let t=0;
+  const paint=()=>{
+    const h=rowH(), i=el.scrollTop/h;
+    el.querySelectorAll('.n').forEach((n,k)=>{
+      const d=Math.abs(k-i);
+      n.style.opacity = d<.5 ? 1 : d<1.6 ? .30 : 0;   // solid, faded, gone
+    });
+  };
+  el.addEventListener('scroll',()=>{
+    paint();
+    clearTimeout(t);
+    t=setTimeout(()=>{ const k=Math.round(el.scrollTop/rowH()); onPick(vals[clamp(k,0,vals.length-1)]) },90);
+  },{passive:true});
+  el._paint=paint;
+  el._goto=v=>{ const k=Math.max(0,vals.indexOf(v)); el.scrollTop=k*rowH(); paint() };
+}
+wireCol($('colMin'),MINS,v=>{ S.min=v; save(); syncStart() });
+wireCol($('colSec'),SECS,v=>{ S.sec=v; save(); syncStart() });
+function syncStart(){
+  /* in job mode there is no "set a time" state to fall into — the length arrived
+     with the job and Start is always live once the host has spoken. */
+  $('start').textContent = JOB ? JT.s.start : ((S.min||S.sec)?'Start':'Set a time');
+}
+
+/* ---------- screens ---------- */
+let screen='set';
+function go(name){
+  screen=name;
+  document.body.className=name;
+  for(const [id,n] of [['scSet','set'],['scRun','run'],['scHatch','hatch']])
+    $(id).classList.toggle('on',n===name);
+  layout();
+}
+
+/* ---------- the run loop: one read of the rig per frame ---------- */
+/* ⚠️ IMPORTED LATE AND VERSIONED. A static `import './confetti.js'` carries no
+   cache key, so in the app it is the one file under /kid/timer/ that has to be
+   re-fetched on every open — and a static import also blocks this module from
+   running until it lands, which puts 12KB in front of the egg for no reason.
+
+   ⚠️ AND NOT AWAITED. THIS WAS THE FLASH (2026-08-01). `await` here does not block
+   this module against anything harmless — it suspends it, mid-file, between
+   fillCol() filling the two columns with sixty numbers and layout() giving them a
+   height. The browser paints in that gap, and what it paints is the minute column at
+   its natural 1440px running the length of the phone: Andjroo's "list of things". It
+   was one round trip wide, so it survived every bandwidth: still ~80ms on localhost
+   at 8 Mbps, 200-400ms on a phone over the tunnel.
+   A late import is right; awaiting it at the top level is what was wrong. Confetti
+   is fired by a tap or by the hatch, and the earliest of those is seconds away, so
+   the import runs in the background and lands into `conf` when it arrives. The stub
+   is not a fallback — it is what "nothing to clear yet" honestly does. */
+let conf={ celebrate(){}, clear(){}, stop(){} };
+import('./confetti.js?v='+encodeURIComponent(VER))
+  .then(m=>{ conf=m.createConfetti($('conf')) })
+  .catch(e=>console.error('confetti',e));
+
+/* ---------- THE HATCH SOUNDS ----------
+   Andjroo, 2026-08-02: "we need that cheering to happen when the egg cracks every time,
+   and the egg cracks sound and the confetti and stuff sound in the actual app, not just
+   the demo video." These are the SAME THREE FILES the competition film uses, re-encoded
+   from 44.1k WAV to MP3: 328KB becomes 47KB and neither the crack nor the cheer can tell.
+   Source of truth for the audio is `video-studio/public/audio/nimiqkids/sfx/`.
+
+   ⚠️ MP3, NOT AAC, AND THAT IS A TESTABILITY DECISION. These went out as .m4a first and
+   every browser that matters plays it — but Playwright's Chromium ships without the
+   proprietary decoders, so `canPlayType('audio/mp4')` is a flat NO there and the hatch
+   proof could only ever report NotSupportedError. A format the harness cannot decode is
+   a format nothing can assert on, and silent audio is the failure mode this whole change
+   exists to prevent. MP3 plays in Chromium, Chrome, Safari, iOS and Firefox alike, and at
+   this length it is SMALLER than the AAC was. Everything ElevenLabs returns for the sound
+   catalog is already MP3, so nothing downstream needs an encoder either.
+
+   ⚠️ THE CRACK LANDS ON THE BURST, NOT ON `breaking`. The film already made this mistake
+   once and fixed it, and the fix is written down in EggColdOpen.tsx: anchoring the crack
+   on the rig's flag left an audible hole, which Andjroo heard as "a gap between when the
+   timer actually runs out and the crack happening". `breaking` goes true when the egg
+   starts to SWELL — the halves do not fly until the hold phase is over. The rig publishes
+   that shape as BRK={hold:.46, fall:.50, settle:.80} (wiggle.html), so the burst is at
+   brk.t = 0.46s. The confetti below was dialled to 420ms by eye months earlier; the two
+   numbers landing a frame apart, found by completely different means, is the check.
+
+   ⚠️ EVERY URL CARRIES ?v=VER, like every other asset under /kid/timer/. Un-stamped, the
+   m4a becomes the one file here that cannot be cached hard — see the SRC warning up top.
+
+   ⚠️ PRIMED ON THE START TAP, BECAUSE IT IS THE ONLY GESTURE WE GET. iOS will not play
+   audio that was never unlocked inside a user gesture, and the hatch is minutes past the
+   last tap by construction. Start plays-and-pauses each clip, which both unlocks it and
+   pulls the bytes down while the egg is still counting. A hatch that has to fetch 27KB
+   before it can cheer has already missed the burst it was answering. */
+/* ⚠️ SOUND IS BACK ON. Andjroo, 2026-08-27: "the music's not working... no sound at all
+   right now, at least from my testing." It was not broken — it was switched off on
+   2026-08-03 ("lets remove all sound for now, it needs some work") and nothing about the
+   pause was visible from the app, so a silent bed reads exactly like a missing file.
+   Nothing below was ever deleted, which is why turning it back on is still one line: the
+   files, the baked levels, the iOS unlock and the generator in tools/sound are as they
+   were built and proven.
+
+   ⚠️ THE GUARD STAYS AT EVERY PLAY SITE, NOT AT ONE CLEVER CHOKE POINT. sfxPrime()
+   reaches SFX directly while bedStart()/shot()/preview() go through clip(), so gating
+   clip() alone would leave the Start-tap prime audible — which is the exact bug Andjroo
+   heard before ("sometimes when I press start it makes the celebratory sound"). Five
+   guards, each on the function that can produce a sound, is the version that cannot be
+   half-right, and it is what makes flipping this line safe in both directions.
+   ⚠️ tools/eggtimer-soundproof.py asserted play() is NEVER called. That assertion is the
+   opposite of the shipped behaviour now — it proves the pause, not the product — so read
+   it as the off-switch's test, not as a gate this has to satisfy. */
+const SOUND_ON=true;
+const SFX_SRC={ anticipation:'sfx/anticipation.mp3', crack:'sfx/crack-real.mp3', cheer:'sfx/cheer.mp3',
+                count5:'sfx/count-5.mp3', count4:'sfx/count-4.mp3', count3:'sfx/count-3.mp3',
+                count2:'sfx/count-2.mp3', count1:'sfx/count-1.mp3' };
+/* ⚠️ THE LEVELS ARE BAKED INTO THE FILES, NOT SET HERE, AND THAT IS AN iOS DECISION.
+   `HTMLMediaElement.volume` is READ-ONLY on iOS — assigning it is silently ignored, and
+   the family tablet is the device this is for. Setting .volume shipped a mix that was
+   right on a laptop and wrong on the only screen that matters. So each file is encoded
+   at its own level (`lame --scale`, from the film's mix): crack 1.0, cheer 0.55,
+   anticipation 0.7, the count 0.95 with "one" at 1.0. Nothing scales anything at
+   runtime, so every platform hears the same balance.
+   ⚠️ Re-dialling the mix therefore means RE-ENCODING, not editing a number here. */
+const SFX={};
+
+/* ---------- THE THREE LISTS THAT WERE NAMED AND SILENT ----------
+   The sounds sheet and the reminder sheet have been fully built since 2026-07-31 and
+   every choice toasted "Coming soon", because the repo held no audio. They hold audio now.
+
+   ⚠️ THESE ARE LOADED ON DEMAND, NOT PRIMED WITH THE HATCH. The hatch set is five clips
+   the kid always hears, so priming all of them on Start is right. These are picked ONE at
+   a time out of twenty, and priming twenty would fetch ~750KB to play ~20KB of it. Each is
+   fetched when it is actually chosen — which is the sheet, not the run, so there is a tap
+   behind it and a whole countdown before it is needed.
+
+   ⚠️ AND THEY ARE UNLOCKED ON THE SAME START TAP. An element created later than the
+   gesture is not unlocked by it on iOS, so `sfxPrime()` re-runs over whatever the kid has
+   chosen — see the loop there. Choosing from the sheet also primes immediately, because
+   the tap that chose it is itself a gesture. */
+const END_SRC={ chime:'sfx/end-chime.mp3', fanfare:'sfx/end-fanfare.mp3',
+                bell:'sfx/end-bell.mp3', pop:'sfx/end-pop.mp3' };
+const BED_SRC={ lullaby:'sfx/bed-lullaby.mp3', bounce:'sfx/bed-bounce.mp3',
+                space:'sfx/bed-space.mp3', clock:'sfx/bed-clock.mp3' };
+const SAY_SRC={};
+for(const r of ['goodjob','youdidit','hooray','love','shoes','socks',
+                'bath','bed','tidy','teeth','eat','screenoff'])SAY_SRC[r]='sfx/say-'+r+'.mp3';
+
+/** One <audio> per url, made once and kept. `loop` is only ever true for a bed. */
+const POOL={};
+function clip(src,loop){
+  if(!src)return null;
+  if(!POOL[src]){
+    const a=new Audio(src+'?v='+encodeURIComponent(VER));
+    a.preload='auto'; a.loop=!!loop;
+    POOL[src]=a;
+  }
+  return POOL[src];
+}
+/** Unlock a chosen clip inside whatever gesture is running right now. Same muted
+    play-then-pause as sfxPrime, and the same reason: an audible prime is a bug. */
+function unlock(a){
+  if(!a||a.dataset.ok)return;
+  a.dataset.ok='1'; a.muted=true;
+  a.play().then(()=>{ a.pause(); a.currentTime=0; a.muted=false })
+          .catch(()=>{ a.muted=false });
+}
+
+/* The bed under a running timer. Started by beginRun, stopped by the hatch — never by the
+   screen, because the hatch screen is still the same run and the kid has not left it. */
+let bed=null;
+function bedStart(){
+  if(!SOUND_ON)return;
+  bedStop();
+  if(S.muteMusic)return;
+  bed=clip(BED_SRC[S.during],true);
+  if(bed){ try{ bed.currentTime=0; bed.muted=false; bed.play().catch(()=>{}) }catch(e){} }
+}
+function bedStop(){ if(bed){ try{ bed.pause(); bed.currentTime=0 }catch(e){} bed=null } }
+/** Play a one-shot by url, rewinding first so a repeat inside its own length still fires. */
+function shot(src){
+  if(!SOUND_ON)return;
+  const a=clip(src,false); if(!a)return;
+  try{ a.currentTime=0; a.muted=false; a.play().catch(()=>{}) }catch(e){}
+}
+
+/* Auditioning from the sheets. Exactly one preview is ever audible: tapping down the list
+   is the normal way to use these, and four overlapping lullabies is not a comparison.
+   ⚠️ A BED PREVIEW IS CUT SHORT ON PURPOSE. It is a ten-second loop; left alone it plays
+   under the sheet, under the set screen and into the next run. PREVIEW_MS is long enough
+   to know whether you like it and short enough that forgetting to stop it costs nothing. */
+const PREVIEW_MS=4200;
+let previewing=null, previewTimer=0;
+function stopPreview(){
+  if(previewTimer){ clearTimeout(previewTimer); previewTimer=0 }
+  if(previewing){ try{ previewing.pause(); previewing.currentTime=0 }catch(e){} previewing=null }
+}
+function preview(src,loop){
+  stopPreview();
+  if(!SOUND_ON)return;
+  if(!src)return;                       // "Off" is a choice, and it makes no sound
+  const a=clip(src,loop); if(!a)return;
+  unlock(a);
+  previewing=a;
+  try{ a.currentTime=0; a.muted=false; a.play().catch(()=>{}) }catch(e){}
+  if(loop)previewTimer=setTimeout(stopPreview,PREVIEW_MS);
+}
+function sfxPrime(){
+  if(!SOUND_ON)return;
+  for(const [k,src] of Object.entries(SFX_SRC)){
+    if(SFX[k])continue;
+    const a=new Audio(src+'?v='+encodeURIComponent(VER));
+    a.preload='auto';
+    /* ⚠️ MUTED FOR THE UNLOCK, AND THIS IS THE BUG ANDJROO HEARD. play() resolves AFTER
+       playback has begun, so a plain play()-then-pause() leaks the first few ms of audio
+       — which on the cheer is an audible whoop the instant Start is tapped. It was racy,
+       so it happened "sometimes", usually on the first run of a session when the file was
+       still arriving. Muted playback still unlocks the element on iOS (that is the whole
+       point of the silent-unlock trick) and is inaudible while doing it. Unmute after the
+       pause lands, never before. */
+    a.muted=true;
+    a.play().then(()=>{ a.pause(); a.currentTime=0; a.muted=false })
+            .catch(()=>{ a.muted=false });
+    SFX[k]=a;
+  }
+  /* The chosen bed, sting and reminder ride the same gesture. They are made on demand, so
+     one chosen from the sheet before this run has never been inside a gesture yet. */
+  [BED_SRC[S.during], END_SRC[S.end], SAY_SRC[S.reminder]]
+    .forEach((src)=>{ if(src)unlock(clip(src, src===BED_SRC[S.during])) });
+}
+function sfxPlay(k){
+  if(!SOUND_ON)return;
+  const a=SFX[k]; if(!a)return;
+  /* ⚠️ REWIND FIRST. play() on an element that is already playing does nothing at all,
+     so a second hatch inside the 2s of the cheer would land in silence.
+     ⚠️ AND UNMUTE. A prime that was still in flight when the run ended would otherwise
+     leave this element muted for its one real moment. */
+  try{ a.currentTime=0; a.muted=false; a.play().catch(()=>{}) }catch(e){}
+}
+/* The burst is the end of the hold phase. The cheer answers it 0.2s later, which is the
+   same beat the film puts between crack-real and cheer (BURST_F vs BURST_F+6 at 30fps). */
+/* The burst is the end of the hold phase; the cheer answers 0.2s later, the same beat
+   the film puts between crack-real and cheer. SAY_MS clears the cheer's 2.03s tail. */
+const BURST_MS=460, CHEER_MS=660, SAY_MS=2900;
+/* ⚠️ THE POP IS UNTOUCHED. `makeDefaults()` is byte-for-byte the approved rig (rings,
+   ticks, colours, speed, life) and stays that way — the only thing overridden is HOW
+   MANY of them a burst fires, and that is not a dial, it is the same DENSITY carried
+   onto a bigger canvas. `celebrate()` already scatters each pop across the whole
+   canvas, so the field went from the badge to the phone the moment #conf did; two
+   pops that read as a shower inside a 342px disc read as a sprinkle across 390x844,
+   which is 2.8 times the area. Same pops per unit of screen, more screen. */
+const BADGEAREA=342*342;                       // the disc the defaults were dialled in
+function burstPops(){
+  const r=$('conf').getBoundingClientRect();
+  const k=(r.width*r.height)/BADGEAREA;
+  return clamp(Math.round(2*k),2,8);
+}
+let hatched=false;
+/* ---------- THE LAST FIVE SECONDS, COUNTED OUT LOUD ----------
+   Andjroo, 2026-08-03: "we already have a five second countdown, we should have the same
+   thing for this — you have the five-second countdown on the video." Same five recordings,
+   same four children, so the app and the film count in one voice.
+
+   ⚠️ THE SECOND IS DERIVED, THE ANNOUNCEMENT IS LATCHED. `st.left` is a float read every
+   animation frame, so anything that fires on a comparison alone fires sixty times a
+   second. `said` holds the number last spoken and nothing repeats until the number
+   actually changes. Math.ceil maps (4,5] to "five", which is what a person means by five
+   seconds left, and it puts "one" in (0,1] — finishing a beat before the shell goes,
+   exactly where the film places it against the rim.
+
+   ⚠️ RESET ABOVE FIVE, NOT ON START. The +/- button can push a running clock back up out
+   of the countdown (RIG.addTime), and a run that climbs to 0:30 and comes back down has
+   to be able to count again. Latching on the way in and clearing on the way out costs one
+   comparison and makes that free. */
+let said=0;
+const COUNT_FROM=5;
+function countdownTick(left){
+  const s=Math.ceil(left);
+  if(s>COUNT_FROM){ said=0; return }
+  if(s<1||s===said)return;
+  said=s;
+  if(!S.muteBell)sfxPlay('count'+s);
+}
+function mmss(t){ const m=Math.floor(t/60), s=Math.floor(t%60);
+  return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0') }
+function tick(){
+  requestAnimationFrame(tick);
+  if(!RIG)return;
+  const st=RIG.state();
+  if(screen==='run'||screen==='hatch'){
+    $('clock').textContent=mmss(st.left);
+    $('hatchClock').textContent=mmss(st.left);
+    drawPie(st.total?st.left/st.total:0);
+  }
+  // the voices ride the same clock the dial does, and only while it is really running
+  if(screen==='run'&&!hatched&&!st.breaking)countdownTick(st.left);
+  // the clock running out IS the break — the rig owns that, we only follow it
+  if(st.breaking&&screen==='run'&&!hatched){ hatched=true; go('hatch');
+    /* ⚠️ THE HATCH IS NOT THE END-SOUND PICKER, and it does not read `S.end`. Andjroo,
+       2026-08-02, asked for the cheer "every time" — the crack and the cheer are what
+       the egg DOES, the way the confetti is, so the six choices on the sounds sheet
+       layer on top of this rather than replacing it. The mute switch is a different
+       question and it still wins: a mute button that does not mute is a bug. */
+    /* ⚠️ THE BED STOPS FIRST, and before anything else is asked to be heard. Ten seconds
+       of looping lullaby under a shell breaking is the one combination that makes both
+       sound like a mistake. */
+    bedStop();
+    if(!S.muteBell){
+      sfxPlay('anticipation');                          // holds the wobble
+      setTimeout(()=>sfxPlay('crack'),BURST_MS);        // the shells fly apart
+      setTimeout(()=>sfxPlay('cheer'),CHEER_MS);        // the four kids answer it
+      /* The chosen end sting rides WITH the crack: "your time is up" is the same instant
+         the shell goes, and the cheer answers both. `cheer` is not in END_SRC on purpose —
+         picking it means the cheer that already plays, not a second set of children
+         arriving a frame later. */
+      if(END_SRC[S.end])setTimeout(()=>shot(END_SRC[S.end]),BURST_MS);
+      /* ⚠️ THE REMINDER WAITS FOR THE ROOM TO CLEAR. The cheer starts at 660ms and runs
+         2.03s, so anything before ~2.7s is spoken over children shouting and is simply
+         lost. This is the "what next" line — it only works if it is the last thing said. */
+      if(SAY_SRC[S.reminder])setTimeout(()=>shot(SAY_SRC[S.reminder]),SAY_MS);
+    }
+    setTimeout(()=>conf.celebrate({burstPops:burstPops()}),420);
+    /* ⚠️ THE JOB IS REPORTED FINISHED FROM HERE, and only from here. The egg breaks
+       because the clock ran out or because the kid tapped done, and this is the one
+       line both of those arrive at — telling the host from the button as well would
+       post the job twice on the path that goes through both. Guarded by `hatched`,
+       so it is once per run however the run ended. */
+    if(JOB)post('finish');
+  }
+}
+requestAnimationFrame(tick);
+
+/* ---------- IT CRACKS A DIFFERENT WAY EVERY RUN ----------
+   Andjroo, 2026-07-31: "we should have randomized the egg cracking, but I only ever
+   see one version of this."
+   Nothing was broken — the app had simply never chosen. `RIG.setPattern()` has always
+   existed and timer.html never called it, so every run in this app got whatever the
+   TUNING PAGE happened to be left on, saved in the rig's own localStorage. One egg,
+   forever, and it was the tuning page's egg rather than a decision the app made.
+
+   ⚠️ This reverses a rule that is still written in HANDOFF §1 — "the egg cracks apart
+   the same way every time. No randomised outcome." That rule was protecting the
+   AUTHORING (a pattern plays identically once chosen, so it can be dialled in); it
+   was never about the app, and Andjroo has now made the app's call the other way.
+
+   ⚠️ Rolled at Start, BEFORE go(). setPattern() re-cuts the halves, rebuilds the
+   fragments and re-derives the landed pose — mid-run that would rebuild the egg
+   underneath a countdown that is already breaking it.
+
+   ⚠️ And never the same one twice running. A fair roll over five repeats about one
+   run in five, and a repeat is the one outcome that reads as "it did not randomise" —
+   which is the exact complaint this is fixing. Excluding the last one is derived from
+   what he is judging (does it look random), not a dial. */
+/* ⚠️ Both rolls avoid the last one the SAME way, and it is one helper rather than two,
+   because the two pools behave differently at the edges: the crack pool is always 5,
+   the character pool is whatever the kid ticked and is legitimately 1. Excluding the
+   previous pick out of a pool of one leaves nothing to choose. */
+function rollFrom(pool,last){
+  if(!pool.length)return null;
+  const p=pool.length>1?pool.filter(x=>x!==last):pool;
+  return p[Math.floor(Math.random()*p.length)];
+}
+let lastPat=null, lastHero=null;
+function rollPattern(){
+  if(!RIG||!RIG.setPattern)return null;
+  if(!CRACK_PATTERNS.length&&RIG.patterns)CRACK_PATTERNS=RIG.patterns()||[];
+  const n=rollFrom(CRACK_PATTERNS,lastPat);
+  if(n!=null&&RIG.setPattern(n)){ lastPat=n; return n }
+  return null;
+}
+function rollHero(){
+  if(!RIG||!RIG.setHero)return null;
+  /* ⚠️ ROLLS FROM WHAT HAS LANDED, not from what is ticked. The characters load after
+     the first paint now, so for a moment after arriving the ticked set can hold ids
+     with no image behind them — and setHero() refuses those the way setPattern()
+     always has. Narrowing the pool is the same idea one step earlier: ask for a
+     character that exists rather than being told no and keeping the last one. The
+     fallback to the whole set matters for a rig old enough not to have loaded(). */
+  const set=heroSet();
+  const pool=RIG.loaded?set.filter(id=>RIG.loaded(id)):set;
+  const id=rollFrom(pool.length?pool:set,lastHero);
+  if(id&&RIG.setHero(id)!==false){ lastHero=id; return id }
+  return null;
+}
+
+/* ---------- controls ---------- */
+$('start').onclick=()=>{
+  /* ⚠️ FIRST LINE, ABOVE EVERY GUARD, AND THAT IS THE POINT. This is the only certain
+     user gesture in the whole run — job mode's Start is a round trip, so beginRun() can
+     arrive from a postMessage with no gesture behind it at all, and iOS would refuse the
+     cheer minutes later with nothing on screen to say why. Priming on a tap that then
+     falls out of a guard below costs three paused Audio elements and nothing else. */
+  sfxPrime();
+  /* ⚠️ JOB MODE READS THE JOB, NOT THE DIAL, and it has to be asked FIRST. The dial's
+     minutes and seconds are restored from the kid's own localStorage, so a kid whose
+     last dock timer was 0:00 would fall out of the `secs<1` guard below and Start
+     would do nothing on a job that has a perfectly good length of its own. */
+  const secs=JOB?JT.secs:(S.min*60+S.sec); if(secs<1)return;
+  /* ⚠️ NOT STARTABLE WITHOUT A RIG. rollPattern() and rollHero() have always checked
+     this and RIG.go() never did, so a tap that beat the rig's hook threw on the last
+     line — after go('run') had already switched the screen, which left the run screen
+     up with a dead clock and no way back except the dock. Normally the cover makes
+     this unreachable; it stops being unreachable exactly when the cover gives up at
+     CAP, which is the slow connection where an early tap is most likely. Staying on
+     the set screen is the honest answer: the button has not worked yet. */
+  if(!RIG)return;
+  /* JOB MODE: the server owns the job's clock, so Start is a round trip, not a local
+     event — the host marks the task started, and only what comes BACK is allowed to
+     move the screen. Starting here and telling the host afterwards would leave a
+     running egg over a task the server never started if the call failed.
+     ⚠️ Below the `if(!RIG)` guard on purpose: an early tap must not post the task
+     started when the screen it would hand back to cannot run. */
+  if(JOB){ if(JT.started)return; JT.started=true; $('start').disabled=true; post('start'); return }
+  beginRun(secs);
+};
+/* the one way into a run, whichever screen asked for it. */
+function beginRun(secs){
+  if(!RIG)return;
+  /* `said` alongside `hatched`: both are per-run state, and a second run of the same
+     length would otherwise start with the previous run's "one" still latched and count
+     from four. */
+  hatched=false; said=0; conf.clear(); bedStart();
+  /* ⚠️ Both rolls happen HERE, before go(). setPattern() re-cuts the halves and
+     re-derives the landed pose, and the landing is framed off the CHARACTER's width
+     (the gap is the hole it left) — so the character has to be settled before the
+     break is built, not swapped in when the egg opens. */
+  rollPattern(); rollHero();
+  go('run'); RIG.go(secs);
+}
+let paused=false;
+$('btnPause').onclick=()=>{
+  paused=!paused;
+  if(paused)RIG.pause(); else RIG.resume();
+  $('icPause').innerHTML = paused
+    ? `<path d="M7.4 4.9a1 1 0 0 1 1.5-.86l9.2 6.1a1 1 0 0 1 0 1.72l-9.2 6.1a1 1 0 0 1-1.5-.86z"/>`
+    : `<rect x="6.4" y="4.6" width="4.2" height="14.8" rx="1.6"/><rect x="13.4" y="4.6" width="4.2" height="14.8" rx="1.6"/>`;
+};
+$('btnStop').onclick=()=>{ paused=false; conf.clear(); RIG.reset(); go('set') };
+/* JOB MODE: "I'm done!" before the clock. It does not report anything itself — it
+   breaks the egg, and tick() reports the finish when the break starts, so the kid who
+   waits and the kid who taps travel the same last few lines. */
+$('btnJobDone').onclick=()=>{ if(RIG&&!hatched)RIG.hatchNow() };
+$('done').onclick  =()=>{ conf.stop(); conf.clear(); RIG.reset(); hatched=false;
+  /* in job mode there is no set screen to go back to — the job is finished and the
+     chart is what comes next, which only the host can show. */
+  if(JOB)return post('done');
+  go('set') };
+$('stepUp').onclick=()=>RIG&&RIG.addTime(60);
+$('stepDn').onclick=()=>RIG&&RIG.addTime(-60);
+
+/* ---------- the host channel (job mode only) ----------
+   Four messages in, four out, and the split is always the same: the HOST owns
+   anything the server knows about (the job, its length, whether it is already
+   running, when it is finished) and THIS FILE owns the egg. Neither reaches past
+   that line — which is why the timer never calls an API and the host never touches
+   the rig.
+
+     in   init  the job: title, length, labels, and whether it is mid-run already
+          go    the host has marked it started; here is the length to run
+          sync  the wall clock says this much is left (see RIG.setLeft)
+     out  ready this document is listening
+          start the kid tapped Start
+          finish the egg is breaking — the job is done
+          done  the kid tapped Done on the hatch screen
+
+   ⚠️ SOURCE-CHECKED, NOT ORIGIN-CHECKED. Host and timer are same-origin (the app
+   serves both), so an origin test would pass for any other frame the app has open;
+   what actually identifies the host is that it is the window this document is
+   embedded in. */
+/* ⚠️ THE FRAME OUTLIVES THE SCREEN, so somebody has to say when to stop. `eggtimer.js`
+   deliberately never re-creates this iframe (re-creating it would restart the rig
+   mid-countdown), which means the back chevron leaves this document alive and, with a bed
+   chosen, still playing a lullaby over the chore chart. The host posts `hush` on the way
+   out. Registered unconditionally, unlike the job listener below, because the dock opens
+   the timer without a job and the dock is where a bed is most likely to be running. */
+window.addEventListener('message',e=>{
+  if(HOST&&e.source!==HOST)return;
+  if(e.data&&e.data.job==='hush'){ bedStop(); stopPreview() }
+});
+if(JOB){
+  window.addEventListener('message',e=>{
+    if(e.source!==HOST)return;
+    const m=e.data; if(!m||typeof m.job!=='string')return;
+    if(m.job==='init'){
+      JT.secs=Math.max(1,Math.round(Number(m.secs)||0));
+      JT.title=String(m.title??''); JT.emoji=String(m.emoji??'');
+      if(m.strings)Object.assign(JT.s,m.strings);
+      $('jobName').textContent=JT.title;
+      $('jobTime').textContent=jobClock(JT.secs);
+      /* ⚠️ THE JOB'S REAL ICON, not the emoji character. Andjroo, 2026-08-01: "the icon
+         is incorrect" — it was. Every other surface draws `iconUrl`, the asset
+         src/task-icons resolves from the emoji (chart.js taskCard, done.js jobFace);
+         only this screen was rendering the raw glyph. Falls back to the emoji exactly
+         the way those two do, and hides itself rather than leaving a broken image if
+         the asset 404s. */
+      const ic=$('jobIcon');
+      if(m.iconUrl){ ic.hidden=false; ic.onerror=()=>{ ic.hidden=true; showEmojiIcon() };
+                     ic.src=m.iconUrl }
+      else { ic.hidden=true; showEmojiIcon() }
+      layout();   // the card's height decides where it hangs, so place it once it is filled
+      /* ⚠️ Set here, not in the markup. The button ships EMPTY so there is no English
+         to flash before the host's locale arrives, and so a missing `strings` cannot
+         leave a lie on screen — an unlabelled pill is obviously broken, a wrongly
+         labelled one is not. */
+      $('btnJobDone').textContent=JT.s.done;
+      syncStart();
+      /* already running when the kid opened it: no set screen, no second Start, and
+         no asking the server again — straight into the run at what is really left. */
+      if(m.running){ JT.started=true;
+        whenRig.then(()=>beginRun(Math.max(1,Math.round(Number(m.left)||JT.secs)))) }
+    }
+    else if(m.job==='go'){ whenRig.then(()=>beginRun(Math.max(1,Math.round(Number(m.secs)||JT.secs)))) }
+    else if(m.job==='sync'){ if(RIG&&RIG.setLeft)RIG.setLeft(Number(m.left)||0) }
+  });
+  post('ready');
+}
+$('mMusic').onclick=()=>{ S.muteMusic=!S.muteMusic; save(); drawMute('mMusic',S.muteMusic) };
+$('mBell').onclick =()=>{ S.muteBell =!S.muteBell;  save(); drawMute('mBell', S.muteBell) };
+
+/* ---------- the tray's egg is THE egg ----------
+   Same source of truth as the shell the rig clips to, so the glyph cannot drift from
+   the art the way the hand-drawn one had. Fitted to the 24 viewBox by HEIGHT — the egg
+   is the taller axis, and fitting by width would leave it clipped top and bottom.
+   ⚠️ Decimated. 720 points across 18px is ~40 points per pixel: all of them would be
+   an 18KB `d` attribute describing detail no one can see, and the SVG rasteriser walks
+   every one of them on every paint. Every 10th point still puts a vertex every 0.25px.
+   ⚠️ The inset is HALF THE STROKE, not a margin. A path is stroked centred on itself,
+   so a curve run to the edge of the box loses the outer half of its own line. */
+const GLYPH_STROKE=1.9, GLYPH_BOX=24;
+function fitEggGlyph(pts){
+  const M=GLYPH_STROKE/2+.45;
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  for(const [x,y] of pts){ if(x<x0)x0=x; if(y<y0)y0=y; if(x>x1)x1=x; if(y>y1)y1=y }
+  const k=(GLYPH_BOX-2*M)/(y1-y0), w=(x1-x0)*k;
+  const ox=(GLYPH_BOX-w)/2-x0*k, oy=M-y0*k;
+  const at=([x,y])=>[x*k+ox, y*k+oy];
+
+  const step=Math.max(1,Math.round(pts.length/72));
+  const d=pts.filter((_,i)=>i%step===0).map(at)
+             .map(([x,y],i)=>(i?'L':'M')+x.toFixed(2)+' '+y.toFixed(2)).join('')+'Z';
+
+  /* The crack is measured off the egg rather than drawn beside it: it starts ON the
+     outline, crosses, and ends ON the outline, which is the one thing the generated
+     crack art is required to do (HANDOFF §0 — "every crack must START at the shell's
+     outer edge and cut through the outline itself"). So the span is the egg's OWN
+     width at that height, found from the same points. */
+  const top=M, bot=GLYPH_BOX-M, yc=top+(bot-top)*.60;
+  let xl=1e9, xr=-1e9;
+  for(const p of pts){ const [x,y]=at(p);
+    if(Math.abs(y-yc)<(bot-top)*.045){ if(x<xl)xl=x; if(x>xr)xr=x } }
+  if(!(xr>xl))return {d};
+  const n=4, dx=(xr-xl)/n, a=(bot-top)*.042;
+  let c='M'+xl.toFixed(2)+' '+yc.toFixed(2);
+  for(let i=1;i<=n;i++) c+='L'+(xl+dx*i).toFixed(2)+' '+(yc+(i%2?-a:a)).toFixed(2);
+  return {d, crack:c};
+}
+fetch('egg-outline.json?v='+VER).then(r=>r.json()).then(j=>{
+  if(!j||!j.pts||!j.pts.length)return;
+  const g=fitEggGlyph(j.pts);
+  $('glyphEgg').setAttribute('d',g.d);
+  if(g.crack)$('glyphCrack').setAttribute('d',g.crack);
+}).catch(()=>{});   // the authored fallback stays on screen
+
+/* ---------- the toast ----------
+   One call, and it works out where to sit from what is already on screen: above the
+   sheet that raised it, or off the bottom of the phone when nothing is open. */
+let toastT=null;
+function toast(msg){
+  const t=$('toast'); t.textContent=msg;
+  const open=document.querySelector('.sheet.on');
+  const H=$('app').clientHeight;
+  t.style.bottom=(open?Math.round(open.getBoundingClientRect().height)+12
+                      :Math.round(H*.07))+'px';
+  t.classList.add('on');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>$('toast').classList.remove('on'),2000);
+}
+
+/* ---------- sheets ---------- */
+/* The close mark and the selected mark are the two things every sheet shares, and
+   both were wrong in the same way: a font character standing in for a drawn shape.
+   ⚠️ VERBATIM from @nimiq/style close.svg via the registry (`nq info close-button`)
+   — a disc with the X knocked out of it by fill-rule:evenodd, so it is ONE path and
+   the cross can never sit off-centre in its circle. Do not redraw it. */
+const XICON='<svg width="30" height="30" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M3.528 3.52c4.683-4.684 12.275-4.686 16.96-.005 4.678 4.69 4.678 12.28 0 16.97-4.685 4.68-12.277 4.678-16.96-.005-4.682-4.684-4.682-12.276 0-16.96zm13.145 13.133a1 1 0 0 0 .036-1.374l-3.11-3.11a.25.25 0 0 1 0-.352l3.11-3.11a1 1 0 1 0-1.414-1.415l-3.11 3.11a.25.25 0 0 1-.354 0l-3.11-3.11a1 1 0 0 0-1.41 1.415l3.11 3.11a.249.249 0 0 1 0 .353l-3.11 3.109a1 1 0 0 0 0 1.415c.396.38 1.021.38 1.416 0l3.109-3.11a.252.252 0 0 1 .354 0l3.11 3.11a1 1 0 0 0 1.373-.041z" fill="currentColor"/></svg>';
+const TICK='<i class="tick"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.8 9.6 17.4 19 7.2"/></svg></i>';
+document.querySelectorAll('.sheet').forEach(s=>{
+  const b=document.createElement('button');
+  b.className='sclose'; b.setAttribute('aria-label','Close'); b.innerHTML=XICON;
+  b.onclick=()=>sheet(null);
+  s.insertBefore(b,s.firstChild);
+});
+/* ⚠️ THE LAZY BUILD LIVES HERE, not at the two buttons that happen to open these
+   sheets. It was at the buttons first, and tools/sheetproof.py went straight through
+   TIMER.sheet('shReminder') — the public API — onto an empty grid. Any caller that
+   opens a sheet by id is entitled to a sheet with its contents in it, and the app is
+   about to be one of those callers. One seam, not two entry points. */
+/* ⚠️ OPENING THE HATCH SHEET IS ALSO A REQUEST FOR THE ART. The other eighteen
+   characters are fetched on idle after arriving; a kid who goes straight to the
+   picker is asking for all of them NOW, and this is the only moment that knows so.
+   loadRest() is idempotent, so asking twice costs nothing. */
+const LAZY={shReminder:()=>buildRemGrid(),
+            shEgg:()=>{ buildEggGrid(); if(RIG&&RIG.loadRest)RIG.loadRest() },
+            shBg:()=>buildBgGrid()};
+const built=new Set();
+function sheet(id){
+  if(id&&LAZY[id]&&!built.has(id)){ built.add(id); LAZY[id]() }
+  document.querySelectorAll('.sheet').forEach(s=>s.classList.toggle('on',s.id===id));
+  $('scrim').classList.toggle('on',!!id);
+}
+const rebuilt=id=>built.has(id);
+$('scrim').onclick=()=>sheet(null);
+/* ⚠️ The marker is on the CELL, so the CELL is what gets toggled. Toggling only the
+   tile is how the badge ends up trapped under the tile's own clip — see the .tick
+   note in the CSS. One helper, so the three grids cannot drift apart again. */
+function markSel(root,sel,el){
+  root.querySelectorAll(sel).forEach(p=>{
+    const on=p===el;
+    p.classList.toggle('on',on);
+    const c=p.closest('.cell'); if(c)c.classList.toggle('on',on);
+  });
+}
+/* ⚠️ Built on FIRST OPEN, not at boot. See buildEggGrid: 21 thumbnails is ~3MB, and
+   it sat on the critical path of a screen that shows an egg and a Start button. */
+$('plus').onclick=()=>sheet('shReminder');
+document.querySelectorAll('[data-sheet]').forEach(b=>b.onclick=()=>
+  sheet({egg:'shEgg',music:'shMusic',bg:'shBg'}[b.dataset.sheet]));
+
+/* reminder icons — monoline, in the navy family. Illustrated set is an art pass. */
+const GLYPH={
+  youdidit:'<path d="M12 3.6v3.2M6.6 5.8l1.9 2.6M17.4 5.8l-1.9 2.6"/><path d="M5.2 20.4v-4.1a2 2 0 0 1 1.2-1.9l2.3-1a2 2 0 0 0 1.1-1.3l.5-1.9a1.5 1.5 0 0 1 2.9.4v2.7h3.6a2 2 0 0 1 2 2.4l-.8 3.6a2.2 2.2 0 0 1-2.1 1.7z"/>',
+  goodjob:'<path d="M7 11.5v8.5H4.6a1.6 1.6 0 0 1-1.6-1.6v-5.3A1.6 1.6 0 0 1 4.6 11.5z"/><path d="M7 11.5 12.3 3a2.2 2.2 0 0 1 3.5 2.4L14.4 9.4h4.9a2 2 0 0 1 2 2.5l-1.6 6.4a2.4 2.4 0 0 1-2.3 1.7H7z"/>',
+  hooray:'<circle cx="12" cy="12" r="9.3"/><path d="M8 10.4h.02M16 10.4h.02"/><path d="M7.6 14.2a5 5 0 0 0 8.8 0z"/>',
+  love:'<path d="M12 20.4S3.4 15.3 3.4 9.3A4.6 4.6 0 0 1 12 6.9a4.6 4.6 0 0 1 8.6 2.4c0 6-8.6 11.1-8.6 11.1z"/>',
+  shoes:'<path d="M3 16.6h12.4l4.6 1.8a2 2 0 0 1 1 1.7v.5H3z"/><path d="M3 16.6V8.2a1 1 0 0 1 1.5-.9L8 9.3l2.6-2 2.4 5.6"/>',
+  socks:'<path d="M5.4 3h4.4v8.8l-3.2 4a2.6 2.6 0 1 0 4 3.3l3.3-4.1"/><path d="M14.2 3h4.4v9.2"/>',
+  bath:'<path d="M3 12.4h18v2.2a4.6 4.6 0 0 1-4.6 4.6H7.6A4.6 4.6 0 0 1 3 14.6z"/><path d="M6.4 12.4V5.8a2.4 2.4 0 0 1 4.6-1M6 21l-1 1.6M18 21l1 1.6"/>',
+  bed:'<path d="M12.6 2.6a7.4 7.4 0 1 0 8.8 8.8 7.6 7.6 0 0 1-8.8-8.8z"/><path d="M4.4 5.6h3.4L4.4 9h3.4"/>',
+  tidy:'<path d="M4.4 8.6h15.2l-1.1 11a2 2 0 0 1-2 1.8H7.5a2 2 0 0 1-2-1.8z"/><path d="M3 8.6h18M9.4 8.6V5.4a1.6 1.6 0 0 1 1.6-1.6h2a1.6 1.6 0 0 1 1.6 1.6v3.2"/>',
+  teeth:'<path d="M7 3.4c2 0 2.4 1.2 5 1.2s3-1.2 5-1.2a3 3 0 0 1 3 3.3c0 3.4-1.3 4.2-2 8.2-.5 3-1.1 5.5-2.6 5.5s-1.7-3.6-3.4-3.6-1.9 3.6-3.4 3.6-2.1-2.5-2.6-5.5c-.7-4-2-4.8-2-8.2A3 3 0 0 1 7 3.4z"/>',
+  eat:'<path d="M6.4 3v7.4a2.4 2.4 0 0 0 4.8 0V3M8.8 10.4V21"/><path d="M17.2 21v-7.6a4 4 0 0 1-1.4-3.2V6.6a3.6 3.6 0 0 1 2.8-3.5V21z"/>',
+  screenoff:'<rect x="2.6" y="4" width="18.8" height="13" rx="2.6"/><path d="M8 21h8M12 17v4"/><path d="M12 7.6v3.2M9.6 8.4a3.4 3.4 0 1 0 4.8 0"/>',
+};
+/* The drawn art wins wherever it exists, and the monoline glyph stands in where it
+   does not — so the sheet is never a grid of broken images while a batch is still
+   generating. `icons/index.json` is written by tools/cut_icons.py, which is the one
+   list: the cut and the sheet cannot disagree about what got drawn. */
+let ART=new Set();
+function buildRemGrid(){
+  $('remGrid').innerHTML=REMINDERS.map(([k,label])=>`
+    <div class="cell ${S.reminder===k?'on':''}">
+      <button class="pick ${S.reminder===k?'on':''}" data-rem="${k}">
+      ${k==='off' ? '<span class="off">Off</span>'
+        : ART.has(k) ? `<img src="icons/${k}.png?v=${VER}" alt="${label}" loading="lazy">`
+        : `<svg width="60%" height="60%" viewBox="0 0 24 24" fill="none" stroke="#2C3149"
+             stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">${GLYPH[k]||''}</svg>`}
+    </button>${TICK}<div class="plabel">${label}</div></div>`).join('');
+}
+fetch('icons/index.json?v='+VER).then(r=>r.json())
+  .then(j=>{ ART=new Set((j.icons||[]).map(i=>i.slug)); if(rebuilt('shReminder'))buildRemGrid(); paintPlus() })
+  .catch(()=>{});
+$('remGrid').onclick=e=>{ const b=e.target.closest('[data-rem]'); if(!b)return;
+  S.reminder=b.dataset.rem; save();
+  markSel($('remGrid'),'.pick',b);
+  paintPlus();
+  preview(SAY_SRC[S.reminder],false);   // hear who says it, and unlock it while a tap is live
+};
+// the drawn icons carry their own generous margin, so they can run to the rim
+$('remGrid').classList.add('artgrid');
+
+/* the bubble shows WHAT was chosen, not THAT something was */
+function paintPlus(){
+  const on=S.reminder!=='off' && ART.has(S.reminder);
+  $('plus').classList.toggle('set',on);
+  $('plusGlyph').style.display=on?'none':'';
+  $('plusIcon').style.display=on?'':'none';
+  if(on)$('plusIcon').setAttribute('href','icons/'+S.reminder+'.png?v='+VER);
+}
+paintPlus();
+
+/* ---------- the kid's own characters ----------
+   Andjroo, 2026-07-31: "the kid should be able to add as many characters as they
+   want, and there should be a place to take a picture."
+   ⚠️ THEIR OWN KEY, not S. A photo is orders of magnitude bigger than every setting
+   put together, and localStorage fails by THROWING on quota — one photo too many
+   inside `kidtimer2` and the write that also carries the timer, the background and
+   the reminder is the one that fails. Split, so a full camera roll can never cost
+   the parent their settings.
+   ⚠️ 320px TALL, because that is the roster's own height (tools/cut_heroes.py) and
+   the rig sizes a character by `eggH/artH`. Store a phone's 3024px photo and it
+   would land in the shells a tenth of the size of every drawn one. */
+const PLS=LS+'.photos';
+const HERO_H=320;
+let PHOTOS=[];
+try{ PHOTOS=JSON.parse(localStorage.getItem(PLS)||'[]') }catch(e){ PHOTOS=[] }
+const savePhotos=()=>{ try{ localStorage.setItem(PLS,JSON.stringify(PHOTOS)); return true }
+                       catch(e){ console.warn('photo not saved: storage full'); return false } };
+
+const CAMICON=`<svg width="46%" height="46%" viewBox="0 0 24 24" fill="none" stroke="#8C93A3"
+   stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round">
+   <path d="M3 8.4h3.1l1.5-2.4h8.8l1.5 2.4H21a1.4 1.4 0 0 1 1.4 1.4v8.4A1.4 1.4 0 0 1 21 20H3a1.4 1.4 0 0 1-1.4-1.4V9.8A1.4 1.4 0 0 1 3 8.4z"/>
+   <circle cx="12" cy="13.8" r="3.7"/></svg>`;
+
+/* ---------- MANY CHARACTERS, ONE OF THEM COMES OUT ----------
+   Andjroo, 2026-07-31: "I want the kid to be able to select multiple characters, so
+   that way it's randomized as well." So this grid is the only multi-select one in the
+   app: the sheet's own sub-line already said "who CAN come out of the egg", which is a
+   set, and it had been behaving like a single choice.
+
+   ⚠️ THE SET CAN NEVER BE EMPTY. Nothing selected means nothing can hatch, and the
+   failure would land at the end of a real countdown a child has waited out. Tapping
+   the last remaining one is a no-op rather than a fifth thing to handle at Start.
+
+   ⚠️ AND THE FALLBACK IS ALL OF THEM, NOT THE FIRST ONE. Andjroo, 2026-08-27: the sheet
+   "starts with just the bear selected". It did — the floor below was `heroes[0]`, and
+   because line ~910 materialises heroSet() into S.heroes as soon as the roster lands,
+   that floor WAS the default every fresh tablet saved. So the one sheet whose whole
+   idea is "who CAN come out" shipped with a set of one, and twenty-one drawn animals
+   sat there greyed while the same bear hatched every run. The floor and the default
+   are the same line, and both want the whole roster: nothing to curate before the
+   surprise works, and a set that emptied by attrition refills with everything rather
+   than with whichever animal happens to be cut first.
+   ⚠️ DRAWN HEROES ONLY — a kid's photo is theirs to add, not something to switch on
+   for them. The camera handler ticks a new photo itself. */
+function heroSet(){
+  const live=new Set([...heroes.map(h=>h.id), ...PHOTOS.map(p=>p.id)]);
+  // an id can go away: a photo the storage dropped, or art removed from the roster
+  let sel=(S.heroes||[]).filter(id=>live.has(id));
+  if(!sel.length)sel=heroes.map(h=>h.id);
+  return sel;
+}
+function buildEggGrid(){
+  const sel=new Set(heroSet());
+  /* ⚠️ THE SAME URL THE RIG USES, VERSION AND ALL. The rig loads its heroes with
+     `?v=<rig build>`; this grid asked for the bare path, so the browser saw two
+     resources per animal and fetched 5.1MB where 2.97MB exists — measured, 42
+     requests for 21 files. A query string is part of the cache key. */
+  const V=(RIG&&RIG.build)?'?v='+RIG.build:'';
+  const all=[...heroes.map(h=>({id:h.id,name:h.name,src:'rive-kit/individual-pngs/'+h.id+'.png'+V,photo:false})),
+             ...PHOTOS.map(p=>({id:p.id,name:p.name,src:p.src,photo:true}))];
+  $('eggGrid').innerHTML=all.map(h=>`
+    <div class="cell ${sel.has(h.id)?'on':''}">
+      <button class="pick ${h.photo?'photopick ':''}${sel.has(h.id)?'on':''}" data-hero="${h.id}"
+              role="checkbox" aria-checked="${sel.has(h.id)}">
+      <img src="${h.src}" alt="${h.name}" loading="lazy">
+    </button>${TICK}${h.photo?PHOTODEL:''}<div class="plabel">${h.name}</div></div>`).join('')
+    + `<div class="cell"><button class="pick" data-shoot aria-label="take a picture">
+         ${CAMICON}</button><div class="plabel">Take a photo</div></div>`;
+  $('dotEgg').style.display=sel.size?'block':'none';
+}
+/* ---------- taking a photo BACK OFF the roster ----------
+   Andjroo, 2026-08-03: "my kids like to snap a couple pictures and then delete them,
+   snap a couple pictures and then delete them." Until now PHOTOS only ever grew. A
+   photo could be unticked so it would not hatch, but it stayed on the sheet forever
+   and it kept its share of the quota — and savePhotos() fails by THROWING at quota,
+   which is caught and turns into a photo that silently refuses to be added. So a kid
+   who snapped enough eventually could not add another and had no way to make room.
+
+   TWO TAPS, no dialog. The snap/delete rhythm above is the whole point and a confirm
+   in the middle of it is the thing being complained about; but a photo is gone for
+   good, so one stray tap must not take it. First tap arms the cell, second deletes,
+   and arming lapses after four seconds so a child who wandered off finds nothing live. */
+const PHOTODEL='<button class="del" data-delphoto aria-label="delete this photo">'
+  +'<svg width="13" height="13" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.4"'
+  +' stroke-linecap="round"><path d="M1 1l10 10M11 1L1 11"/></svg></button>';
+let armedPhoto=null, armTimer=null;
+function disarmPhoto(){
+  clearTimeout(armTimer);
+  $('eggGrid').querySelectorAll('.cell.arming').forEach(c=>c.classList.remove('arming'));
+  armedPhoto=null;
+}
+function deletePhoto(id){
+  const i=PHOTOS.findIndex(p=>p.id===id); if(i<0)return;
+  PHOTOS.splice(i,1); savePhotos();
+  /* Drop it from the chosen set too. heroSet() already filters ids that no longer
+     exist and falls back to the first drawn hero when that empties the set, so the
+     "the set can never be empty" rule holds without a special case here — but it has
+     to be SAVED, or the dead id comes back out of localStorage on the next boot. */
+  S.heroes=heroSet(); save();
+  buildEggGrid();
+}
+$('eggGrid').onclick=e=>{
+  const del=e.target.closest('[data-delphoto]');
+  if(del){
+    const cell=del.closest('.cell'), id=cell.querySelector('[data-hero]').dataset.hero;
+    if(armedPhoto!==id){ disarmPhoto(); armedPhoto=id; cell.classList.add('arming');
+                         armTimer=setTimeout(disarmPhoto,4000); return }
+    disarmPhoto(); deletePhoto(id); return;
+  }
+  disarmPhoto();
+  if(e.target.closest('[data-shoot]')){ $('shoot').click(); return }
+  const b=e.target.closest('[data-hero]'); if(!b)return;
+  const id=b.dataset.hero, sel=heroSet(), i=sel.indexOf(id);
+  if(i>=0){ if(sel.length===1)return; sel.splice(i,1) } else sel.push(id);
+  S.heroes=sel; save();
+  const on=sel.includes(id);
+  b.classList.toggle('on',on); b.setAttribute('aria-checked',on);
+  b.closest('.cell').classList.toggle('on',on);
+  $('dotEgg').style.display=sel.length?'block':'none';
+};
+/* `capture` asks the phone for the camera and is ignored on a desktop, where the
+   same input is a file picker — one control, both places, no branch. */
+$('shoot').onchange=e=>{
+  const f=e.target.files&&e.target.files[0]; if(!f)return;
+  const url=URL.createObjectURL(f), im=new Image();
+  im.onload=()=>{
+    const k=HERO_H/im.naturalHeight;
+    const c=document.createElement('canvas');
+    c.width=Math.max(1,Math.round(im.naturalWidth*k)); c.height=HERO_H;
+    c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+    URL.revokeObjectURL(url);
+    const id='photo-'+PHOTOS.length+'-'+Math.round(performance.now());
+    const src=c.toDataURL('image/png');
+    PHOTOS.push({id,name:'Photo '+(PHOTOS.length+1),src});
+    if(!savePhotos())PHOTOS.pop();
+    else{
+      /* ⚠️ Registered with the rig BEFORE it joins the set — heroSet() drops ids the
+         rig has never heard of, so ticking it first would tick it and lose it. */
+      const add=(RIG&&RIG.addHero)?RIG.addHero(id,'Photo '+PHOTOS.length,src)
+                                  :Promise.resolve(false);
+      // taken FROM this sheet, so it is in the mix. Untick it like any other tile.
+      Promise.resolve(add).then(()=>{
+        S.heroes=[...heroSet(),id]; save(); buildEggGrid();
+      });
+    }
+  };
+  im.onerror=()=>URL.revokeObjectURL(url);
+  im.src=url;
+  e.target.value='';
+};
+
+$('musicBody').innerHTML=`
+  <div class="lane"><h3>While the timer runs</h3><div class="opts" id="laneDuring"></div></div>
+  <div class="lane"><h3>When it ends</h3><div class="opts" id="laneEnd"></div></div>`;
+function buildLane(id,list,key){
+  $(id).innerHTML=list.map(([k,l])=>
+    `<button class="opt ${S[key]===k?'on':''}" data-v="${k}">${l}</button>`).join('');
+  $(id).onclick=e=>{ const b=e.target.closest('[data-v]'); if(!b)return;
+    S[key]=b.dataset.v; save();
+    $(id).querySelectorAll('.opt').forEach(o=>o.classList.toggle('on',o===b));
+    $('dotMusic').style.display=(S.during!=='none')?'block':'none';
+    /* ⚠️ THE TAP THAT CHOOSES IS THE TAP THAT PREVIEWS, and it is also the gesture that
+       unlocks the clip on iOS. These files are made on demand rather than primed with the
+       hatch set — twenty of them is ~750KB to play one — so this is the earliest moment
+       a chosen one can legally be played. It replaces a "Coming soon" toast: the lists
+       were named and silent for two sessions and the honest thing then was to say so.
+       They are not silent now, and hearing it is the answer a toast was standing in for. */
+    preview(key==='during'?BED_SRC[S.during]:END_SRC[S.end], key==='during');
+  };
+}
+buildLane('laneDuring',DURING,'during'); buildLane('laneEnd',ENDING,'end');
+$('dotMusic').style.display=(S.during!=='none')?'block':'none';
+
+/* The grid is filled out to whole rows of four so the sheet already has the shape it
+   will have once the art lands, rather than re-flowing under Andjroo when it does. */
+const BGSLOTS=Math.max(12,Math.ceil(BGS.length/4)*4);
+/* ⚠️ THE THIRD PICKER GRID, AND IT WAS THE ONE STILL BUILT AT BOOT.
+   The reminder and character grids were moved behind LAZY when their tiles turned out
+   to be fetched inside a closed sheet; this one was written earlier, straight into
+   innerHTML, and was missed. It cost more than either of them: four full-bleed phone
+   backgrounds, of which the kid is looking at exactly one. Measured at 1.6 Mbps the
+   three unseen JPEGs (183KB) landed at 2.4s, 3.1s and 3.5s — AHEAD OF THE EGG'S OWN
+   ART, which did not start arriving until 4.1s. `loading="lazy"` is no help: a sheet
+   is only translated off-screen, so its images are in the viewport as far as the
+   browser is concerned. */
+function buildBgGrid(){
+  $('bgGrid').innerHTML=BGS.map(([k,l])=>`
+    <div class="cell"><button class="bgpick ${S.bg===k?'on':''}" data-bg="${k}">
+      <img src="bg/${k}.jpg?v=${VER}" alt="${l}"></button><div class="plabel">${l}</div></div>`).join('')
+    + Array.from({length:BGSLOTS-BGS.length},()=>
+        `<div class="cell"><div class="bgslot"></div><div class="plabel">&nbsp;</div></div>`).join('');
+}
+$('bgGrid').onclick=e=>{ const b=e.target.closest('[data-bg]'); if(!b)return;
+  S.bg=b.dataset.bg; save(); if(bgSrc(S.bg))$('bgImg').src=bgSrc(S.bg);
+  $('bgGrid').querySelectorAll('.bgpick').forEach(p=>p.classList.toggle('on',p===b));
+};
+/* the first background is set the moment S is read, ~700 lines above — a screen the
+   kid looks straight at cannot wait for the picker's own wiring to be built. */
+
+/* ---------- review strip ---------- */
+document.querySelectorAll('[data-pie]').forEach(b=>{
+  b.classList.toggle('on',b.dataset.pie===S.pie);
+  b.onclick=()=>{ S.pie=b.dataset.pie; S.pieXY=null; save();
+    document.querySelectorAll('[data-pie]').forEach(o=>o.classList.toggle('on',o===b));
+    layout(); };   // the clock's own size depends on which one this is
+});
+// rolls too — it is the button Andjroo presses to look at the hatch, and a review
+// control that skipped the roll would show him the same egg and the same animal
+$('dvHatch').onclick=()=>{ if(screen!=='run'){ rollPattern(); rollHero(); go('run'); RIG.go(3) }
+                           else RIG.hatchNow() };
+$('dvReset').onclick=()=>{ conf.clear(); RIG.reset(); hatched=false; paused=false; go('set') };
+
+/* ---------- boot ---------- */
+addEventListener('resize',layout);
+syncStart(); layout();
+// the columns land on the saved time once they have a measured row height
+requestAnimationFrame(()=>{ $('colMin')._goto(S.min); $('colSec')._goto(S.sec); });
+/* ⚠️ `conf` IS A GETTER, because the binding is replaced when confetti lands (see the
+   import note). Spreading the value here would hand the harness the inert stub for
+   ever and the pop would be untestable. `revealed` is exposed for the same reason the
+   build is: it is the one thing about this load that cannot be seen in a screenshot. */
+window.TIMER={build:BUILD, go, sheet, state:()=>({screen,S}),
+              get conf(){ return conf }, get revealed(){ return revealed }};
+</script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+/* nimiq.kids kid app — THE TOP CHROME: the two controls that ride above every
+   kid screen (the back button's line and the fixed language corner), and the
+   measurements they and every screen share.
+
+   Split out of wallet.css at the 800-line CI guard, the same way box.css came
+   out of chart.css. It is a genuine unit and not just the overflow: nothing
+   below is a wallet screen, and everything below is either a --kid-chrome-*
+   / --kid-corner-* measurement or the control that publishes it.
+
+   Loads BEFORE wallet.css, so phone.css and no-address.css still override both
+   files exactly as they did. Custom properties are order-independent; the only
+   ordering that matters here is that this sheet beats the shell's own bundle,
+   which is linked further up. */
+
+/* ---------- corner control slot (fleet one-button control, language-only) ----------
+   The corner is FIXED and shared by every kid screen, so it is not in any
+   screen's flow and cannot be spaced by a normal gap. Instead it publishes the
+   vertical band it occupies as --kid-corner-band, and every screen reserves
+   that much top padding — which is what stops it landing on the balance chip
+   (they were flush at y=46 before: corner bottom 46, chip top 46). Change the
+   corner's size or offset ONLY through these vars, or screens drift back into
+   it. */
+:root {
+  --kid-corner-top: 14px;
+  /* THE one number the whole top row is built from: the kid's identicon. The
+     pill that holds it and the language flag beside it are both derived from
+     it below, so a screen can only ever be resized by changing this — which is
+     the bug that shipped otherwise. The tablet block used to scale the
+     identicon to 64px on its own while --kid-corner-h stayed 46px, so the
+     hexagon hung 9px out of its own white pill top and bottom, and the
+     language pill next to it stayed phone-sized. Derived, they cannot drift. */
+  --kid-ident: 38px;
+  /* Drives the corner pill AND the home identity block (.ch-kid is height:
+     var(--kid-corner-h)), so the two always share a centre line and one number
+     scales both. Raised from the shell's stock 38px: on the home screen the
+     kid's own identity was rendering SMALLER than the language control beside
+     it, which is backwards (Andjroo, 2026-07-30). */
+  --kid-corner-h: calc(var(--kid-ident) + 8px);
+  /* The right lane .ch-hd keeps clear of the fixed corner control. There is no
+     longer a corner control in the kid app — the language pill was the only one,
+     and it went 2026-08-27 — so the lane is the page gutter and nothing more, and
+     the kid's own name gets the width the flag used to reserve. Kept as a var
+     rather than deleted: .ch-hd reads it, and a corner control coming back is a
+     one-line change here instead of a hunt through chart.css. */
+  --kid-corner-lane: var(--kid-chrome-gutter);
+  --kid-corner-gap: 14px; /* breathing room between the corner and content */
+  --kid-corner-band: calc(
+    env(safe-area-inset-top, 0px) + var(--kid-corner-top) + var(--kid-corner-h) + var(--kid-corner-gap)
+  );
+
+  /* ONE gutter for the whole page: the back button, the corner control and the
+     cards all measure from it. They used to be set independently and drifted to
+     three different values (12 / 8 / 16 at 390px), which is what read as
+     unstandardized -- the back button sat closer to its edge than the flag did
+     to its own, and neither lined up with the cards between them. */
+  --kid-chrome-gutter: var(--s6);
+
+  /* ONE centerline for the two top controls. They are different sizes (a kid's
+     back button wants a bigger tap target than the shell's 38px pill), so
+     matching their TOPS would still leave them visibly off. Both are centered on
+     this line instead, derived from the corner control's own box: the shell
+     component is the fixed point and the app chrome aligns to it. */
+  --back-size: 56px;
+  --kid-chrome-center: calc(
+    env(safe-area-inset-top, 0px) + var(--kid-corner-top) + var(--kid-corner-h) / 2
+  );
+}
+/* The tablet scale-up for the top row, in ONE place. Every other file's 768px
+   block restates its own sizes; this one must not, because the pill, the flag,
+   the reserved band and the back button's centre line are all calc()s off
+   --kid-ident and they only stay in step if the tablet changes that. */
+@media (min-width: 768px) {
+  :root { --kid-ident: 64px; }
+}
+/* ---------- the language pill is gone from the kid app ----------
+ * Andjroo, 2026-08-27: "I wanna remove the language selection from the kids area."
+ * `public/kid/index.html` no longer carries the `#lang` mount, so the shell has
+ * nowhere to build the flag-hex pill and every rule that dressed it -- the white
+ * surface, the flag sizing, the fixed corner placement and the two screens it was
+ * scoped to -- went with it. The i18n itself is untouched: the shell still resolves
+ * the language and `onLangReady` still repaints (src/kid-lang-repaint.test.ts). What
+ * a kid can no longer do is CHANGE it on a shared tablet; that lives in the parent
+ * app, which carries the same fleet corner control.
+ * ⚠️ Bringing it back means the mount AND the (0,4,0) override the shell's own
+ * `.nq-cc[data-face="lang"] .nq-cc-face-flag` needs to lose to -- see git history
+ * for this block before deleting anything else in here. */
+
+/* ---------- the battery corner (2026-09-02) ----------
+   The slot the language pill left empty, taken by the tablet's own battery
+   (js/battery.js): the kiosk hides the status bar, so this is the only battery a
+   kid, or a parent walking past, can see. Fixed, on every screen, every size of
+   it a calc() off --kid-ident like the rest of this row, and .ch-hd's right lane
+   reserves its width again (the one-line change the lane note above promised). */
+:root {
+  --kid-batt-w: calc(var(--kid-ident) * 2.3);
+  --kid-corner-lane: calc(var(--kid-chrome-gutter) + var(--kid-batt-w) + var(--s3));
+}
+.k-batt {
+  position: fixed; z-index: 30;
+  top: calc(env(safe-area-inset-top, 0px) + var(--kid-corner-top));
+  right: var(--kid-chrome-gutter);
+  height: var(--kid-corner-h); min-width: var(--kid-batt-w);
+  display: flex; align-items: center; justify-content: center;
+  gap: calc(var(--kid-ident) * 0.1); padding: 0 calc(var(--kid-ident) * 0.28);
+  background: var(--card); color: var(--ink); border-radius: var(--r-pill);
+  box-shadow: var(--sh-card);
+  font-weight: 700; font-size: calc(var(--kid-ident) * 0.42); line-height: 1;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none; /* a fact, not a control: taps fall through to the screen */
+}
+.k-batt svg { width: var(--ic-m); height: var(--ic-m); flex: none; }
+.k-batt .kb-cell { fill: none; stroke: currentColor; stroke-width: var(--icon-stroke); vector-effect: non-scaling-stroke; }
+.k-batt .kb-cap, .k-batt .kb-fill { fill: currentColor; }
+.k-batt .kb-bolt { fill: var(--gold); stroke: var(--card); stroke-width: 1; stroke-linejoin: round; }
+.k-batt.is-low { color: var(--red); }

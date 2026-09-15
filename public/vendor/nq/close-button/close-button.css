@@ -1,0 +1,32 @@
+/* Nimiq CloseButton (requires nimiq-style: .nq-button-s, .nq-icon, --nimiq-ease).
+   Upstream scoped CSS targeted the bare `button` element; namespaced here under
+   .close-button so the snippet can coexist with other components on one page. */
+.close-button {
+    font-size: 3rem;
+    padding: 0;
+    background: none !important;
+    height: 3rem;
+}
+
+/* Round hover/hit halo (the ::before hit-area box comes from .nq-button-s) */
+.close-button::before {
+    border-radius: 50%;
+}
+
+.close-button .nq-icon {
+    opacity: .2;
+    transition: opacity .3s var(--nimiq-ease);
+}
+
+.close-button:hover .nq-icon,
+.close-button:active .nq-icon,
+.close-button:focus .nq-icon {
+    opacity: .4;
+}
+
+/* Optional: pin to the top-right corner of a positioned parent (modal/overlay) */
+.close-button.top-right {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+}

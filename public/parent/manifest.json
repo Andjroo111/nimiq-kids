@@ -1,0 +1,15 @@
+{
+  "name": "nimiq.kids",
+  "short_name": "nimiq.kids",
+  "description": "The family wallet companion: approve the kids' chores, top up the family wallet, tune the tablet.",
+  "start_url": "/parent/",
+  "scope": "/parent/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1F2348",
+  "theme_color": "#1F2348",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icon.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

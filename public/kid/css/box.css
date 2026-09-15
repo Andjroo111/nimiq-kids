@@ -1,0 +1,288 @@
+/* nimiq.kids kid app — the TREASURE BOX (box.js): its own full-screen world, the
+   buy sheet and the pack-opening fan.
+
+   Its own file rather than the tail of chart.css, which had reached 810 lines
+   against this repo's 800-line CI guard. The Box is a SCREEN, not part of the
+   chart: it has its own root (.k-box), its own header and its own grid, and the
+   only thing it borrows is the .stk sticker component.
+
+   Loads AFTER chart.css, so the sticker rules it builds on are already in.
+   Sized 390-FIRST like chart.css, with the tablet scale-up at the foot.
+
+   Two things deliberately LEFT in chart.css: the `.bx-fan .stk-emoji` sizes,
+   which belong to the .stk-emoji cascade, and the prefers-reduced-motion block,
+   which is ONE rule naming .stk-*, .bx-* and .pack-* together -- splitting it
+   would leave half a rule in each file. */
+
+/* ---------- Treasure Box: its own full-screen world ---------- */
+.k-box { flex: 1; display: flex; flex-direction: column; padding: 12px 14px 40px; }
+/* The shelves' gap moved onto the slab with them (scene.css): .k-box holds the padding, the
+   floating back button and one child. */
+.bx-slab { gap: 12px; }
+/* The back button is absolutely positioned over this screen's top-left, so the
+   header must leave a lane for it or the chest glyph sits underneath it. */
+/* WRAPS, because the title is a translated phrase and the balance is a number,
+   and neither can be shortened. "Cofre del tesoro" / "Coffre au trésor" / "Baú
+   do tesouro" next to a balance pill do not fit 390 on one row -- before this
+   they simply ran under the pill, because .bx-title had min-width:0 and no
+   overflow rule. So the title pill never shrinks (flex-basis auto, shrink 0)
+   and the balance drops to a second, still right-aligned row when it has to.
+   English at 390 is unaffected; only the long locales pay the 34px. */
+.bx-hd {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2);
+}
+/* ⚠️ THE CORNER BAND MOVED FROM THE HEADER TO THE SLAB (2026-09-10). It used to push the
+   header clear of the fixed chrome from inside; with the slab wrapped around both, that left
+   the slab's own top edge ABOVE the chrome line, running off the screen and under the back
+   button. The band belongs to whatever the top-most element on the screen is, and that is
+   now the slab. */
+.bx-slab { margin-top: var(--kid-corner-band); }
+/* The chest and the word are ONE thing, so they share one white capsule — the
+   same answer .k-page-title already gives Grow, the amount pad and the scanner.
+   Both were bare on the scene here, and on Space that is navy ink on a navy sky:
+   measured rgb(31,35,72) against no background at all, so the title and the
+   glyph were both effectively gone. An opaque pill reads the same on all four
+   scenes, so no .bg-dark flip is wanted — and adding one would paint white on
+   white, which is the trap this app has already hit twice. */
+.bx-hd-title {
+  display: inline-flex; align-items: center; gap: 9px;
+  flex: 0 0 auto; max-width: 100%; min-width: 0;
+  padding: 5px 18px 5px 14px;   /* the pill itself is scene.css's */
+}
+.bx-chest { position: relative; font-size: var(--ic-l); color: var(--navy); display: inline-flex; flex: none; }
+
+/* ---------- shelf headers ----------
+   These used .ch-sec-hd, which is the CHART's floating label, and it was wrong
+   here twice over.
+
+   It stretched. .ch-sec-hd centres itself with `align-self: flex-start`, which
+   does nothing to a block <h2> inside a plain <section>, so every shelf header
+   ran the full width of the screen (362 of 390 measured) instead of hugging its
+   word. .bx-shelf is a flex column now, so align-self does what it says.
+
+   It was see-through. 0.82 is the treatment for a label sitting ALONE on the
+   kid's scene, with nothing solid beside it to be measured against. A shelf
+   header sits directly on top of solid #fff tiles, which is exactly the case
+   chart.css already settles for .ch-group-hd: "a header and the cards it opens
+   are one stack, and the header reading as a tint of the scene broke that."
+
+   No .bg-dark flip, deliberately. Once a label has an opaque white surface, the
+   dark-scene rule paints white on white and the word disappears — that has
+   happened twice in this app already (the page titles, then the kid's name
+   pill). Solid white, navy ink, the same on every background. */
+.bx-shelf { display: flex; flex-direction: column; gap: var(--s2); }
+/* Surface, size and weight are the app's, in scene.css. Nothing shelf-specific is left. */
+.bx-title {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bx-balance {
+  flex: none; margin-left: auto;
+  background: var(--card); box-shadow: var(--sh-card); border-radius: var(--r-pill);
+  padding: 8px 13px; font-size: 14px; font-weight: 800; color: var(--navy);
+}
+.bx-balance i { font-style: normal; font-size: 12px; opacity: 0.55; }
+
+/* A WRAPPING grid, not a horizontal scroller. Every 3-item shelf used to be
+   clientWidth 362 against scrollWidth 408, so the third card was sliced with
+   no affordance saying it scrolled; at 800px nothing scrolled at all and
+   2-item shelves stranded half the row. The old overflow also clipped every
+   card's shadow into a hard grey line. */
+.bx-row {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--s3); padding: 2px;
+}
+.bx-item {
+  display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: var(--s2);
+  background: var(--card); border-radius: var(--r-card); box-shadow: var(--sh-card);
+  padding: var(--s3) var(--s2); min-height: 132px; text-align: center;
+}
+/* Gold means "you can have this now". An item you cannot afford yet keeps a
+   neutral pill rather than promising something the balance cannot cover.
+   Deliberately NOT dimmed: opacity is already the is-owned semantic. */
+.bx-item.is-locked .bx-price { background: var(--fill-6); color: var(--ink-70); }
+.bx-item.is-owned { opacity: 0.65; }
+/* A grown-up has the screen shut, so these minutes buy nothing and the tile is dimmed
+   rather than priced. Same treatment as is-owned on purpose: both mean "not now", and a
+   kid should not have to learn a second grey. */
+.bx-item.is-off { opacity: 0.65; }
+/* Deliberately NOT a pill. Every pill on this shelf is a price — something you can have
+   for a number — and dressing a refusal up as one makes it read as a second, stranger
+   price. This is a caption, and it wraps to two lines rather than being cut short. */
+.bx-unavailable {
+  font-size: 11.5px; font-weight: 800; color: var(--ink-70); line-height: 1.25;
+}
+.bx-fan { position: relative; width: 66px; height: 52px; display: block; flex: none; }
+.bx-fan .stk {
+  position: absolute; width: 42px; height: 42px; left: calc(2px + var(--i) * 11px); top: calc(5px + var(--i) * 1px);
+  transform: rotate(calc(-10deg + var(--i) * 10deg));
+}
+.bx-item-ic { font-size: 34px; color: var(--blue); height: 52px; display: flex; align-items: center; flex: none; }
+/* The drawn face (#404). Same 52px band the glyph occupies, so a shelf mixing art tiles and
+   glyph tiles keeps one baseline for its titles. `contain`, not `cover`: these are cut to a
+   square with the ink inset, and cropping one would eat the outline the whole family shares. */
+.bx-item-art { height: 52px; width: 52px; object-fit: contain; flex: none; display: block; }
+.bx-timer-prev { display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; flex: none; }
+.bx-timer-prev svg { display: block; width: 100%; height: auto; }
+.bx-buy-face .bx-timer-prev { width: 76px; height: 90px; }
+.bx-item-title { min-height: 2.4em;
+  font-size: 13.5px; font-weight: 800; color: var(--navy); line-height: 1.2;
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.bx-price {
+  font-size: 13px; font-weight: 800; color: var(--ink-70);
+  background: rgba(233, 178, 19, 0.16); border-radius: var(--r-pill); padding: 4px 11px;
+}
+/* What the NIM is worth, SHOWN rather than baked into the catalogue, so it
+   stays true as the rate moves. It reads through the same fmtFiat() the money
+   screen uses, which means it follows the kid's own currency picker. Secondary
+   to the price: NIM is what is charged. */
+.bx-fiat { font-size: 12px; font-weight: 700; color: var(--ink-50); margin-top: -2px; }
+.bx-owned { font-size: 12px; font-weight: 800; color: var(--green-2); display: inline-flex; align-items: center; gap: 4px; }
+.bx-owned .k-icon { font-size: 11px; }
+
+/* buy sheet */
+.bx-buy-face { display: grid; place-items: center; min-height: 60px; font-size: 44px; color: var(--blue); }
+.bx-buy-face .bx-fan { width: 90px; height: 64px; }
+.bx-buy-face .bx-fan .stk { width: 52px; height: 52px; left: calc(6px + var(--i) * 14px); }
+.bx-buy-title { font-size: 21px; font-weight: 800; color: var(--navy); text-align: center; }
+.bx-buy-cost { font-size: 16px; font-weight: 800; color: var(--navy); }
+.bx-buy-fiat { font-size: 14px; font-weight: 700; color: var(--ink-50); margin-top: -6px; }
+.bx-buy-left { font-size: 14px; font-weight: 700; color: rgba(31, 35, 72, 0.5); }
+
+/* the chest-opening entry moment (an EVENT, not a pulse) */
+.box-enter .bx-chest { animation: bx-pop 0.7s cubic-bezier(0.41, 0.34, 0.26, 1.55); }
+.box-enter .bx-chest::after {
+  content: ""; position: absolute; inset: -16px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(233, 178, 19, 0.45), transparent 70%);
+  animation: bx-burst 0.9s ease-out forwards; pointer-events: none;
+}
+.box-enter .bx-shelf { animation: bx-rise 0.55s var(--ease) backwards; }
+/* Shelves come from the store data, so the stagger has to as well; the five
+   hardcoded nth-of-type delays silently stopped at shelf 5. */
+.box-enter .bx-shelf { animation-delay: calc(var(--shelf-i, 0) * 0.06s); }
+@keyframes bx-pop { 0% { transform: scale(0.4) rotate(-8deg); } 60% { transform: scale(1.18) rotate(4deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes bx-burst { 0% { opacity: 1; transform: scale(0.4); } 100% { opacity: 0; transform: scale(1.5); } }
+@keyframes bx-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+
+/* pack tear-open: stickers fly out into a fan */
+.pack-burst { display: flex; flex-direction: column; align-items: center; gap: 24px; }
+.pack-stks { position: relative; width: 300px; height: 170px; }
+.pack-stks .stk {
+  position: absolute; left: 50%; top: 62%; width: 64px; height: 64px; opacity: 0;
+  --fan: calc(var(--i) - (var(--n) - 1) / 2);
+  animation: pack-fly 0.9s var(--ease) forwards;
+  animation-delay: calc(var(--i) * 0.12s);
+}
+@keyframes pack-fly {
+  0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+  40% { opacity: 1; }
+  100% {
+    transform: translate(calc(-50% + var(--fan) * 56px), calc(-50% - 62px))
+      rotate(calc(var(--fan) * 8deg)) scale(1);
+    opacity: 1;
+  }
+}
+.pack-label { font-size: 26px; font-weight: 800; color: #fff; }
+
+/* ---------- tablet scale-up (>=768px keeps the 390 design, bigger) ---------- */
+@media (min-width: 768px) {
+  .k-box { padding: 0 32px 60px; }
+  .bx-slab { gap: 18px; }   /* the gap follows the shelves onto the slab, same as the 390 rule */
+  /* NO left lane for the back button here, unlike .k-page-hd. That lane is for
+     screens whose header shares a row with the button; this header is pushed a
+     full --kid-corner-band down, which clears the button's box entirely, so the
+     96px it used to reserve was dead space that shoved the title 96px right of
+     "Sticker packs" and every card under it. The title is the leftmost thing on
+     the screen and now starts on the same line as the column it titles. */
+  .bx-hd { gap: 16px; }
+  .bx-hd-title { gap: 14px; padding: 8px 26px 8px 20px; }
+
+  .bx-balance { font-size: 20px; padding: 12px 20px; }
+  .bx-balance i { font-size: 14px; }
+  .bx-shelf { gap: var(--s3); }
+
+  .bx-row { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--s4); }
+  .bx-item { min-height: 184px; padding: 18px 12px; gap: 10px; }
+  .bx-fan { width: 96px; height: 72px; }
+  .bx-fan .stk { width: 58px; height: 58px; left: calc(4px + var(--i) * 16px); }
+  .bx-item-ic { font-size: 48px; height: 72px; }
+  .bx-item-art { height: 72px; width: 72px; }
+  .bx-timer-prev { width: 68px; height: 72px; }
+  .bx-item-title { font-size: 18px; }
+  .bx-price { font-size: 17px; padding: 6px 15px; }
+  .bx-fiat { font-size: 15px; }
+  .bx-owned { font-size: 16px; }
+  .bx-buy-title { font-size: 30px; }
+  .bx-buy-cost { font-size: 22px; }
+  .bx-buy-fiat { font-size: 18px; }
+  .bx-buy-left { font-size: 18px; }
+  .pack-stks { width: 460px; height: 220px; }
+  .pack-stks .stk { width: 88px; height: 88px; }
+  @keyframes pack-fly {
+    0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+    40% { opacity: 1; }
+    100% {
+      transform: translate(calc(-50% + var(--fan) * 82px), calc(-50% - 80px))
+        rotate(calc(var(--fan) * 8deg)) scale(1);
+      opacity: 1;
+    }
+  }
+  .pack-label { font-size: 36px; }
+}
+
+/* ---- "My prizes" and the waiting mark (#121) ----
+   The Treasure Box had no receipt. A kid spent 500 NIM of their own money, saw confetti,
+   and the app behaved as though it had never happened.
+
+   A LIST, not tiles. The shelves above are a catalogue and a grid is right for choosing
+   between things; this is history, it is read top to bottom, and a title is the widest part
+   of a row rather than something to clamp to two lines under a picture. */
+.bx-prize-list { display: flex; flex-direction: column; gap: var(--s2); }
+.bx-prize {
+  display: flex; align-items: center; gap: var(--s2);
+  background: var(--card); border-radius: var(--r-card); box-shadow: var(--sh-card);
+  padding: var(--s2) var(--s3);
+}
+.bx-prize-main { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.bx-prize-title {
+  font-size: 15px; font-weight: 800; color: var(--navy);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bx-prize-state { font-size: 13px; font-weight: 700; color: var(--ink-70); }
+.bx-prize-price { flex: none; font-size: 13px; font-weight: 800; color: var(--ink-70); }
+/* Waiting on a grown-up is the state a kid checks this screen FOR, so it is the one that
+   is not grey. Gold, the same "this is yours, it is coming" colour the affordable price
+   pill already uses; a red or an amber alert colour would read as something gone wrong. */
+.bx-prize.is-pending_parent .bx-prize-state { color: #8c6b00; }
+.bx-prize.is-fulfilled { opacity: 0.7; }
+
+/* On the TILE: how many of this item are already queued. A coupon has no owned state and
+   is re-buyable on purpose, so without this a second tap spent the money again in silence. */
+.bx-waiting {
+  font-size: 11.5px; font-weight: 800; color: #8c6b00;
+  background: rgba(233, 178, 19, 0.16); border-radius: var(--r-pill); padding: 3px 9px;
+}
+
+/* ---------- SETS YOU CAN COLLECT (#400) ----------
+   Off the Today list, onto its own shelf here. Everything else in this screen is priced and
+   a tap spends real NIM; a tap here ASKS a grown-up for a ladder. The subtitle is what stops
+   the shelf reading as free stuff, so it is not decoration and does not come off. */
+.bx-sets-sub {
+  margin: -2px 0 2px;
+  align-self: flex-start;
+  padding: 3px 11px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.86);
+  font-size: var(--fs-small);
+  font-weight: 700;
+  color: rgba(31, 35, 72, 0.6);
+}
+/* A column, not the .bx-row carousel the priced shelves use: a set card is a wide row (name,
+   the strip of what is in it, and the ask), and five of those side by side would clip exactly
+   the way #91 clipped the shelves. */
+.bx-set-list { display: flex; flex-direction: column; gap: var(--s2); }
+.bx-set-list .gs-set { width: 100%; }
+
+@media (min-width: 768px) {
+  .bx-sets-sub { font-size: 20px; padding: 5px 16px; }
+}

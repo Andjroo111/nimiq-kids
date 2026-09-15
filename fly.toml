@@ -1,0 +1,72 @@
+# Canonical Fly deploy for a Nimiq mini-app (Bun + Hono + bun:sqlite on a persistent volume).
+#
+# Two things make this the fleet default:
+#   1. Scale-to-zero: idle machines stop, so a low-traffic app costs ~nothing.
+#   2. A volume at /app/data holds the SQLite file, so data survives every redeploy.
+#
+# Cloudflare sits IN FRONT of this app (proxied CNAME -> <app>.fly.dev). Fly runs the
+# code; Cloudflare provides DNS, TLS, DDoS/WAF, and optional Access gating. See docs/DEPLOY.md.
+#
+# ⚠️ THIS IS NOT WHAT SERVES https://nimiq.kids TODAY.
+#
+# The apex is a Cloudflare tunnel to the Mac Mini's MAINNET instance (:3960), which holds the
+# real households and the real database. This Fly app is a separate deploy target with its own
+# EMPTY volume. Pointing DNS here does not move the app; it replaces it with a blank one.
+#
+# That gap is why the [env] block below is deliberately paranoid. Read it before changing it.
+
+app = "nimiq-kids"
+primary_region = "ord"   # Chicago — closest Fly region to KC. Change per app if needed.
+
+[build]
+
+[env]
+  PORT = "8080"
+  DB_PATH = "/app/data/kids.db"
+  # Pilot runs in SIM settlement (no faucet / no live chain reads needed to boot).
+  # To go live on testnet: unset NIMIQ_SIM and set DEV_PARENT_PRIV to a funded testnet key
+  # (and NIMIQ_NETWORK=main for mainnet). See docs/DEPLOY.md.
+  NIMIQ_SIM = "1"
+
+  # THE GATE IS ON HERE BECAUSE ABSENCE OF CONFIG IS THE DANGEROUS CASE.
+  #
+  # `approvalPolicy` (src/custody.ts) keys `forced` off NIMIQ_NETWORK, which DEFAULTS TO
+  # "test" when unset. This file never sets it. So without the two flags below, a Fly boot
+  # comes up demo-unlocked, with kid money endpoints open to anonymous callers — the exact
+  # posture the v0.43.0 hardening pass exists to prevent. It would look fine on /health,
+  # because in SIM nothing real can move; it would stop looking fine the moment this target
+  # was ever given a key, a network, or the production hostname.
+  #
+  # A deploy target nobody is watching must fail CLOSED. These two flags cost nothing in SIM
+  # (there is no real money to gate) and remove the whole failure mode. src/fly-target-policy
+  # .test.ts pins this block to the policy so the two cannot drift.
+  HATCH_REQUIRE_PARENT_APPROVAL = "1"
+  HATCH_LEGACY_BOOT = "0"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 200
+    hard_limit = 250
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/health"
+
+# SQLite lives here. Volume name must match `fly volumes create` (see docs/DEPLOY.md).
+[[mounts]]
+  source = "nimiq_kids_data"
+  destination = "/app/data"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

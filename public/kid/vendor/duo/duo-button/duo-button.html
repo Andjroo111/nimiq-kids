@@ -1,0 +1,14 @@
+<!-- duo-button: the Duolingo lip button on the host's colours. Requires duo-button.css;
+     the default colour map reads the legacy nimiq-style tokens (nq init --style legacy) and
+     falls to grey without them, so map --duo-face / --duo-done / --duo-prize / --duo-paper-ink
+     on :root for any other brand.
+     Source: mechanics measured off duolingo.com live CSS 2026-09-13; edge derivation from
+     Tomacco's "Recreate Duolingo's 3D Button in Rive" (rive-lab vault). -->
+<button class="duo-button" type="button">Continue</button>
+<button class="duo-button is-secondary" type="button">Skip</button>
+<button class="duo-button is-done" type="button">Done</button>
+<button class="duo-button is-prize" type="button">Claim</button>
+<button class="duo-button is-sm" type="button">Start</button>
+<button class="duo-button is-sm is-secondary" type="button">Rules</button>
+<button class="duo-button" type="button" disabled>Locked</button>
+<button class="duo-button is-block" type="button">Check</button>

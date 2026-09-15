@@ -1,0 +1,352 @@
+/* nimiq.kids — CHROME THAT SITS ON THE SCENE.
+   Andjroo, 2026-08-28, after seeing gray, navy and black card mockups side by
+   side: "keep all white for right now and change the headers back to white as
+   well." So cards are WHITE on every scene — but the two readability fixes
+   that started this stay, because reverting them re-opens the original
+   complaint ("so light on light ... Jordan's title and the twelve minutes
+   left"):
+
+     1. every solid card carries a 1px navy ring via --sh-card, so a white
+        card still has an edge where the art behind it is white (city clouds);
+     2. the bare labels sit on a SOLID white pill with full-ink text —
+        the old 0.82 white pill with 70% ink is what vanished into the art.
+
+   ⚠️ THE TOKEN IS STILL THE MECHANISM. kid.css defines `--card: #ffffff` at
+   :root and every solid card on a scene screen paints
+   `background: var(--card)` — do NOT write `background: #fff` on a card
+   (src/kid-scene-contrast.test.ts locks 11 readers). Recoloring every card in
+   the app is a one-line change here, which is how the gray/navy/black
+   experiments were rendered and how the next one will be.
+
+   bg-dark is still MEASURED (util.js samples each art scene's pixels once —
+   luma.js) and still drives the non-card flips (time-bar, grow hint, the
+   games wash). Cards and labels no longer flip with it.
+
+   Split out of chart.css at the 800-line guard. Linked after the sheets it
+   overrides, before landscape.css, which stays last. */
+
+/* The ring, on every var(--sh-card) surface of a scene screen. Invisible
+   against dark art, and the whole edge against white art. */
+#kid-app.bg-image, #kid-app.bg-meadow, #kid-app.bg-ocean,
+#kid-app.bg-space, #kid-app.bg-city {
+  --sh-card: 0 8px 56px rgba(0, 0, 0, 0.111), 0 0 0 1px rgba(31, 35, 72, 0.08);
+}
+
+/* ---------- the bare label ("Today") ---------- */
+/* On card chrome, not bare on the photo: Nimiq ships no text halos anywhere,
+   and a label floating on artwork needs a surface to stay readable. Solid
+   white + full ink on every scene; the ring gives the pill its edge on white
+   art. The games row headings (games.css .games-row-hd) are the same pill for
+   the same reason; keep the two in step. */
+/* ---------- THE HEADING SCALE, applied (Andjroo, 2026-09-10) ----------
+   Two roles, one look each. The tokens and the reasoning are in kid.css; this is where
+   every heading in the app gets them, so a screen can no longer size its own.
+
+   A SECTION HEADING is a pill on the scene: solid white, full ink, rung 1. `.ch-sec-hd`
+   ("Today") was the model and the other two were near-misses of it -- the Box's shelves at
+   22/700 solid, the games rows at 20/700 on 0.92 white. The 0.92 is what vanished into the
+   art before (see the top of this file), so solid is the one to keep.
+
+   ⚠️ ONE SELECTOR, not three rules that agree today. That agreement is exactly what the app
+   had before and it drifted three times. */
+.ch-sec-hd,
+.bx-shelf-hd,
+.games-row-hd {
+  align-self: flex-start; max-width: 100%; margin: 0 0 2px; padding: 6px 16px;
+  background: var(--card); border-radius: var(--r-pill); box-shadow: var(--lift-1);
+  font-size: var(--fs-section-hd); font-weight: var(--fw-section-hd); color: var(--ink);
+}
+
+/* A PAGE TITLE is the same pill, one step up, and it names the screen. Grow and the scanner
+   wear it directly; the Box and Games wrap a glyph with it, so those two get the surface on
+   the wrapper and the type on the word inside. */
+.k-page-title,
+.bx-hd-title,
+.games-hd {
+  background: var(--card); border-radius: var(--r-pill); box-shadow: var(--lift-1);
+  text-shadow: none;
+}
+.k-page-title,
+.bx-title,
+.games-title {
+  font-size: var(--fs-page-title); font-weight: var(--fw-page-title); color: var(--ink);
+}
+
+/* ---------- THE ELEVATION LADDER, applied (#413, Andjroo 2026-09-07) --------
+   He kept one depth treatment out of six: shadow only. Tokens and the reasoning
+   are in kid.css. This is where the board's cards get their rung, and it lives
+   in scene.css because that is already the sheet that owns how card chrome
+   answers the scene behind it.
+
+   ⚠️ Rung by CARD KIND, never by scroll position. A shadow that changes as the
+   list moves reads as the card twitching, and Andjroo closed the four treatments
+   that animate with distance.
+
+   ---------- A PART OF THE DAY IS ONE CARD (Andjroo, 2026-09-07) -------------
+   "Today should be the header, but all the morning should be one card with
+   subcards in them. Same thing for each part, one large card with little cards
+   instead of the little spacing in between."
+
+   So the section IS the object and the jobs are things sitting in it:
+     .ch-sec-hd   "Today", a bare label above everything, on no card
+     .ch-group    the part of the day. THE card. Header and jobs share one
+                  surface, one radius, one shadow.
+     .ch-tasks    a recessed tray inside it, so the jobs read as sitting IN
+                  the card rather than floating over the scene
+     .ch-task     a little card in the tray, at a low rung
+
+   🔑 No markup change. `.ch-group` is already a <section> wrapping the header
+   button and `.ch-tasks` (chart.js groupHtml), which is exactly this shape. */
+
+/* ---- THE SLAB, and what it does to the ladder (Andjroo, 2026-09-10) ----------
+   He judged four shadow treatments on the real board and kept this one. The complaint that
+   started it: the contact layer (7px down, 5px of blur) reads as a hard LINE drawn under
+   each card, with nothing holding it up. "I kind of like the hard lines, but ... it would
+   be kind of nice if we had another shadow container underneath everything, so that way the
+   outlines were very clear."
+
+   So the weight moves off the cards and onto one surface. The slab is the object: it is
+   what the scene is holding, and it carries the only big shadow on the screen. The cards are
+   its CONTENTS, so each drops two rungs -- close contact, a short pool, no 55px ambient.
+   Nine cards each claiming 28px of height is what made a screen read as noise.
+
+   ⚠️ THE RUNGS ARE OVERRIDDEN, NOT REWRITTEN. Every card still says `box-shadow:
+   var(--lift-4)`; only the VALUE those names resolve to changes inside the slab. That is
+   the whole point of the token: a card keeps its rung relative to its neighbours (money
+   still sits above the calendar, a job still sits lowest) and the ladder can be re-tuned
+   here without touching a single card rule.
+
+   --lift-6 is deliberately NOT overridden: the name pill, the battery and the back button
+   are chrome that floats over the slab, and they are the one thing that must still read as
+   above it. Each screen emits them OUTSIDE the slab for the same reason.
+
+   ⚠️ WHERE IT DOES NOT GO (Andjroo, 2026-09-10, after the board shipped: "the other screens
+   like box, and money didn't get the same treatment"). Board, Money, Treasure Box, Games and
+   Grow are all the same shape -- floating chrome over a stack of cards on the scene -- and
+   all five are on it. The three that are NOT are not oversights:
+     the SHEETS (send, receive) are already one card over a scrim, so a slab under one card
+       is a second surface saying the same thing;
+     the CAMERA (scan) is a viewfinder, and depth under a hole in the screen is a lie;
+     the EGG TIMER draws its own world (a hexagon plate on the kid's background) and a panel
+       behind it would cover the thing the screen is about. */
+.k-slab {
+  /* IT ALSO RUNS THE SCREEN'S COLUMN, the one each screen's root used to run, so the
+     min-height:0 chain down to whatever scrolls inside it (.ch-groups, .k-feed) is
+     unbroken. Layout and paint are one rule because on this element they are one decision.
+     The gap is the screen's own, so each screen sets it next to its other spacing.
+
+     ⚠️ `flex: 0 1 auto`, NOT `flex: 1`. The slab is a SURFACE, so its height is visible:
+     stretched to the screen it paints over the whole scene and the art the app is built on
+     disappears under a white wash. Hugging its content leaves the scene reading above the
+     dock, which is the composition Andjroo picked. `flex-shrink: 1` and `min-height: 0` keep
+     the other half true -- a screen tall enough to overflow still gives, and the give lands
+     in the inner scroller rather than growing the screen. */
+  flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column;
+  border-radius: var(--r-sheet); padding: var(--s3);
+  background: rgba(255, 255, 255, 0.42);
+  box-shadow: 0 30px 48px -18px rgba(31, 35, 72, 0.42), 0 6px 5px rgba(31, 35, 72, 0.16);
+  --lift-5: 0 5px 4px rgba(31, 35, 72, 0.16), 0 14px 22px -8px rgba(31, 35, 72, 0.18), var(--lift-ring);
+  --lift-4: 0 4px 3px rgba(31, 35, 72, 0.14), 0 11px 18px -8px rgba(31, 35, 72, 0.15), var(--lift-ring);
+  --lift-3: 0 3px 2px rgba(31, 35, 72, 0.12), 0 8px 14px -8px rgba(31, 35, 72, 0.13), var(--lift-ring);
+  --lift-1: 0 2px 2px rgba(31, 35, 72, 0.10), 0 5px 10px -6px rgba(31, 35, 72, 0.11), var(--lift-ring);
+}
+
+/* ⚠️ AND EVERY CHILD ASKS FOR ITS CONTENT. This is the one rule that makes a hugging slab
+   work, and it is the least obvious line in this file.
+
+   A slab that hugs is only as tall as what its children ASK for, and the children were all
+   written for a parent that filled the screen: `.k-feed-card` is `flex: 1` (basis 0, asks
+   for NOTHING) and `.ch-today` is `flex: 1 1 30svh` (asks for 384px against 645px of cards).
+   Left alone, the money screen hugged to an empty feed and the board sliced the third job in
+   half at the slab's own bottom edge with the lower half of the screen empty.
+
+   `flex-basis: auto` is the content, and it changes nothing else: grow and shrink are
+   untouched, `flex: none` children already have basis auto, and the screen's cap has not
+   moved -- shrink plus the root's dock padding still bound the slab, and the overflow still
+   lands in the inner scroller as a scroll. */
+.k-slab > * { flex-basis: auto; }
+
+/* ---- the chrome that floats OVER the board ----
+   Andjroo, 2026-09-07: "the character, Sam, and the battery also need the same treatment."
+   They were still on the flat --sh-card while everything under them had a rung, so the two
+   things that are literally always on top read as the flattest things on the screen. */
+.ch-kid,
+.k-batt,
+.back-btn { box-shadow: var(--lift-6); }
+
+/* the two rungs that stayed single cards */
+.ch-money { box-shadow: var(--lift-5); }
+.k-cal { box-shadow: var(--lift-3); }
+.bx-hd-title,
+.bx-balance,
+.ch-sec-hd { box-shadow: var(--lift-1); }
+
+/* ---- THE HEADINGS, which were reading as the quietest thing on the board ----
+   Andjroo, 2026-09-07: "Today doesn't really stick out that much. The headers
+   are kind of hard to really see, they're kind of getting lost in the space."
+
+   The scale ran BACKWARDS. A job title is 17px/800; "Morning" was 17px/700, the
+   same size and LIGHTER than the things inside it, and "Today" was 15px, the
+   smallest type on the screen while naming the biggest thing on it.
+
+   Three steps down, so each heading is bigger than what it contains:
+     Today    22 / 900   the day        <- --fs-section-hd, the app's section heading
+     Morning  20 / 800   a part of it
+     the job  17 / 800   unchanged, in chart.css
+
+   ⚠️ The 22/900 used to be LITERAL here, on the grounds that --fs-head is 20px
+   and shared. That was the right call against the tokens that existed, and it
+   is also how the app ended up with three heading scales: this rule was the
+   only one that had been thought about, and the Box and Games each guessed
+   their own. There is a token for exactly this role now (--fs-section-hd, and
+   its 900 weight is this rule's), so Today keeps its size and the other two
+   finally match it instead of approximating it. Only the spacing is left. */
+.ch-sec-hd { margin-bottom: var(--s2); }
+.ch-group-hd {
+  font-size: 20px; font-weight: 800;
+}
+/* the heading owns a line of its own, so it stops reading as the first row of
+   the list underneath it */
+.ch-group.is-open > .ch-group-hd {
+  border-bottom: 1px solid rgba(31, 35, 72, 0.16);
+  margin: 0 var(--s2) var(--s1);
+}
+
+/* ---- the part of the day, as one card ---- */
+.ch-group {
+  background: var(--card); border-radius: var(--r-card);
+  box-shadow: var(--lift-4);
+  gap: 0; padding: var(--s1) var(--s1) var(--s1);
+  overflow: hidden;                 /* the tray's corners cannot poke past the card's */
+}
+/* the header is now a ROW of the card, not a card of its own */
+.ch-group-hd {
+  background: none; box-shadow: none; border-radius: 0;
+  padding: var(--s3);
+}
+/* the tray. A recess, not another card: no shadow, a tint the jobs sit on. */
+.ch-group.is-open > .ch-tasks {
+  background: rgba(31, 35, 72, 0.045);
+  border-radius: calc(var(--r-card) - 2px);
+  padding: var(--s2); gap: var(--s2); margin: 0;
+}
+/* a job is a little card IN the tray, so it sits low */
+.ch-task { box-shadow: var(--lift-1); }
+
+/* ---- the money screen, the same ladder read for its own contents ----
+   Same rule as the board: rung by what a card IS. The account card is the hero of the screen,
+   the way the money card is the hero of the board; the history is a surface under it; the two
+   pill rows are things you tap, so they sit between.
+   ⚠️ `.k-scan-stage` and `.k-scan-hint` are the camera screen and stay flat. A shadow on a
+   viewfinder is a lie about depth: there is nothing under it. */
+.k-wallet-card { box-shadow: var(--lift-5); }
+.k-feed-card { box-shadow: var(--lift-3); }
+.k-th,
+.k-grow-pending,
+.k-cashlink-btn { box-shadow: var(--lift-4); }
+
+/* ---- EVERY REMAINING SURFACE (Andjroo, 2026-09-07) ------------------------
+   "If we still have game tiles and lock screens, we need to go through the whole thing,
+   they should all not be flat anymore."
+
+   Nothing is left on the flat --sh-card except the one surface that must be, below. Same rule
+   throughout: rung by what a thing IS.
+     6  floats OVER a card, so it must read above whatever it is sitting on
+     5  the hero of its own screen
+     4  a thing you tap
+     3  something resting on a card rather than on the scene
+     1  a label */
+.ch-task-x,
+.place-cancel,
+.k-scan-hint { box-shadow: var(--lift-6); }
+
+.lk-banner { box-shadow: var(--lift-5); }
+
+.game-tile,
+.lk-jobs,
+.tm-opt,
+.sound-play { box-shadow: var(--lift-4); }
+
+.w-photo img { box-shadow: var(--lift-3); }
+
+.k-page-title,
+.pin-grid button { box-shadow: var(--lift-1); }
+
+/* The camera viewfinder is the hero of the scan screen. I first left it out on the grounds that
+   a shadow on a hole is a lie about depth; that was wrong twice over. It is a rounded PANEL
+   containing the feed, not a hole, and it was never flat to begin with, it was still on the
+   legacy --sh-card, which is exactly the thing this sweep exists to remove. */
+.k-scan-stage { box-shadow: var(--lift-5); }
+
+/* the tap-through, on everything that is a tap target and has a rung */
+.game-tile,
+.tm-opt,
+.sound-play,
+.lk-jobs { transition: box-shadow 190ms var(--ease); }
+.game-tile:active,
+.tm-opt:active,
+.sound-play:active { box-shadow: var(--lift-1); transition-duration: 110ms; }
+@media (prefers-reduced-motion: reduce) {
+  .game-tile, .tm-opt, .sound-play, .lk-jobs { transition: none; }
+}
+
+/* ---- the Treasure Box shelves are the same shape ---- */
+.bx-item,
+.bx-prize { box-shadow: var(--lift-4); }   /* .bx-prize is a box item too and was missed */
+
+/* The press, which is the whole reason a ladder beats a single shadow: a card
+   that can sit at a height can also FALL to the board and come back. Down is
+   fast so a 16ms tap still shows it; back is slower so the lift is legible.
+   ⚠️ No transform here. `--press-scale` already owns the squash on the elements
+   that use it, and two rules keying the same property is how one silently wins. */
+.ch-task,
+.bx-item { transition: box-shadow 190ms var(--ease); }
+.ch-task:active { box-shadow: none; transition-duration: 110ms; }
+.bx-item:active { box-shadow: var(--lift-1); transition-duration: 110ms; }
+
+/* Reduced motion keeps the strata and drops the travel: the depth is the point,
+   the movement is the flourish. */
+@media (prefers-reduced-motion: reduce) {
+  .ch-task, .bx-item { transition: none; }
+}
+
+/* ---------- THE TWO ONBOARDING GATES (Andjroo, 2026-09-07) -----------------
+   "Do we need to do the same thing for the who are you part, the Sam thing, and then the two
+   picture card?" Yes. They were the last surfaces with no rung at all: flat 6% ink tints on a
+   white card, which is the one place in the app where a tap target had no depth whatsoever.
+
+   ⚠️ These are the FIRST screens a kid sees, before the board has taught them anything, so
+   they set the expectation the rest of the app then has to meet. Same shape as a part of the
+   day: a card, a recessed tray inside it, and little cards in the tray.
+
+   ⚠️ NOT on the board's `.ch-*` rungs by accident. The roster row is a thing you tap and it is
+   INSIDE a tray, which is the job-card position (1), not the day-part position (4). The picture
+   grid is a keypad, so it matches `.pin-grid button` at 1 for the same reason.
+   `.k-connect-card` is the hero of its own screen, like the account card on the money screen. */
+.k-connect-card { box-shadow: var(--lift-5); }
+
+.k-roster-list {
+  background: rgba(31, 35, 72, 0.045);
+  border-radius: var(--r-card);
+  padding: var(--s2);
+}
+.k-roster-list .account-entry {
+  background: var(--card);
+  border-radius: calc(var(--r-card) - 2px);
+  box-shadow: var(--lift-1);
+  transition: box-shadow 190ms var(--ease);
+}
+.k-roster-list .account-entry:active { box-shadow: none; transition-duration: 110ms; }
+
+.k-secret-pic {
+  background: var(--card);
+  box-shadow: var(--lift-1);
+  transition: box-shadow 190ms var(--ease);
+}
+/* ⚠️ connect.css already keys `:active` on this element for the 0.92 squash and a darker fill.
+   Only the shadow is added here, so the two do not fight over `background`. */
+.k-secret-pic:active { box-shadow: none; transition-duration: 110ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .k-roster-list .account-entry, .k-secret-pic { transition: none; }
+}

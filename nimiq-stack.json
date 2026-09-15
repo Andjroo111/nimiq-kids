@@ -1,0 +1,45 @@
+{
+  "$schema": "https://nimiq.tech/schemas/nimiq-stack.v1.json",
+  "schemaVersion": 1,
+  "name": "nimiq.kids",
+  "chainApp": true,
+  "exempt": false,
+  "exemptReason": null,
+  "stack": {
+    "framework": "vanilla-pwa",
+    "server": "hono@^4.7",
+    "runtime": "bun",
+    "build": "none",
+    "packageManager": "bun"
+  },
+  "styling": {
+    "source": "nimiq-ui",
+    "notes": "@nimiq/style + nq-* component classes; vanilla PWA assets in public/"
+  },
+  "settlement": {
+    "pattern": "cashlink-mint",
+    "lib": "inline",
+    "coreRole": "offline-crypto-only",
+    "notes": "src/nimiq/cashlink.ts mints a Cashlink per chore payout; src/nimiq/client.ts SIM flag (NIMIQ_SIM) runs the full UX with no faucet/network. Live testnet needs a funded DEV_PARENT_PRIV."
+  },
+  "deploy": {
+    "target": "fly",
+    "region": "ord",
+    "storage": "fly-volume",
+    "volumeMount": "/app/data",
+    "autoDeploy": "github-actions:workflow_run(CI)",
+    "edge": {
+      "provider": "cloudflare",
+      "proxied": true,
+      "access": false,
+      "notes": "Cloudflare DNS+proxy in front of <app>.fly.dev for TLS/DDoS/WAF; enable Access for internal-only apps. Deploy is gated on the CI workflow via workflow_run(CI) so a red check/test/file-size guard blocks the deploy."
+    }
+  },
+  "config": {
+    "tsconfig": "local-strict",
+    "lint": "none",
+    "fileSizeGuard": 800,
+    "ci": true
+  },
+  "canonicalVersion": "0.1.0"
+}

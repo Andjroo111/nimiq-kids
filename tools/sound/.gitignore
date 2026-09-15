@@ -1,0 +1,11 @@
+# Generated output — regenerate with the scripts, never commit samples.
+voice/
+deepgram/
+elevenlabs/
+site/
+work/
+processed/
+processed-index.json
+manifest-fragment.json
+shots/
+*.log

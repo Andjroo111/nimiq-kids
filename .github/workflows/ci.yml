@@ -1,0 +1,158 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ci:
+    name: Check, test, and file-size guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.2"
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Type check
+        run: bun run check
+
+      - name: Build app-shell bundle
+        # Proves the vendored shell browser bundle builds against the pinned
+        # nimiq-app-shell. public/dist is gitignored, so there is no committed
+        # bundle to skew — this build is the freshness check (rollout option b).
+        run: bun run build:shell
+
+      - name: Test
+        run: bun test
+
+      - name: File-size guard (800 lines)
+        run: |
+          # Fail if any first-party source file is >= 800 lines.
+          # Excludes vendored third-party libs (public/js/vendor/**) and node_modules,
+          # which are legitimately large and not our code to split.
+          set -euo pipefail
+          MAX=800
+
+          # Collect candidate files: *.ts/*.js/*.html/*.css under src/ and public/,
+          # excluding node_modules and the vendor dir at any depth. -print0 + read -d ''
+          # makes this robust against spaces/newlines in paths.
+          #
+          # public/kid/timer is ALSO excluded, for the same reason vendor is: it is the
+          # egg timer vendored in whole from ~/data/anim-demo, where it is authored,
+          # verified and split. wiggle.html is one self-contained canvas rig by design --
+          # a single file with no build step is what lets the SAME file be served at / in
+          # that repo and at /kid/timer/ here. Splitting it HERE would fork it from the
+          # place it is maintained, which is the opposite of what the guard is protecting.
+          # ⚠️ If the timer's chrome is ever ported natively into public/kid/js, that port
+          # is first-party and this exclusion must NOT cover it.
+          #
+          # public/dist is BUILD OUTPUT (bun build writes it in the step above, and it is
+          # untracked). It was inside the guard by accident and only stayed green by luck:
+          # minification keeps template-literal newlines verbatim, so the bundles' line
+          # count is really a measure of how many lines of CSS nimiq-app-shell's components
+          # carry. v0.7.0's report-bug sheet took them 803 -> 851 and failed this repo for
+          # a formatting choice in a dependency. "Split them" means nothing for a generated
+          # bundle, so they are excluded like every other file here that we do not author.
+          mapfile -d '' files < <(
+            find src public \
+              -type d \( -name node_modules -o -path 'public/js/vendor' -o -path 'public/kid/timer' -o -path 'public/dist' -o -name vendor \) -prune -o \
+              -type f \( -name '*.ts' -o -name '*.js' -o -name '*.html' -o -name '*.css' \) -print0
+          )
+
+          offenders=""
+          for f in "${files[@]}"; do
+            # Skip empty entries that can appear if no files matched.
+            [ -n "$f" ] || continue
+            lines=$(awk 'END { print NR }' "$f")
+            if [ "$lines" -ge "$MAX" ]; then
+              offenders="${offenders}${f}: ${lines} lines"$'\n'
+            fi
+          done
+
+          if [ -n "$offenders" ]; then
+            echo "::error::First-party files at or over ${MAX} lines (split them):"
+            printf '%s' "$offenders"
+            exit 1
+          fi
+
+          echo "File-size guard passed: no first-party file >= ${MAX} lines."
+
+  brand-lint:
+    name: nq lint (brand / visual gate)
+    # The fleet's design-system gate. `nq lint` (nimiq-branding-cli, pinned to v1.4.1)
+    # renders the running app headless with Playwright and hard-fails (exit 1) on
+    # unambiguous off-brand slop — em/en dashes, periods on titles, glassmorphism,
+    # input borders, off-palette colors, generic icon sets, etc. This is the single
+    # check that satisfies both fleet standards: "lint must pass" + "Playwright visual
+    # verification vs Nimiq branding". nimiq.kids is the first repo to gate on it
+    # (every repo already runs `nq align` weekly; this adds the live-render lint).
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.2"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies + build shell + seed demo data
+        run: |
+          bun install
+          bun run build:shell
+          NIMIQ_SIM=1 bun run seed
+
+      # nimiq-branding-cli is PRIVATE (#374). It used to be cloned anonymously under a comment
+      # asserting it was public; when that stopped being true the brand gate went red on every
+      # PR, two days after the same commit passed, with nothing in this file changed.
+      #
+      # A read-only DEPLOY KEY rather than a PAT: it grants read on exactly that one repo and
+      # nothing else in the account, so a leaked runner secret cannot reach anything but the
+      # CLI it is for. Andjroo, 2026-08-24: keep the repo private.
+      - name: Authorise the private nimiq-branding-cli clone
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.NQ_CLI_DEPLOY_KEY }}
+
+      - name: Install nq v1.4.1 + Playwright chromium
+        run: |
+          # SSH, because the deploy key above is what authorises it. The tag stays pinned:
+          # `nq lint`'s thresholds are calibrated against a known CLI, and floating this would
+          # make the gate's verdict depend on whenever the CI last ran.
+          git clone --depth 1 --branch v1.4.1 \
+            git@github.com:Andjroo111/nimiq-branding-cli.git "$RUNNER_TEMP/nq"
+          cd "$RUNNER_TEMP/nq"
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Boot app (SIM) and run nq lint gate
+        run: |
+          # Boot the seeded SIM app (no faucet/network), wait for ready, lint the
+          # live URL, then propagate nq lint's exit code as the gate result.
+          NIMIQ_SIM=1 PORT=3300 bun run src/server.ts > "$RUNNER_TEMP/server.log" 2>&1 &
+          SERVER_PID=$!
+          for i in $(seq 1 30); do
+            curl -fsS http://localhost:3300/ >/dev/null 2>&1 && break
+            sleep 1
+          done
+          if ! curl -fsS http://localhost:3300/ >/dev/null 2>&1; then
+            echo "::error::app did not start"; cat "$RUNNER_TEMP/server.log"; exit 1
+          fi
+          set +e
+          node "$RUNNER_TEMP/nq/bin/nq.js" lint http://localhost:3300/
+          CODE=$?
+          kill "$SERVER_PID" 2>/dev/null || true
+          exit $CODE

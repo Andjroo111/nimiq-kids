@@ -1,0 +1,143 @@
+/* Status Alert — the real Nimiq alert/callout block.
+   Source: nimiq-ui packages/nimiq-vitepress-theme/src/assets/github-callouts.css
+   (.custom-block.github-alert), renamed/namespaced under .nq-status-alert.
+   Porting notes:
+   - rem converted to px at the upstream 16px root (1rem 1.25rem -> 16px 20px),
+     and font-size: 16px pinned on the root so the block renders identically
+     under @nimiq/style's html { font-size: 8px }.
+   - nimiq-css --colors-* tokens inlined (light-mode halves of light-dark()
+     from nimiq-css/src/css/colors.css) since the legacy framework lacks them.
+   - The upstream docs full-bleed quirk (translateX(-8px) + width +16px) is
+     kept verbatim; delete that pair if you don't want the 8px bleed. */
+
+.nq-status-alert {
+  /* nimiq-css color tokens (light mode), scoped to the component */
+  --colors-blue:       oklch(0.5849 0.1438 244.29);
+  --colors-blue-400:   oklch(0.9545 0.0167 236.69);
+  --colors-blue-500:   oklch(0.9109 0.0327 232.24);
+  --colors-green:      oklch(0.6932 0.1245 178.48);
+  --colors-green-400:  oklch(0.9637 0.017 187.9);
+  --colors-green-500:  oklch(0.9307 0.034 185.2);
+  --colors-orange:     oklch(0.7387 0.179 56.67);
+  --colors-orange-400: oklch(0.951 0.0221 74.1);
+  --colors-orange-500: oklch(0.9396 0.0436 71.7);
+  --colors-red:        oklch(0.598 0.1886 30.3);
+  --colors-red-400:    oklch(0.9544 0.0166 26.65);
+  --colors-red-500:    oklch(0.9112 0.0328 27.11);
+  --colors-purple:     oklch(0.4629 0.1027 296.59);
+  --colors-purple-400: oklch(0.9494 0.0083 301.35);
+  --colors-purple-500: oklch(0.8984 0.0181 300.04);
+
+  background: var(--bg-color);
+  --margin-min-em: 1.5;
+  --margin-max-em: 2;
+  padding: 16px 20px;            /* upstream: 1rem 1.25rem @ 16px root */
+  margin-top: calc(var(--margin-min-em) * 1em);
+  margin-bottom: calc(var(--margin-max-em) * 1em);
+  border-radius: 8px;
+  outline: 1.5px solid var(--ring-color);
+  outline-offset: -1.5px;
+  font-size: 16px;               /* pin the upstream docs base size */
+  font-weight: 600;
+  transform: translateX(-8px);   /* upstream docs full-bleed quirk */
+  width: calc(100% + 16px);
+  color: var(--text-color);
+}
+
+.nq-status-alert .alert-title {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.8em;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin-top: 0;
+  margin-bottom: 0.75em;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--label-color);
+}
+
+.nq-status-alert .alert-title::before {
+  content: '';
+  position: relative;
+  display: inline-block;
+  mask: var(--icon) no-repeat 100% 100%;
+  background-color: var(--text-color);
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: inherit;
+  width: 1em;
+  height: 1em;
+}
+
+/* note = info (blue) */
+.nq-status-alert.note {
+  --label-color: color-mix(in oklch, var(--colors-blue) 70%, transparent);
+  --text-color: var(--colors-blue);
+  --bg-color: var(--colors-blue-400);
+  --ring-color: var(--colors-blue-500);
+  --icon: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 17"><path stroke="currentColor" stroke-width="1.5" d="m16.824 7.603-3.335-5.92A1.33 1.33 0 0 0 12.335 1H5.666c-.475 0-.915.26-1.153.683l-3.335 5.92a1.397 1.397 0 0 0 0 1.367l3.335 5.92a1.325 1.325 0 0 0 1.153.683h6.668a1.323 1.323 0 0 0 1.154-.683l3.334-5.92c.24-.424.24-.943.002-1.367Z"/><path fill="currentColor" d="M10 12a1 1 0 1 1-2 0V9a1 1 0 0 1 2 0v3Z"/><rect width="2" height="2" x="10" y="7" fill="currentColor" rx="1" transform="rotate(-180 10 7)"/></svg>');
+}
+
+/* important (purple) */
+.nq-status-alert.important {
+  --label-color: color-mix(in oklch, var(--colors-purple) 80%, transparent);
+  --text-color: var(--colors-purple);
+  --bg-color: var(--colors-purple-400);
+  --ring-color: var(--colors-purple-500);
+  --icon: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 17"><path stroke="currentColor" stroke-width="1.5" d="m1.178 8.97 3.334 5.92a1.332 1.332 0 0 0 1.156.683h6.667c.476 0 .916-.26 1.154-.683l3.334-5.92a1.397 1.397 0 0 0 0-1.366l-3.334-5.92A1.324 1.324 0 0 0 12.336 1H5.667a1.324 1.324 0 0 0-1.153.683L1.18 7.603c-.24.424-.24.943-.002 1.367Z"/><path fill="currentColor" d="M8.002 5.573a1 1 0 0 1 2 0v3a1 1 0 1 1-2 0v-3Z"/><rect width="2" height="2" x="8.002" y="10.573" fill="currentColor" rx="1"/></svg>');
+}
+
+/* warning (orange) */
+.nq-status-alert.warning {
+  --label-color: color-mix(in oklch, var(--colors-orange) 70%, transparent);
+  --text-color: var(--colors-orange);
+  --bg-color: var(--colors-orange-400);
+  --ring-color: var(--colors-orange-500);
+  --icon: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 9 12"><path fill="currentColor" d="M3.818.074a.658.658 0 0 0-.756.108.616.616 0 0 0-.12.736 5.017 5.017 0 0 1 .02 4.628.127.127 0 0 1-.113.063.13.13 0 0 1-.112-.066 2.766 2.766 0 0 1-.288-.789.376.376 0 0 0-.248-.28.393.393 0 0 0-.373.06A4.349 4.349 0 0 0 .327 6.727a4.256 4.256 0 0 0 .07 2.637 3.94 3.94 0 0 0 1.547 1.964 4.09 4.09 0 0 0 2.443.669c2.178 0 3.7-1.08 4.18-2.96.71-2.773-1.033-7.04-4.749-8.962Zm2.44 8.993a1.658 1.658 0 0 1-.618 1.057 1.734 1.734 0 0 1-1.189.365c-.41 0-.809-.14-1.127-.4a1.705 1.705 0 0 1-.6-1.014.246.246 0 0 1 .076-.226.259.259 0 0 1 .236-.063c.258-.004.51-.07.736-.195.225-.123.414-.3.55-.514a1.133 1.133 0 0 0 .234-1.238.247.247 0 0 1 .03-.286.259.259 0 0 1 .284-.072c.494.219.897.592 1.148 1.06a2.33 2.33 0 0 1 .24 1.525Z"/></svg>');
+}
+
+/* tip = success (green) */
+.nq-status-alert.tip {
+  --label-color: color-mix(in oklch, var(--colors-green) 70%, transparent);
+  --text-color: var(--colors-green);
+  --bg-color: var(--colors-green-400);
+  --ring-color: var(--colors-green-500);
+  --icon: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 11 14"><path stroke="currentColor" d="M5.5 1.002C3.015 1.002 1 2.921 1 5.288c0 1.223.761 2.327 1.727 3.108.52.42.898 1.02.898 1.689 0 .506.41.917.918.917h1.914c.507 0 .918-.41.918-.917 0-.67.378-1.268.898-1.69C9.24 7.616 10 6.512 10 5.289c0-2.367-2.015-4.286-4.5-4.286Z"/><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M7 13.002H4"/></svg>');
+}
+
+/* caution = error (red) */
+.nq-status-alert.caution {
+  --label-color: color-mix(in oklch, var(--colors-red) 70%, transparent);
+  --bg-color: var(--colors-red-400);
+  --text-color: var(--colors-red);
+  --ring-color: var(--colors-red-500);
+  --icon: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 12 12"><path fill="currentColor" d="M9.499 8.8c0-.47.12-.93.35-1.34l1.18-2.1a.75.75 0 0 0 .1-.59.79.79 0 0 0-.37-.48.87.87 0 0 0-.63-.1.82.82 0 0 0-.51.36l-1.5 2.23.89-4.6a.74.74 0 0 0-.09-.62.85.85 0 0 0-.87-.36.85.85 0 0 0-.54.35c-.06.1-.1.2-.11.3l-.93 3.89V.78c0-.2-.09-.4-.24-.55a.85.85 0 0 0-.59-.23.85.85 0 0 0-.58.23.76.76 0 0 0-.24.55v4.96l-.93-4.08a.8.8 0 0 0-.66-.64.87.87 0 0 0-.63.13.8.8 0 0 0-.34.53c-.02.1 0 .2.02.31l.89 5.84-1.64-1.36a.86.86 0 0 0-1.16.05.76.76 0 0 0 .04 1.1l2.9 3.65a2.49 2.49 0 0 0 1.79.73h1.93c1.95 0 2.47-1.45 2.47-3.2Z"/></svg>');
+}
+
+.nq-status-alert p {
+  margin-top: 0;
+  margin-bottom: 0.5em;
+}
+
+.nq-status-alert p:last-child {
+  margin-bottom: 0;
+}
+
+.nq-status-alert p a {
+  color: currentColor;
+  text-decoration: underline;
+}
+
+.nq-status-alert p pre,
+.nq-status-alert p code {
+  color: currentColor;
+  background-color: var(--ring-color);
+}
+
+.nq-status-alert p code {
+  font-size: 0.95em;
+}

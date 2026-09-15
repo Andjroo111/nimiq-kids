@@ -1,0 +1,43 @@
+/* ONE ICON SYSTEM (2026-09-15). The companion of kid/js/icons.js: that file draws every glyph
+   on a 24 grid, this file decides how big and how heavy they render. Linked right after
+   kid.css so every later sheet can size a glyph by STEP and never by number.
+
+   Andjroo, 2026-09-15: "I just want to make sure that line thickness is the same, like we
+   need to have a universal for our icons ... same thing for the ones on the bottom of the
+   screen, we need to just make sure everything is similar in shape and size and color."
+
+   --icon-stroke is the whole answer to "the same": every stroked path in the app carries
+   `vector-effect: non-scaling-stroke`, so the number below is the width ON SCREEN, in CSS px,
+   for a 20px chevron and a 56px spot alike. A drawing's own stroke-width attribute is only
+   what it renders at if this sheet is missing.
+
+   The four size steps are the only sizes a glyph gets. A screen that needs a fifth is a
+   screen that should pick one of these. */
+:root {
+  --icon-stroke: 2.75px;
+  --ic-s: 22px;    /* a chevron or caret inside a row, a close X on a sheet */
+  --ic-m: 30px;    /* a back arrow, Receive / Send, a glyph inside a sheet row */
+  --ic-l: 40px;    /* the dock, the glyph beside a row title or in a screen title pill */
+  --ic-xl: 64px;   /* an empty-state spot: the high-five, the hexagon */
+}
+
+.k-icon { display: inline-flex; width: 1em; height: 1em; flex: none; align-items: center; justify-content: center; }
+.k-icon svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+/* THE ONE WEIGHT. Every stroked shape inside a glyph, whatever grid it was drawn on. The
+   selector is every shape, so a verbatim Nimiq path (arrow, check, cross, plus, qr-lines, the
+   staking plant) is covered without a byte of its geometry moving; on a filled shape with no
+   stroke the width is inert. */
+.k-icon svg :is(path, circle, ellipse, rect, line, polyline, polygon) {
+  vector-effect: non-scaling-stroke;
+  stroke-width: var(--icon-stroke);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* A filled SPOT glyph (the two empty states) is the exception, and it is the same exception
+   both times: --ic-xl, --ink-30. */
+.k-spot { color: var(--ink-30); font-size: var(--ic-xl); }
+
+/* The turned arrow keeps its 24 box, so no per-direction sizing. */
+.k-arrow { transform-origin: 50% 50%; }

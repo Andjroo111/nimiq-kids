@@ -1,0 +1,209 @@
+/* nimiq.kids — THE CALENDAR (public/kid/js/calendar.js).
+   Split out of chart.css at the 800-line guard, like box.css and chrome.css before it.
+   One module, one stylesheet: the card, its header and month arrows, the pinned day
+   letters, and the date cells, base and tablet together.
+
+   The STICKER on a date is not here. `.stk-cal` and the `.cal-dates .stk-*` rules live
+   with the rest of the sticker kit in chart.css, where every size a sticker is ever drawn
+   at sits in one place on purpose. Loaded AFTER chart.css. */
+
+/* ---------- THE CALENDAR ----------
+   Month name, then the week (day letters), then the dates. One card, three
+   stacked rows, in that order.
+
+   The whole behaviour rests on splitting the day LETTERS off into their own row:
+   they are the column header, so they can stay pinned while the dates beneath
+   them grow from a single week into the full month. Nothing above the dates ever
+   moves, and the month can only push Today further down (Andjroo's rule: opening
+   bumps content DOWN, never up). Both rows are the same
+   `grid-template-columns: repeat(7, 1fr)`, so a column is in exactly the same
+   place whether it has one date under it or six. */
+.k-cal {
+  display: flex; flex-direction: column; gap: var(--s3);
+  background: var(--card); border-radius: var(--r-card); box-shadow: var(--sh-card);
+  padding: var(--s4) var(--s3);
+  /* ⚠️ THE CALENDAR IS THE ONE THAT YIELDS (#401). Without min-height:0 the card is floored at
+     its own content by automatic minimum size, so every pixel a tall month costs comes out of
+     Today, which was the only shrinkable block in the column. With BOTH shrinkable, flex
+     distributes the shortfall in proportion to each one's basis — and the open month's basis is
+     the larger by far, so it gives up most of it. That is the right way round: a kid opens the
+     calendar to look at it, not to lose the list of what they have to do. */
+  min-height: 0;
+}
+/* The header row. `cal-hd` is still the whole row when the calendar is closed, so a
+   shut calendar is byte-for-byte the control it has always been; the month arrows
+   only exist once there is a month to move through. */
+.cal-top { display: flex; align-items: center; gap: var(--s2); width: 100%; }
+.cal-hd {
+  display: flex; align-items: center; gap: var(--s2); flex: 1; min-width: 0;
+  background: none; text-align: left;
+}
+.cal-nav { flex: none; display: flex; align-items: center; gap: var(--s1); }
+.cal-nav button {
+  display: inline-flex; padding: var(--s1); background: none;
+  font-size: var(--ic-s); color: var(--ink-50);
+}
+/* Not hidden when there is no month to go forward to: a control that vanishes moves
+   the one beside it, and the pair has to stay put under a kid's thumb. */
+.cal-nav button[disabled] { opacity: 0.25; }
+.cal-month { flex: 1; font-size: var(--fs-body); font-weight: var(--fw-title); color: var(--ink); }
+.cal-chev {
+  flex: none; display: inline-flex; font-size: var(--ic-s); color: var(--ink-30);
+  transition: transform var(--t-ui) var(--ease);
+}
+.k-cal.is-open .cal-chev { transform: rotate(90deg); }
+
+/* ---------- THE RESTING STATE IS ONE LINE ----------
+   Andjroo, 2026-08-27: the apps are the highlight now, "and then the calendar and the task
+   should be secondary to it". A shut calendar used to still be a whole week of dates, 182px
+   of the board, which on a landscape screen was most of what the shelf needed.
+
+   So shut means SHUT: the month name and its chevron, and nothing else. Tapping it (or the
+   Week button in the dock, which is the same toggle) opens the month grid as it always did,
+   and the week the strip used to show is the top row of that grid — so nothing is gone, it is
+   one tap in. The rule the calendar was built on still holds, and holds harder: nothing above
+   the dates ever moves, and opening only ever pushes Today DOWN. */
+.k-cal:not(.is-open) .cal-dow,
+.k-cal:not(.is-open) .cal-dates { display: none; }
+
+/* THE PINNED ROW. Same columns as the dates below it, so opening the month
+   cannot shift a single column. The gap is the column rhythm for BOTH rows —
+   4px let the tinted cells very nearly touch, which read as a checkerboard
+   rather than a calendar. */
+.cal-dow, .cal-dates {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--s2);
+  width: 100%;
+}
+.cal-dow span {
+  text-align: center; font-size: var(--fs-micro); font-weight: var(--fw-title);
+  color: var(--ink-50); line-height: 1;
+}
+.cal-dates { background: none; padding: 0; }
+
+/* ---------- AN OPEN MONTH CANNOT EAT TODAY (#401) ----------
+   Andjroo, 2026-09-01: "if the calendar is out it kinda cuts everything off. It starts at the
+   word Today. You can't really scroll down either."
+
+   Measured on the 800x1280 tablet, a 6-week month is 627px of an 1116px column. `.ch-today`
+   is the ONLY item in `.k-chart`'s column carrying `min-height: 0`, so automatic minimum size
+   floors every other block at its content height and 100% of the shortfall lands on Today.
+   `.ch-groups` is the sole scroller in the app, and it was the thing being squeezed to zero:
+   a 0px scroller has nothing to scroll, which is the second half of the complaint.
+
+   ⚠️ THE CAP IS ON THE DATES, NOT ON `.k-cal`. Capping the card would clip its own padding and
+   the month name with it. Bounding the grid alone keeps the header, the day letters and the
+   card's shape exactly where they were, which is the rule this whole file is built on: nothing
+   above the dates ever moves.
+
+   ⚠️ ALL 42 CELLS STILL RENDER. The grid scrolls; it is never truncated. `invariant.ts` asserts
+   the open grid has MORE cells than the shut one, and a kid paging back to a month they filled
+   in has to be able to reach the bottom of it.
+
+   `svh` and not `vh`: `.screen` is `position: fixed; inset: 0`, which iOS lays out against the
+   LARGE viewport, so `vh` here would hand back the toolbar's height as usable room and put the
+   last week under the fold. Same ruler `.k-pad-screen` already uses (wallet.css). */
+.k-cal.is-open .cal-dates {
+  /* A ceiling AND a floor of zero. The cap stops a 6-week month taking a whole tall screen even
+     when there is room; `min-height: 0` is what lets it go below its content when there is not,
+     which is the phone case — at 390x844 a 5-week grid is 347px of a column that has ~516px for
+     the calendar and Today together. */
+  max-height: 42svh;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+/* A date: the number, and under it the place the sticker lives.
+   The old box had literally zero slack — 4 + 12 + 2 + 22 + 4 came to exactly the
+   44px cell, so every sticker sat hard against the number above it and the cell
+   edge below. The numbers below are the same stack with room to breathe. */
+.cal-day {
+  display: flex; flex-direction: column; align-items: center; gap: var(--s1);
+  padding: 6px 0; border-radius: var(--r-tile);
+  line-height: 1;
+}
+.cal-day b { font-size: 13px; font-weight: var(--fw-title); color: var(--ink-70); }
+.cal-day.is-part { background: rgba(5, 130, 202, 0.08); }
+.cal-day.is-full { background: rgba(33, 188, 165, 0.14); }
+.cal-day.is-full b { color: var(--green-2); }
+.cal-day.is-today { background: rgba(5, 130, 202, 0.1); }
+.cal-day.is-today b { color: var(--blue-2); }
+/* Days belonging to the months either side of this one. The NUMBER fades, so the
+   month boundary still reads at a glance; the STICKER does not. Fading the whole
+   cell used to turn a week of finished work into ghosts: the grid is whole Monday
+   weeks, so on the 3rd of a month five of the seven dates in the row above Today
+   belong to last month, and that row is the only past week ever on screen
+   (Andjroo, 2026-08-03). A day that happened has to look like it happened. */
+.cal-day.is-out b, .cal-day.is-out .cal-check { opacity: 0.35; }
+
+/* The sticker's home. It is always this tall, so a week with stickers and a week
+   without are exactly the same height and the rows below never jump. */
+.cal-day-mark {
+  position: relative; display: block; width: 34px; height: 34px;
+}
+.cal-check {
+  display: grid; place-items: center; width: 100%; height: 100%;
+  font-size: 16px; color: var(--green-2);
+}
+
+/* ---------- tablet scale-up (matches the block in chart.css) ---------- */
+@media (min-width: 768px) {
+  .k-cal { padding: var(--s4); gap: var(--s3); }
+  .cal-month { font-size: var(--fs-title); }
+  .cal-dow, .cal-dates { gap: var(--s2); }
+  .cal-dow span { font-size: var(--fs-label); }
+  .cal-day { padding: 8px 0 9px; gap: 5px; border-radius: var(--r-tile); }
+  .cal-day b { font-size: 19px; }
+  .cal-day-mark { width: 40px; height: 40px; }
+  .cal-check { font-size: 18px; }
+  .stk-cal { width: 40px; height: 40px; }
+  .stk-cal .stk-emoji { font-size: 22px; }
+}
+
+/* ---------- THE OPEN HEADER ROW (#402) ----------
+   Shut, the row is the name plus its chevron and nothing changes. Open, it is a stepper around
+   the month name with an X on the end, so the two jobs on that row look like two jobs. The
+   header is still a button (tapping the name closes it), it just no longer wears a rotated
+   navigation glyph as its only close affordance. */
+.cal-hd.is-open { flex: 1; justify-content: center; text-align: center; }
+.cal-hd.is-open .cal-month { flex: none; }
+/* The X is the control a kid is told about, so it is the darkest thing in the row. The month
+   arrows stay quiet at --ink-50: stepping months is the rarer job. */
+.cal-shut { display: inline-flex; padding: var(--s1); background: none; color: var(--ink); }
+.cal-shut .k-icon { font-size: var(--ic-s); }
+
+/* ---------- THE MONTH ROW HAS TO SAY "CALENDAR" (Andjroo, 2026-09-07) --------
+   "September is looking... how could we differentiate that, especially for a kid
+   that doesn't know the months. We should maybe think about adding a calendar."
+
+   Once each part of the day became one card, this row read as one more collapsed
+   part: white, same radius, same chevron, and the only thing separating it was a
+   word the user may not be able to read.
+
+   ⚠️ The glyph is NAVY, like every other heading. The first version reused the
+   dock's `week` mask tinted --blue, and Andjroo's answer was "that icon is not
+   very great, and it's the only thing that's blue". A picture that has to be
+   coloured differently to be seen is not carrying its own weight. It carries
+   today's DATE instead, which is the part a kid can actually use. */
+.cal-hd { gap: var(--s3); }
+.cal-month { font-size: 20px; font-weight: 800; color: var(--ink); }
+
+.cal-glyph { font-size: var(--ic-l); color: var(--ink); }
+
+
+/* ---------- "there is more month below" (2026-09-07) ----------------------
+   The grid is capped at 42svh and scrolls (see the block above; all 42 cells always render).
+   Measured on v0.118.5 it is over by 63px on an 800x1280 tablet and 114px on a 390x844 phone,
+   so the last week sits under the fold with a row cut in half and nothing saying so. A kid
+   reads that as the calendar being broken, and cannot fix it by tapping, because a tap on the
+   grid CLOSES the calendar (#402).
+
+   The fade is masked rather than painted, so it works on whatever the scene behind it is: a
+   painted gradient would need to know the card's colour, and the card is white on some screens
+   and the scene's tint on others.
+   ⚠️ `-webkit-mask-image` as well: the kid app runs in an Android WebView and on Andjroo's
+   iPhone, and neither is guaranteed to take the unprefixed property. */
+.cal-dates[data-more="1"] {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent 100%);
+          mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent 100%);
+}

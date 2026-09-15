@@ -1,0 +1,180 @@
+
+
+  <!-- background + egg, clipped as one thing -->
+  <div id="eg-scene">
+    <img id="eg-bgImg" alt="" />
+    <!-- ⚠️ the version is load-bearing. Without it Safari happily reuses a cached
+         wiggle.html forever, so the page reloads and the RIG does not — which is
+         exactly how three rounds of fixes can look identical on a phone. -->
+    <div id="eg-rigWrap"><iframe id="eg-rig" scrolling="no" title="egg"></iframe></div>
+  </div>
+  <div id="eg-badgeRim"></div>
+  <canvas id="eg-conf"></canvas>
+
+  <!-- ================= SET ================= -->
+  <section class="eg-screen on" id="eg-scSet">
+    <!-- the gear went 2026-07-31 on Andjroo's call: "we can get rid of the gear icon
+         in the top left, I think that's good with not having that for right now."
+         (He had raised and retracted this once before; this is the decision.) -->
+
+    <div id="eg-dial">
+      <div id="eg-dialTitle">Set Timer</div>
+      <div id="eg-cols">
+        <div id="eg-band"></div>
+        <div class="eg-colwrap"><div class="eg-colhead" id="hMin">Min</div><div class="eg-col" id="eg-colMin"></div></div>
+        <div class="eg-colwrap"><div class="eg-colhead" id="hSec">Sec</div><div class="eg-col" id="eg-colSec"></div></div>
+        <div id="eg-colon">:</div>
+      </div>
+    </div>
+
+    <button id="eg-plus" aria-label="add a reminder">
+      <!-- disc r32 at (50,44); the tail hangs off the arc between 105° and 160°.
+           large-arc=1 sweep=0 takes the 305° way round, i.e. everywhere the tail
+           is not, so the outline closes through the tip in one stroke. -->
+      <svg viewBox="0 0 100 100">
+        <clipPath id="eg-discClip"><circle cx="50" cy="44" r="29.3"/></clipPath>
+        <path class="bub" d="M41.72 74.91 A32 32 0 1 0 19.93 54.94 L16.4 80.6 Z"
+              stroke="#3E4358" stroke-width="5.4" stroke-linejoin="round"/>
+        <path id="eg-plusGlyph" d="M50 30v28M36 44h28" fill="none" stroke="#fff"
+              stroke-width="7.6" stroke-linecap="round"/>
+        <!-- The chosen reminder rides inside the disc, centred on (50,44).
+             ⚠️ The TALLEST icon sets this box, not the average one. Sized by ink
+             area, a toothbrush fills its 256 box top to bottom while a heart fills
+             about two thirds of it — so a box tuned to make the heart look right
+             pushes the brush's tip and handle straight through the navy outline.
+             56 keeps the worst case inside r29.3, and the clip is the guarantee. -->
+        <image id="eg-plusIcon" x="22" y="16" width="56" height="56"
+               clip-path="url(#eg-discClip)" style="display:none"/>
+      </svg>
+    </button>
+
+    <button class="eg-bigbtn" id="eg-start">Start</button>
+
+    <div id="eg-tray">
+      <!-- ⚠️ THE EGG IN THIS GLYPH IS OUR EGG, DRAWN FROM egg-outline.json.
+           Andjroo, 2026-07-31: "the egg shape does not match ours." It did not: it was
+           a hand-authored bezier that happened to be egg-ish, so the button that opens
+           the egg sheet showed a different egg from the one on the screen behind it.
+           Both paths are replaced at boot from the same curve the rig clips its shell
+           to, so a recut of the art moves this icon with it. The `d`s below are only
+           the fallback if the fetch fails. -->
+      <button class="eg-trayb" data-sheet="egg" aria-label="hatch surprises">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#2C3149" stroke-width="1.9"
+             stroke-linejoin="round" stroke-linecap="round">
+          <path id="glyphEgg" d="M12 2.4c3.6 0 6.4 5.2 6.4 10.1A6.4 6.4 0 0 1 12 21.6a6.4 6.4 0 0 1-6.4-9.1C5.6 7.6 8.4 2.4 12 2.4z"/>
+          <path id="glyphCrack" d="M6.2 13.4l2.6-1.7 2.5 1.7 2.5-1.7 2.5 1.7"/>
+        </svg>
+        <i class="eg-dot" id="eg-dotEgg" style="display:none"></i>
+      </button>
+      <button class="eg-trayb" data-sheet="music" aria-label="sounds">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="#2C3149">
+          <path d="M20 3.6 8.6 6v9.2a3.4 3.4 0 1 0 1.8 3V9.1l7.8-1.6v5.3a3.4 3.4 0 1 0 1.8 3z"/>
+        </svg>
+        <i class="eg-dot" id="eg-dotMusic" style="display:none"></i>
+      </button>
+      <button class="eg-trayb" data-sheet="bg" aria-label="background">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2C3149" stroke-width="1.9"
+             stroke-linejoin="round">
+          <rect x="2.6" y="4.6" width="18.8" height="14.8" rx="3.2"/>
+          <circle cx="8.4" cy="10" r="1.7" fill="#2C3149" stroke="none"/>
+          <path d="M3.4 16.6l4.5-4a2 2 0 0 1 2.7 0l3 2.7 2-1.7a2 2 0 0 1 2.6 0l2.4 2.1"/>
+        </svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- the two mute icons live OUTSIDE the screens: the reference carries them
+       through the hatch too, and they are the same two controls either way -->
+  <div id="eg-mutes">
+    <button class="eg-mute" id="eg-mMusic" aria-label="music"></button>
+    <button class="eg-mute" id="eg-mBell" aria-label="end sound"></button>
+  </div>
+  <div id="eg-pieHost">
+    <svg id="eg-pie" width="120" height="120" viewBox="0 0 120 120">
+      <circle cx="60" cy="60" r="52" fill="#fff" stroke="#4A4F63" stroke-width="7"/>
+      <path id="eg-pieWedge" fill="var(--red)"></path>
+      <line id="eg-pieHand" x1="60" y1="60" x2="60" y2="12" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/>
+      <circle cx="60" cy="60" r="52" fill="none" stroke="#4A4F63" stroke-width="7"/>
+    </svg>
+    <svg id="eg-rimArc"><circle id="eg-rimC" fill="none" stroke="var(--red)" stroke-linecap="round"/></svg>
+  </div>
+
+  <!-- ================= RUN ================= -->
+  <section class="eg-screen" id="eg-scRun">
+    <div id="eg-clockRow">
+      <button class="eg-step" id="eg-stepUp" aria-label="add a minute">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4"
+             stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <div id="eg-clock">00:00</div>
+      <button class="eg-step" id="eg-stepDn" aria-label="take a minute off">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4"
+             stroke-linecap="round"><path d="M5 12h14"/></svg>
+      </button>
+    </div>
+
+    <div id="eg-runCtl">
+      <button class="eg-ctl" id="eg-btnPause" aria-label="pause">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="#fff" id="eg-icPause">
+          <rect x="6.4" y="4.6" width="4.2" height="14.8" rx="1.6"/>
+          <rect x="13.4" y="4.6" width="4.2" height="14.8" rx="1.6"/>
+        </svg>
+      </button>
+      <button class="eg-ctl" id="eg-btnStop" aria-label="stop">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="#fff">
+          <rect x="6" y="6" width="12" height="12" rx="2.4"/>
+        </svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- ================= HATCH ================= -->
+  <section class="eg-screen" id="eg-scHatch">
+    <div id="eg-hatchClock"></div>
+    <button class="eg-bigbtn" id="eg-done">Done</button>
+  </section>
+
+  <!-- ================= SHEETS ================= -->
+  <div id="eg-scrim"></div>
+  <div id="eg-toast" role="status" aria-live="polite"></div>
+
+  <!-- ⚠️ ONE close button, written once and stamped into all four on boot. The old
+       markup had four hand-written ✕ glyphs and they had already drifted — one sheet
+       carried a dead "?" beside it, two carried a spacer span, and a fix to "the ✕"
+       meant finding every copy. `sclose()` below is the only definition. -->
+  <section class="eg-sheet" id="eg-shReminder">
+    <div class="eg-shead"><h2>Add a Reminder</h2></div>
+    <div class="eg-ssub">Remind your child what to do next when the timer ends.</div>
+    <div class="eg-sbody"><div class="eg-grid3" id="eg-remGrid"></div></div>
+  </section>
+
+  <section class="eg-sheet" id="eg-shEgg">
+    <div class="eg-shead"><h2>Hatch Surprises</h2></div>
+    <div class="eg-ssub">Who can come out of the egg.</div>
+    <div class="eg-sbody"><div class="eg-grid4" id="eg-eggGrid"></div></div>
+    <input id="eg-shoot" type="file" accept="image/*" capture="environment" hidden />
+  </section>
+
+  <section class="eg-sheet" id="eg-shMusic">
+    <div class="eg-shead"><h2>Sounds</h2></div>
+    <div class="eg-ssub">One while the timer runs, one for when it ends.</div>
+    <div class="eg-sbody" id="eg-musicBody"></div>
+  </section>
+
+  <section class="eg-sheet" id="eg-shBg">
+    <div class="eg-shead"><h2>Background</h2></div>
+    <div class="eg-ssub">Fills the screen while you set the timer, then becomes the circle.</div>
+    <div class="eg-sbody"><div class="eg-grid4" id="eg-bgGrid"></div></div>
+  </section>
+
+  <div id="eg-dev">
+    <b>pie</b>
+    <button data-pie="badge">top left</button>
+    <button data-pie="clock">by the clock</button>
+    <button data-pie="rim">the rim itself</button>
+    <b style="margin-left:6px">go</b>
+    <button id="eg-dvHatch">hatch now</button>
+    <button id="eg-dvReset">reset</button>
+    <span style="flex:none;margin-left:auto;background:var(--teal);color:#fff;
+                 padding:5px 10px;border-radius:500px" id="eg-dvBuild"></span>
+  </div>

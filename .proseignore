@@ -1,0 +1,13 @@
+# Paths that are NOT copy a kid or a parent ever reads. See ~/andjroo-framework/prose/rules.md.
+# Everything else under public/ IS shipped and is linted.
+
+# The egg-timer tuning rig. Served out of public/ because it loads the real sprites, but it is
+# Andjroo's instrument for tuning the animation, not a screen anyone visits. Its "copy" is knobs:
+# "the face changes, yours to move", "which crack, the five you approved".
+public/kid/timer/wiggle.html
+
+# Session handoffs that happen to sit next to the thing they describe.
+**/NEXT-SESSION-*.md
+
+# Unreferenced demo harness: nothing in src/ links it.
+public/kid/egg-demo.html

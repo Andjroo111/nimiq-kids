@@ -1,0 +1,171 @@
+/* duo-button: the Duolingo lip button, on the host's colours.
+   ORIGINAL composition. The mechanics are measured off duolingo.com's live CSS
+   on 2026-09-13 (cloudfront css/app-9cd2e6f0.css): the face is a ::before with a
+   hard box-shadow lip `0 4px 0 <edge>` (2px on the small size), radius 12px
+   (16px small), label 700 15px/28px uppercase with .8px tracking, a press is
+   translateY(lip) while the lip goes to 0, and disabled is a flat grey face
+   with no lip at all. The edge is the SIDE of the object, so it is one colour
+   derived from the face: Tomacco's Rive build keeps one fill and darkens it
+   with a 20% black overlay, and color-mix does the same here. That derivation
+   is what lets the button carry any brand from one token.
+   No hue is written in this file. The host fills the --duo-* contract; the
+   defaults read the legacy nimiq-style tokens and fall to grey when those are
+   missing, so an UNMAPPED button is visibly grey rather than invisible.
+   Run: nq principles */
+
+/* ---- the colour contract, on :where(:root) so ANY host declaration wins ----
+   A host maps its brand by setting these on :root or on any ancestor. Do not
+   declare them on .duo-button itself: that would beat the host's mapping.
+   --duo-edge is deliberately NOT precomputed here. color-mix is written at the
+   point of use so a face changed by a state class or a host still derives its
+   own edge. */
+:where(:root) {
+    --duo-face: var(--nimiq-light-blue, #6B6B6B);
+    --duo-face-bg: var(--nimiq-light-blue-bg, none);
+    --duo-ink: #FFFFFF;
+    --duo-paper: #FFFFFF;
+    --duo-paper-ink: var(--nimiq-blue, #4B4B4B);
+    --duo-lock: #E5E5E5;
+    --duo-lock-ink: #AFAFAF;
+    --duo-done: var(--nimiq-green, #6B6B6B);
+    --duo-done-bg: var(--nimiq-green-bg, none);
+    --duo-prize: var(--nimiq-gold, #6B6B6B);
+    --duo-prize-bg: var(--nimiq-gold-bg, none);
+    --duo-lip: 4px;
+    --duo-radius: 12px;
+    --duo-height: 50px;
+    --duo-up: 140ms;
+    --duo-font: 'Mulish', 'Muli', system-ui, sans-serif;
+}
+
+.duo-button {
+    position: relative;
+    isolation: isolate;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+    height: var(--duo-height);
+    padding: 0 16px;
+    border: 0;
+    border-radius: var(--duo-radius);
+    background: transparent;
+    font: 700 15px/28px var(--duo-font);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    color: var(--duo-ink);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transform: translateZ(0);
+    transition: transform var(--duo-up) var(--nimiq-ease, ease-out);
+}
+
+/* The face and its lip. The lip overhangs the box by --duo-lip: give a
+   container that clips (overflow: hidden) that much room underneath. */
+.duo-button::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background-color: var(--duo-face);
+    background-image: var(--duo-face-bg);
+    box-shadow: 0 var(--duo-lip) 0 var(--duo-edge, color-mix(in srgb, var(--duo-face) 80%, #000));
+    transition: box-shadow var(--duo-up) var(--nimiq-ease, ease-out);
+}
+
+.duo-button > svg {
+    width: 20px;
+    height: 20px;
+    flex: none;
+    fill: currentColor;
+}
+
+/* The press: down is instant so a 16ms tap still shows it, up takes --duo-up.
+   .is-pressed is the same state driven from script or held for a screenshot. */
+.duo-button:active,
+.duo-button.is-pressed {
+    transform: translateY(var(--duo-lip)) translateZ(0);
+    transition-duration: 0ms;
+}
+.duo-button:active::before,
+.duo-button.is-pressed::before {
+    box-shadow: 0 0 0 var(--duo-edge, color-mix(in srgb, var(--duo-face) 80%, #000));
+    transition-duration: 0ms;
+}
+
+.duo-button:focus-visible {
+    outline: 3px solid var(--duo-edge, color-mix(in srgb, var(--duo-face) 80%, #000));
+    outline-offset: 3px;
+}
+
+/* ---- tones: the same button carrying another role colour ---- */
+.duo-button.is-done {
+    --duo-face: var(--duo-done);
+    --duo-face-bg: var(--duo-done-bg);
+}
+.duo-button.is-prize {
+    --duo-face: var(--duo-prize);
+    --duo-face-bg: var(--duo-prize-bg);
+}
+
+/* ---- secondary: paper face, a 2px line, the lip in the line colour ---- */
+.duo-button.is-secondary {
+    --duo-face: var(--duo-paper);
+    --duo-face-bg: none;
+    --duo-ink: var(--duo-paper-ink);
+    --duo-edge: var(--duo-line, color-mix(in srgb, var(--duo-paper-ink) 14%, var(--duo-paper)));
+}
+.duo-button.is-secondary::before {
+    border: 2px solid var(--duo-edge);
+}
+
+/* ---- disabled: flat, no lip, no press (duolingo.com: swan face, no shadow) ---- */
+.duo-button:disabled,
+.duo-button.is-disabled {
+    --duo-face: var(--duo-lock);
+    --duo-face-bg: none;
+    --duo-ink: var(--duo-lock-ink);
+    cursor: default;
+    pointer-events: none;
+    transform: translateZ(0);
+}
+.duo-button:disabled::before,
+.duo-button.is-disabled::before {
+    box-shadow: none;
+    border: 0;
+}
+
+/* ---- sizes ---- */
+.duo-button.is-sm {
+    --duo-height: 36px;
+    --duo-lip: 2px;
+    --duo-radius: 16px;
+    padding: 0 12px;
+    font-size: 13px;
+    line-height: 20px;
+}
+.duo-button.is-block {
+    display: flex;
+    width: 100%;
+}
+
+/* Reduced motion keeps the depth and drops the travel: the lip is the point,
+   the movement is the flourish. The press then reads as the face dimming. */
+@media (prefers-reduced-motion: reduce) {
+    .duo-button,
+    .duo-button::before { transition: none; }
+    .duo-button:active,
+    .duo-button.is-pressed { transform: translateZ(0); }
+    .duo-button:active::before,
+    .duo-button.is-pressed::before {
+        box-shadow: 0 var(--duo-lip) 0 var(--duo-edge, color-mix(in srgb, var(--duo-face) 80%, #000));
+        filter: brightness(0.92);
+    }
+}

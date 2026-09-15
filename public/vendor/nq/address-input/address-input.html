@@ -1,0 +1,32 @@
+<!-- AddressInput (static): filled with a valid NIM address, formatted as 3 rows x 3 blocks of 4 chars.
+     Text is black; each block is colored by its .color-overlay via mix-blend-mode (blue when idle,
+     light blue when the block holds the selection in the live component). -->
+<div class="address-input display-as-nim-address">
+    <textarea spellcheck="false" autocomplete="off" placeholder="NQ">NQ48 8CKH BA24
+2VR3 N249 N8MN
+J5XX 74DB 5XJ8</textarea>
+
+    <div class="color-overlay" style="visibility: visible; left: calc(0 * (var(--block-width) + var(--block-gap-h)) + var(--block-gap-h) - 0.25rem); top: calc(0 * (var(--block-height) + var(--block-gap-v)) + var(--block-gap-v) + 0.25rem); background: var(--nimiq-blue);"></div>
+    <div class="color-overlay" style="visibility: visible; left: calc(1 * (var(--block-width) + var(--block-gap-h)) + var(--block-gap-h) - 0.25rem); top: calc(0 * (var(--block-height) + var(--block-gap-v)) + var(--block-gap-v) + 0.25rem); background: var(--nimiq-blue);"></div>
+    <div class="color-overlay" style="visibility: visible; left: calc(2 * (var(--block-width) + var(--block-gap-h)) + var(--block-gap-h) - 0.25rem); top: calc(0 * (var(--block-height) + var(--block-gap-v)) + var(--block-gap-v) + 0.25rem); background: var(--nimiq-blue);"></div>
+    <div class="color-overlay" style="visibility: visible; left: calc(0 * (var(--block-width) + var(--block-gap-h)) + var(--block-gap-h) - 0.25rem); top: calc(1 * (var(--block-height) + var(--block-gap-v)) + var(--block-gap-v) + 0.25rem); background: var(--nimiq-blue);"></div>
+    <div class="color-overlay" style="visibility: visible; left: calc(1 * (var(--block-width) + var(--block-gap-h)) + var(--block-gap-h) - 0.25rem); top: calc(1 * (var(--block-height) + var(--block-gap-v)) + var(--block-gap-v) + 0.25rem); background: var(--nimiq-blue);"></div>
+    <div class="color-overlay" style="visibility: visible; left: calc(2 * (var(--block-width) + var(--block-gap-h)) + var(--block-gap-h) - 0.25rem); top: calc(1 * (var(--block-height) + var(--block-gap-v)) + var(--block-gap-v) + 0.25rem); background: var(--nimiq-blue);"></div>
+    <div class="color-overlay" style="visibility: visible; left: calc(0 * (var(--block-width) + var(--block-gap-h)) + var(--block-gap-h) - 0.25rem); top: calc(2 * (var(--block-height) + var(--block-gap-v)) + var(--block-gap-v) + 0.25rem); background: var(--nimiq-blue);"></div>
+    <div class="color-overlay" style="visibility: visible; left: calc(1 * (var(--block-width) + var(--block-gap-h)) + var(--block-gap-h) - 0.25rem); top: calc(2 * (var(--block-height) + var(--block-gap-v)) + var(--block-gap-v) + 0.25rem); background: var(--nimiq-blue);"></div>
+    <div class="color-overlay" style="visibility: visible; left: calc(2 * (var(--block-width) + var(--block-gap-h)) + var(--block-gap-h) - 0.25rem); top: calc(2 * (var(--block-height) + var(--block-gap-v)) + var(--block-gap-v) + 0.25rem); background: var(--nimiq-blue);"></div>
+
+    <svg width="210" height="99" viewBox="0 0 210 99" stroke-width="1.5"
+        stroke-linecap="round" fill="none" xmlns="http://www.w3.org/2000/svg" class="grid">
+        <line x1="0.75" y1="30.25" x2="209.25" y2="30.25"/>
+        <line x1="0.75" y1="68.25" x2="209.25" y2="68.25"/>
+        <g>
+            <line x1="67.75" y1="0.75" x2="67.75" y2="22.25"/>
+            <line x1="143.75" y1="0.75" x2="143.75" y2="22.25"/>
+            <line x1="67.75" y1="37.75" x2="67.75" y2="60.25"/>
+            <line x1="143.75" y1="37.75" x2="143.75" y2="60.25"/>
+            <line x1="67.75" y1="75.75" x2="67.75" y2="98.25"/>
+            <line x1="143.75" y1="75.75" x2="143.75" y2="98.25"/>
+        </g>
+    </svg>
+</div>

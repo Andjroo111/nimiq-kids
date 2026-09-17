@@ -40,7 +40,7 @@ times over, not exactly once.
 ## Hot-wallet funding rules
 
 - Generate a FRESH key for this instance (never reuse the family install's):
-  `bun run src/scripts/generate-hot-wallet.ts ~/secrets/hatch-competition.env`
+  `bun run src/scripts/generate-hot-wallet.ts ~/gdkc/secrets/hatch-competition.env`
 - Fund small and refill often: **start with ~100 NIM**, never hold more than a few
   days of worst-case grants. The wallet is hot on an internet-facing box.
 - Watch it: `bun run src/scripts/credit-budget.ts list` (per-family budgets) and the
@@ -55,19 +55,19 @@ times over, not exactly once.
 
 ```bash
 # 1. Separate checkout (never serve the public instance from the family checkout)
-git clone git@github.com:Andjroo111/nimiq-kids.git ~/apps/nimiq.kids-competition
-cd ~/apps/nimiq.kids-competition && bun install --frozen-lockfile
+git clone git@github.com:Andjroo111/nimiq-kids.git ~/gdkc/projects/nimiq.kids-competition
+cd ~/gdkc/projects/nimiq.kids-competition && bun install --frozen-lockfile
 
 # 2. Data + env
-mkdir -p ~/data/hatch-competition/media
-cp deploy/competition/hatch-competition.env.template ~/secrets/hatch-competition.env
-chmod 600 ~/secrets/hatch-competition.env
+mkdir -p ~/gdkc/data/hatch-competition/media
+cp deploy/competition/hatch-competition.env.template ~/gdkc/secrets/hatch-competition.env
+chmod 600 ~/gdkc/secrets/hatch-competition.env
 #   fill: NIMIQ_RPC_URL, PARENT_URL; then generate the hot wallet:
-bun run src/scripts/generate-hot-wallet.ts ~/secrets/hatch-competition.env
+bun run src/scripts/generate-hot-wallet.ts ~/gdkc/secrets/hatch-competition.env
 #   fund the printed address with the starting budget (see funding rules)
 
 # 3. Mainnet self-test (moves 0.1 NIM out and straight back — MUST pass)
-set -a; source ~/secrets/hatch-competition.env; set +a
+set -a; source ~/gdkc/secrets/hatch-competition.env; set +a
 bun run src/scripts/mainnet-selftest.ts --yes
 
 # 4. launchd — FROM A REAL TERMINAL
@@ -107,11 +107,11 @@ route, and restart cloudflared. If a quick tunnel must do for a dry run, copy
    step 5 hit the budget even though it was family #1.
 9. **Hot wallet holds only the bounded budget** (funding rules above), and the key
    lives ONLY in the chmod-600 env file.
-10. **Backups:** `~/data/hatch-competition/` is on the Mini backup path.
+10. **Backups:** `~/gdkc/data/hatch-competition/` is on the Mini backup path.
 
 ## Day-2 operations
 
-- Logs: `~/logs/hatch-competition.log`.
+- Logs: `~/gdkc/logs/hatch-competition.log`.
 - Budgets: `credit-budget.ts list | show | credit | exempt` (exempt is for e.g. the
   ops ops household once it is a named beta family — deliberate, logged, rare).
 - Refill the hot wallet in small amounts; reconcile unmatched deposits weekly.

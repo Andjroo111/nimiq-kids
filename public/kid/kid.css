@@ -539,7 +539,14 @@ img { max-width: 100%; }
    a stretched item ignores aspect-ratio, so with more than one row every scene
    was drawn as a tall strip instead of a square. */
 .me-bgs { align-items: start; }
-.me-bgs .tile { width: 100%; height: auto; aspect-ratio: 1; }
+/* ⚠️ NOT aspect-ratio. Measured on Leo's tablet in landscape (2026-09-17, the first day the
+   tiles were pictures): Chrome sizes an `auto` grid row for an aspect-ratio item from a zero
+   contribution, so with the grid's max-height in play the three rows came out 118px each under
+   292px tiles and every row was drawn over the one above it. A percentage padding resolves
+   against the column width and the row takes it, in every orientation. The height is the
+   width minus the 4px border on both sides, so the tile stays square. */
+.me-bgs .tile { width: 100%; height: 0; padding-bottom: calc(100% - 8px); aspect-ratio: auto; }
+.me-bgs .tile > span { position: absolute; inset: 0; display: grid; place-items: center; }
 
 /* The empty slots: where scenes that have not shipped yet will go. A dotted
    outline is the app's own idiom for a space waiting to be filled -- the same

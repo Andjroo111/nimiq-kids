@@ -5,7 +5,7 @@
 // which is why a tablet with no Wi-Fi shows ERR_ADDRESS_UNREACHABLE rather than the app.
 //
 // It is registered HERE, and not in `/portal/`, because the kiosk wrapper is built with
-// `-Pkidkiosk.serverUrl=https://<mini-lan-ip>:3950/kid/` and lands on `/kid/` directly. A
+// `-Pkidkiosk.serverUrl=https://192.168.1.42:3950/kid/` and lands on `/kid/` directly. A
 // registration on the chooser is a registration the tablet never runs.
 //
 // ⚠️ SCOPE IS `/kid/`, NOT `/`. A service worker's scope decides which DOCUMENTS it controls,

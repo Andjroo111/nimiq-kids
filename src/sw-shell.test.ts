@@ -80,12 +80,12 @@ for (const dir of ["kid/js", "kid/css", "js/lib"]) {
 // (`iconUrlForEmoji`), so the client cannot know in advance which file it will be asked for
 // and any list shorter than all of them has a hole in it somewhere.
 //
-// Same argument for the three other directories: the switch-gate pictures are the login on a
-// shared tablet, the Treasure Box faces are five tiles that must not be four, and a sticker is
-// the reward itself. (The dock was a fourth until 2026-09-15; it is inline SVG now.)
-for (const dir of ["assets/icons", "assets/stickers", "assets/secret", "assets/store"]) {
+// Same argument for the three other directories: the Treasure Box faces are five tiles that
+// must not be four, and a sticker is the reward itself. (The dock was a fourth until
+// 2026-09-15, inline SVG now; the switch-gate pictures a fifth until 2026-09-16, gate gone.)
+for (const dir of ["assets/icons", "assets/stickers", "assets/secret", "assets/store", "assets/heroes", "assets/backgrounds"]) {
   test(`every picture under public/${dir} is precached`, () => {
-    const missing = served(dir, [".png", ".svg", ".webp"]).filter((u) => !entries.has(u));
+    const missing = served(dir, [".png", ".svg", ".webp", ".jpg"]).filter((u) => !entries.has(u));
     expect(missing, `add these to SHELL in public/sw.js: ${missing.join(", ")}`).toEqual([]);
   });
 }

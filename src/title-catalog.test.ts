@@ -17,6 +17,7 @@ import { DEMO_KIDS } from "./demo-family";
 import { STICKER_PACKS } from "./sticker-catalog";
 import { TASK_ICONS, TASK_ICON_ART_SHIPPED, iconUrlForEmoji } from "./task-icons";
 import { existsSync } from "node:fs";
+import { SAMPLE_CHORES } from "./starter-board";
 
 const LANGS = ["en", "es", "de", "fr", "pt"] as const;
 
@@ -28,12 +29,52 @@ test("ids are unique across the catalog", () => {
 });
 
 test("every job sits in a real picker group, and every group has tiles", () => {
+  // A job MAY carry no group: that is how a tile is retired from the picker without
+  // orphaning the boards already pointing at its key (`petfeed`, 2026-09-17). What is
+  // still a bug is a group that names nothing, because `/api/jobs` builds the grid from
+  // JOB_GROUPS and would draw an empty heading.
   for (const j of JOB_CATALOG) {
-    expect(JOB_GROUPS, `${j.id} group`).toContain(j.group!);
+    if (j.group === undefined) continue;
+    expect(JOB_GROUPS, `${j.id} group`).toContain(j.group);
   }
   // A group with no tiles renders as an empty heading in the picker.
   for (const g of JOB_GROUPS) {
     expect(JOB_CATALOG.filter((j) => j.group === g).length, `group ${g}`).toBeGreaterThan(0);
+  }
+});
+
+// ---------- a retired tile still translates ----------
+//
+// `petfeed` ("Feed the pet") left the picker on 2026-09-17 because it read as a
+// placeholder next to "Feed the dog" and "Feed the cat". It stays in the table: a board
+// created before that date holds `cat.job.petfeed` in SQLite, and dropping the row is how
+// those boards would fall back to English forever. Retirement is the ABSENCE of a group,
+// and these two halves are what make that a real mechanism rather than a comment.
+test("a job with no group keeps its key in all 5 languages", () => {
+  const retired = JOB_CATALOG.filter((j) => j.group === undefined);
+  expect(retired.map((j) => j.id)).toEqual(["petfeed"]);
+  for (const j of retired) {
+    for (const [lang, strings] of Object.entries(appLocales)) {
+      expect(strings[jobKey(j.id)], `${lang} ${j.id}`).toBeTruthy();
+    }
+  }
+});
+
+test("a retired job is offered by no picker group", () => {
+  const offered = new Set(
+    JOB_GROUPS.flatMap((g) => JOB_CATALOG.filter((j) => j.group === g).map((j) => j.id)),
+  );
+  for (const j of JOB_CATALOG.filter((x) => x.group === undefined)) {
+    expect(offered.has(j.id), `${j.id} offered`).toBe(false);
+  }
+});
+
+// The starter board is the FIRST screen of a new family, so it is the one board that
+// cannot seed a tile we have stopped standing behind. It seeded `petfeed` until
+// 2026-09-17: the vaguest of the three jobs, on the first line a parent ever reads.
+test("the starter board seeds only jobs the picker still offers", () => {
+  for (const c of SAMPLE_CHORES) {
+    expect(job(c.job).group, `starter ${c.job}`).toBeDefined();
   }
 });
 

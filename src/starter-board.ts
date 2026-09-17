@@ -19,8 +19,12 @@
 //
 // Catalog ids, not sentences: this is the FIRST board a new family sees, so it is
 // also the first place an untranslated title showed. "Tidy up your room" used to
-// be worded differently here than the demo's "Tidy your room"; both are
-// `cat.job.room` now and there is one translation of it.
+// be worded differently here than the demo's wording; both are `cat.job.room` now
+// and there is one translation of it (today it reads "Clean your room").
+//
+// `petfeed` seeded this board until 2026-09-17. "Feed the pet" was the vaguest of the
+// three starter jobs and it was the first line of the first screen; `dogfeed` says which
+// animal. Same $0.50, so `starterBoardUsd()` and the grant invariant are untouched.
 //
 // Priced in DOLLARS, not luna, because that is the app's one chore-pricing strategy and this
 // was the only place that broke it. Everywhere else a chore is worth a realistic allowance
@@ -38,7 +42,7 @@ import { usdToWholeNimLuna } from "./rates";
 
 export const SAMPLE_CHORES: readonly { job: string; rewardUsd: number }[] = [
   { job: "bed", rewardUsd: 0.5 },
-  { job: "petfeed", rewardUsd: 0.5 },
+  { job: "dogfeed", rewardUsd: 0.5 },
   { job: "room", rewardUsd: 1.0 },
 ];
 

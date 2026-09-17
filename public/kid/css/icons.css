@@ -35,6 +35,11 @@
   stroke-linejoin: round;
 }
 
+/* A Phosphor glyph (kid/js/icons.js, public/js/lib/phosphor.js) is a filled outline: the
+   stroke rule above is inert on it and its weight is the class the caller picked (regular
+   at --ic-l and up, bold below). It fills its box like every other glyph. */
+.k-ph svg { fill: currentColor; }
+
 /* A filled SPOT glyph (the two empty states) is the exception, and it is the same exception
    both times: --ic-xl, --ink-30. */
 .k-spot { color: var(--ink-30); font-size: var(--ic-xl); }

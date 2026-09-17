@@ -84,7 +84,7 @@ export const recoveryLogPath = (): string =>
  *
  * That is the point of keeping it at all: without it the funds are gone forever, and it is
  * the SOLE copy, so it cannot simply be dropped. But stdout on these deploys is a plaintext
- * file under ~/logs that nothing redacts, and the URL is a live bearer instrument for
+ * file under ~/gdkc/logs that nothing redacts, and the URL is a live bearer instrument for
  * however much NIM the mint may have moved, spendable by anyone who ever reads that file —
  * a backup, a log shipper, a screen-share, a support bundle. The trigger is not exotic:
  * `waitForFunding` throws after 20s, which happened on mainnet on 2026-08-01.

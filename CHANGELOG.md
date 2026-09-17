@@ -2,18 +2,116 @@
 
 All notable changes to nimiq.kids will be documented here.
 
+## [0.121.5] - 2026-09-17
+### Changed
+- Three of the four during-timer beds are new: Lullaby, Bouncy and Floaty are Suno v6
+  instrumentals cut to seamless ~30s loops (whole bars, spectral seam match, equal-power
+  crossfade) and levelled to -25 LUFS, the level the ElevenLabs beds already played at, so
+  nothing gets louder on the tablet. Picked on a before/after audition against the
+  originals; Ticking keeps its original. The timer BUILD token is bumped so a cached copy
+  of the old bed lets go.
+
+## [0.121.4] - 2026-09-17
+### Changed
+- **The job titles say what the job is.** Eight of the forty-two picker tiles were reworded
+  to the imperative a parent actually uses at home: `Tidy your room` is `Clean your room`,
+  `Tidy the yard` is `Clean up the yard`, `Wipe the bathroom` is `Clean the bathroom`,
+  `Pajamas on` is `Put on your pajamas`, `Shoes away` is `Put your shoes away`, and
+  `Help with the groceries` is `Put the groceries away` (a job with a finish line). One verb
+  now covers the act everywhere: clean, not a mix of tidy, wipe and clean.
+- **The two Brilliant lesson tiles are general.** `Finish a Brilliant algebra lesson` and
+  `Do a Brilliant coding lesson` are `Do a math lesson` and `Do a coding lesson`. They named
+  a paid third-party product no other household has, and they were the two longest strings in
+  a table sized to be scanned as a grid. A family with a Brilliant account types its own
+  wording, which is stored verbatim in every language.
+- **`Feed the pet` left the picker.** It sat next to `Feed the dog` and `Feed the cat` in the
+  same tab and read as a placeholder beside them. The row stays in the catalog with all five
+  translations, so a board already carrying `cat.job.petfeed` still renders in its own
+  language; it is simply no longer offered. A household with a rabbit types it.
+- Retirement now has a mechanism: no `group` means not offered, which `/api/jobs` already
+  honoured and `title-catalog.test.ts` used to reject. Both halves are pinned by tests.
+### Fixed
+- **The first board a new family sees no longer opens with the vaguest job in the table.**
+  `SAMPLE_CHORES` seeded `petfeed`, so `Feed the pet` was on the first screen of every new
+  household; it seeds `dogfeed` now. Same $0.50, so `starterBoardUsd()` and the demo-grant
+  invariant are unchanged. A test refuses any starter chore the picker does not still offer.
+
+## [0.121.3] - 2026-09-17
+### Changed
+- The Timer is back in the kid dock, between Calendar and Games. It had been a Tools tile on the Games page since #398, so a kid hunting the hourglass landed on a page of app icons. The bar is five wide when the wrapper has games to launch, four when it has not; the Games page draws only Android packages now.
+
+## [0.121.2] - 2026-09-17
+### Changed
+- The Treasure Box's sticker shelf now sells the four goal-ladder sets themselves (Ocean, Space, Dragons, Robots) with the new art, 2000 to 3000 NIM. Buying one hands over its members at once; the boss and the scene are still only earned by finishing the set on a ladder, and a bought set is finished on the first rung climbed toward it.
+- The four emoji packs (space, ocean, party, animals) left the shelf. A kid who bought one keeps every sticker they earned or placed.
+### Removed
+- The "Sets you can collect" strip at the bottom of the Treasure Box; the sets are the shelf now, and the wish shelf is moving elsewhere.
+
+## [0.121.1] - 2026-09-17
+### Fixed
+- The wallpaper tiles on the me sheet no longer draw over each other in landscape (the grid rows collapsed under aspect-ratio tiles).
+
+## [0.121.0] - 2026-09-17
+### Added
+- The lineless art (Andjroo and Midjourney, brand-voice-research `mj-hunt-0915`): 21 egg-hatch
+  characters in the timer's hatch sheet and the app's surprise, 15 scenes as wallpapers for the
+  app and the timer (eleven free, ocean / space / forest / building site earned by finishing
+  the matching theme), four goal-ladder themes (Ocean 7, Space 6, Dragons 6, Robots 6, each with
+  a boss and a pack egg that is the ladder's prize face until the boss is owned), and ten
+  reminder icons on the timer's celebration sheet. `tools/art/cut-lineless.py` cuts it all from
+  the frames listed in `tools/art/lineless-list.json`: character only, no shadow puddle, no
+  sparkles.
+### Changed
+- The five lined-era themes (Dragons, Dragon friends, Unicorns, Unicorn friends, Robots) are
+  retired, never deleted: a ladder already set to one keeps its progress. New ladders pick from
+  the four lineless themes. The four gradient wallpaper tiles only appear when no catalogue
+  reached the tablet; the meadow scene is the default.
+
+## [0.120.11] - 2026-09-16
+### Removed
+- The secret-picture gate. A kid taps their name and is in; no enrolment, no two pictures
+  to tap on every open. Each tablet is paired to one kid, which is what the gate was standing
+  in for. The tablet still records which kid it is acting as. On one tablet, tapping a
+  sibling's name now opens the sibling's account.
+
+## [0.120.10] - 2026-09-15
+### Fixed
+- The dock badge test accepts the 2px lift the Phosphor chest needs.
+
+## [0.120.9] - 2026-09-15
+### Added
+- Phosphor Icons (MIT) as the app's second icon pack, inlined at build from
+  `tools/icons/phosphor-list.json` into `public/js/lib/phosphor.js` (149 glyphs, regular and
+  bold for the chrome, duotone at Nimiq's 0.4 for the Treasure Box). Nimiq's own glyphs stay
+  verbatim where Nimiq has one. Andjroo, 2026-09-15: "is there an icon pack that would match
+  nimiq-ui? I don't want to be generating these all the time."
+- Parents pick a Treasure Box shelf or item picture from 136 kid-safe Phosphor glyphs in nine
+  categories (Treats, Screen and play, Out and about, Home and bedtime, Animals, Sport,
+  Prizes, Chores, People and time); an old name a shelf already carries keeps its picture.
+### Changed
+- The dock, the lock screen, the month row, the target, the search and backspace glyphs and
+  the three screen-time clocks draw Phosphor; the hand-drawn versions are gone.
+
+## [0.120.8] - 2026-09-15
+### Changed
+- Treasure Box tiles: the screen-time clocks, the dinner plate and the moon are navy duotone glyphs in the icon system (outline plus the same colour at 0.4 for the wedge, the plate well and the moon body), not blue.
+
+## [0.120.7] - 2026-09-15
+### Changed
+- The bottom bar is navy on all four buttons (it only exists on the Calendar screen, so a selected colour marked nothing) and the Games button no longer carries the minutes pill.
+
+## [0.120.6] - 2026-09-15
+### Changed
+- The bottom bar reads Treasure, Calendar, Games, Money: four one-word nouns, and Calendar is
+  what the glyph is and what the screen shows (a month).
+
 ## [0.120.5] - 2026-09-15
 ### Changed
-- The tree carries no personal data ahead of the public repo: the author's first name in
-  quoted comments reads as the pseudonym Andjroo, the two test-fixture kids are Mia and Leo,
-  the demo hostname is `demo.nimiq.kids`, deploy templates and scripts use `USERNAME` and
-  neutral home paths, LAN addresses and the tunnel id are placeholders. Scan:
-  `~/Scripts/repo-privacy-scan.sh` on the working tree, plus every blocklist term, returns
-  nothing at HEAD. Commit history is not rewritten; the public repo starts from this tree.
-- `docs/ROADMAP.md` and the homepage roadmap are rewritten for Cycle II: the August month
-  with my own kids is done and the table names what it shipped (offline, screen time, battery,
-  goal path), the art refresh is the current lane, the Council figure is $4,500 on both
-  surfaces, and the Rive proposal waits for Cycle III to close on 11 October.
+- The bottom bar: one colour rule (navy at rest, blue selected; Money is no longer green on the
+  bar), one centred column for all four buttons (the badge lane that made the other three look
+  low is gone; a badge sits at its glyph's top-right corner, outside the ink), and the words
+  "Treasure box" and "Week" under the chest and the calendar. The Games screen's first row is
+  "Play" again, so the page does not say Games twice.
 
 ## [0.120.4] - 2026-09-15
 ### Changed
@@ -652,7 +750,7 @@ The money screen reads the same way as the board: the account card sits highest,
   boot, before the art wave that carries the cracks, so it painted eleven identical uncracked
   eggs and only rebuilt when a tile was picked. Not visible in the app, which has no picker.
 
-<!-- This is a straight re-vendor of ~/data/anim-demo (timer.html, wiggle.html), where
+<!-- This is a straight re-vendor of ~/gdkc/data/anim-demo (timer.html, wiggle.html), where
      the timer is authored. The three fixes above had been sitting there unvendored since
      2026-08-21. The two copies are byte-identical again. -->
 
@@ -731,7 +829,7 @@ The money screen reads the same way as the board: the account card sits highest,
   It is a label there rather than a control, so a running countdown is never one tap from a
   modal sheet. Job mode still hides it.
 
-<!-- The timer is vendored one-way from ~/data/anim-demo; the same change is committed
+<!-- The timer is vendored one-way from ~/gdkc/data/anim-demo; the same change is committed
      there (nimiq-kids-egg-rig, art/unicorn-themes) so re-vendoring cannot revert it. -->
 
 ## [0.116.11] - 2026-08-27
@@ -3656,7 +3754,7 @@ refund is therefore unchanged and still tracked separately.
 
 ## [0.60.0] - 2026-08-01
 ### Changed
-- `public/kid/timer/README.md` said three things that cost time: that `~/data/anim-demo` has
+- `public/kid/timer/README.md` said three things that cost time: that `~/gdkc/data/anim-demo` has
   no git remote (it has had one since 2026-07-31 — private `Andjroo111/nimiq-kids-egg-rig`), that
   vendoring is a plain `cp` (it is not — this repo is public and the authoring copy says "Andjroo",
   so the copy step must scrub the name), and it pointed at a worktree path that no longer exists.
@@ -3723,7 +3821,7 @@ refund is therefore unchanged and still tracked separately.
 - New harness: `tools/eggtimer-rawdom.py` (fails on the old timer, passes on this one — the flash,
   asserted), `tools/eggtimer-hatchproof.py` (Start on the arrival frame at 8000/1600/700/400 kbps
   still cracks, breaks and hatches a character), `tools/eggtimer-whole.py`. Authored in
-  `~/data/anim-demo`; `breakproof` reports the locked pose unchanged, 0.00% of pixels on all
+  `~/gdkc/data/anim-demo`; `breakproof` reports the locked pose unchanged, 0.00% of pixels on all
   five patterns.
 
 ## [0.57.0] - 2026-08-01
@@ -5831,7 +5929,7 @@ and closed.
   first. This one has two masks and the second region was being masked by the
   first mask; `duotone-credit-card` is worse and paints nothing at all. The
   repair re-binds each reference to the nearest preceding definition of the type
-  that reference requires. Tool: `~/data/nimiq-kids-uxdev/fix-duotone-ids.ts`.
+  that reference requires. Tool: `~/gdkc/data/nimiq-kids-uxdev/fix-duotone-ids.ts`.
   The four already-shipped icons with this defect (`safe-lock`, `paper-plane`,
   `high-five`, `key-puzzle`) render identically repaired, so they were left alone.
   Worth reporting upstream to nimiq-branding-cli.
@@ -7066,7 +7164,7 @@ and closed.
 - **Ops: LAN HTTPS + Mini runbook.** `TLS_CERT`/`TLS_KEY` env serve the app over HTTPS
   (Bun tls) so the kiosk tablet gets the secure context that camera + service worker
   require; absent = plain HTTP, dev/tests unchanged. `docs/RUNBOOK-MINI.md` documents the
-  self-hosted family instance (port 3950, data under ~/data/hatch, mkcert, tunnel
+  self-hosted family instance (port 3950, data under ~/gdkc/data/hatch, mkcert, tunnel
   ingress, launchd, pairing).
 
 ## [0.6.9] - 2026-07-18

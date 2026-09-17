@@ -8,14 +8,15 @@
 // shared with the parent side so the two cannot drift. An unrecognised package lands in Play and
 // is never hidden — the allowlist is the grown-up's, this only decides where a tile sits in it.
 //
-// THE TIMER IS A TOOLS TILE (#398). It left the dock for the Games slot, and it belongs here
-// because it is what it is: a thing on the tablet that is not a game. It is the one tile that is
-// not an Android package, so tiles take an `onTap` rather than always calling launchApp.
+// EVERY TILE IS AN ANDROID PACKAGE. The Timer sat here as a Tools tile from #398 until
+// 2026-09-17, when it went back to the dock (chart.js), where a kid looks for it. A tile that
+// is not a package would be the one tap that must not go through launchApp, and there is no
+// such tile any more; the Tools row only draws what the parent allowlisted (calculator, voice
+// recorder).
 
 import { state, $, esc, t, setScreen, toast, bgFor } from "./util.js";
 import { icon, arrowIcon, maskIcon } from "./icons.js";
 import { groupApps } from "/js/lib/app-categories.js";
-import { showEggTimer } from "./eggtimer.js";
 
 let watchTimer = 0;
 function stopWatch() { clearInterval(watchTimer); watchTimer = 0; }
@@ -46,16 +47,11 @@ function allowedGames() {
 }
 
 function gameTile(app) {
-  // A tile that is not an app carries its own mask glyph, drawn from the SAME dock sheet the
-  // bar uses, so the Timer here and the Timer that used to be in the bar are one drawing.
-  const face = app.mask
-    ? `<span class="game-icon game-icon-mask">${maskIcon(app.mask)}</span>`
-    : app.icon
-      ? `<img class="game-icon" src="${esc(app.icon)}" alt="" />`
-      : `<span class="game-icon game-icon-fallback" aria-hidden="true">${icon("gamepad")}</span>`;
-  const attr = app.pkg ? ` data-pkg="${esc(app.pkg)}"` : ` data-act="${esc(app.act)}"`;
+  const face = app.icon
+    ? `<img class="game-icon" src="${esc(app.icon)}" alt="" />`
+    : `<span class="game-icon game-icon-fallback" aria-hidden="true">${icon("gamepad")}</span>`;
   return `
-    <button class="game-tile"${attr}>
+    <button class="game-tile" data-pkg="${esc(app.pkg)}">
       ${face}
       <span class="game-label">${esc(app.label || app.pkg)}</span>
     </button>`;
@@ -73,9 +69,7 @@ function rowSection(row) {
 export function showGames(showEarn, refreshEarn) {
   stopWatch();
   const bg = bgFor();
-  const rows = groupApps(allowedGames(), [
-    { category: "tools", act: "timer", mask: "timer", label: t("app.kidDockTimer") },
-  ]);
+  const rows = groupApps(allowedGames());
 
   setScreen(`
     <div class="games">
@@ -104,11 +98,6 @@ export function showGames(showEarn, refreshEarn) {
       const ok = state.kiosk?.launchApp?.(b.dataset.pkg) === true;
       if (!ok) toast(t("app.kidGamesOver")); // relocked (or refused) meanwhile
     };
-  });
-  // The Timer never goes through the wrapper: it is a screen in this app, so it neither can be
-  // nor should be refused by the launcher's allowlist.
-  document.querySelectorAll('[data-act="timer"]').forEach((b) => {
-    b.onclick = () => { stopWatch(); showEggTimer(() => showGames(showEarn, refreshEarn)); };
   });
 
   // Free time can end while the grid is up: poll the native state and bounce home

@@ -387,7 +387,7 @@ export async function mintDemoFamily(hotWalletAddress: string): Promise<MintedDe
     // the parent app, and the payout lands the same way a chore's does.
     if (kid === DEMO_KIDS[0]) {
       const g = goalsRepo.createGoal(fam.id, child.id, "Ride the bike",
-        { emoji: "🚲", ordered: true, packId: "pack-dragons", titleKey: "cat.goal.bike" });
+        { emoji: "🚲", ordered: true, packId: "pack-dragons-theme", titleKey: "cat.goal.bike" });
       const rungs: [string, number][] = [
         ["Sit on it, feet on the ground", 0.25], ["Roll along with your feet up", 0.5],
         ["Pedal with a hand on your back", 0.75], ["Ride it on your own", 1.5],

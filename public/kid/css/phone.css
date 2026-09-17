@@ -20,6 +20,7 @@
           --icon-stroke: 2.25px; --ic-s: 18px; --ic-m: 24px; --ic-l: 32px; --ic-xl: 52px; }
   /* ---------- shared chrome ---------- */
   .back-btn { font-size: 22px; }
+  .ch-badge { left: calc(50% + 13px); }
   .mega-btn { min-height: 60px; min-width: 200px; padding: 12px 28px; font-size: 20px; }
   /* bottom comes from --kid-dock-h so the toast never covers the dock */
   .kid-toast { font-size: 16px; padding: 12px 22px; }

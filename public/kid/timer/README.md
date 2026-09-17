@@ -1,14 +1,14 @@
 # The egg timer — where this came from and what is left
 
-The timer Andjroo signed off over several sessions in `~/data/anim-demo`, which
+The timer Andjroo signed off over several sessions in `~/gdkc/data/anim-demo`, which
 **has a remote now** — private `Andjroo111/nimiq-kids-egg-rig`. Push there after any
 authoring session: the copy in this directory is the shipped artefact, not a backup of
 the tooling that produced it.
 
 Plan for the whole job: `~/.claude/plans/logical-sauteeing-whistle.md`.
-The account of every decision inside the rig: `~/data/anim-demo/HANDOFF.md` — read
+The account of every decision inside the rig: `~/gdkc/data/anim-demo/HANDOFF.md` — read
 §0 (there are several) before changing anything in `wiggle.html`. What the load does and
-why: `~/data/anim-demo/NEXT-SESSION-SPEED.md`.
+why: `~/gdkc/data/anim-demo/NEXT-SESSION-SPEED.md`.
 
 ## Status, 2026-08-01
 
@@ -16,19 +16,18 @@ why: `~/data/anim-demo/NEXT-SESSION-SPEED.md`.
 (set → run → hatch → back), and v0.59.0 (PR #45) fixed its boot: no unstyled flash, one
 arrival instead of three, and the dial's selection band centred on the time.
 
-⚠️ **THIS DIRECTORY IS VENDORED FROM `~/data/anim-demo`.** That is where the timer is
+⚠️ **THIS DIRECTORY IS VENDORED FROM `~/gdkc/data/anim-demo`.** That is where the timer is
 authored and where its verification harness lives. A change made here and not made there
 diverges silently. Copy in one direction only — **and scrub the name**, because that repo
 is private and this one is public:
 ```bash
 D=<this worktree>/public/kid/timer
-cd ~/data/anim-demo
-FIRST=<author first name>
-sed "s/$FIRST/Andjroo/g" timer.html  > $D/index.html
-sed "s/$FIRST/Andjroo/g" wiggle.html > $D/wiggle.html
-grep -c "$FIRST" $D/index.html $D/wiggle.html    # must be 0 0
+cd ~/gdkc/data/anim-demo
+sed 's/Andjroo/Andjroo/g' timer.html  > $D/index.html
+sed 's/Andjroo/Andjroo/g' wiggle.html > $D/wiggle.html
+grep -c Andjroo $D/index.html $D/wiggle.html    # must be 0 0
 ```
-⚠️ A plain `cp` puts the author's first name back into a public repo. The two copies differ in
+⚠️ A plain `cp` puts Andjroo's first name back into a public repo. The two copies differ in
 **exactly** that one substitution and nothing else, so `diff <(sed …) $D/…` is a complete
 check that they are in sync.
 

@@ -30,7 +30,10 @@ export function bgTiles(current, attr = "data-bg") {
   // who has not finished the dragons does not see the dragon valley here.
   const catalogBgs = [...(state.catalog?.backgrounds ?? []), ...(state.backgrounds ?? [])]
     .filter((b) => b.url);
-  const fallbackBgs = BUILTIN_BGS.filter((id) => !catalogBgs.some((b) => b.id === id));
+  // The four gradient tiles are the PRE-ART fallback and nothing else (2026-09-17): with eleven
+  // free scenes in the catalogue, a gradient called "ocean" beside the ocean a theme has to earn
+  // is a second, free ocean. They only show when no catalogue reached the tablet at all.
+  const fallbackBgs = catalogBgs.length ? [] : BUILTIN_BGS;
   return `
     ${fallbackBgs.map((id) => `
       <button class="tile bg-tile bg-${id} ${current === id ? "on" : ""}" ${attr}="${id}">

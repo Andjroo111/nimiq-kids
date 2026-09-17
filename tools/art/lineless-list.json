@@ -1,0 +1,428 @@
+{
+ "_readme": "What ships from the lineless Midjourney art (brand-voice-research, branch mj-hunt-0915, lineless/). Files are relative to that lineless/ dir. Run `python3 tools/art/cut-lineless.py <lineless-dir>` after editing. heroes = the 21 egg-hatch characters (the timer's surprise); packs = goal-ladder themes, each with members, one boss and the pack egg; timerIcons = the reminder sheet; backgrounds = 15 square scenes, `earnedBy` names the theme that unlocks it, the rest are free.",
+ "heroes": [
+  {
+   "id": "frog",
+   "label": "Frog",
+   "file": "frames/frog-1d0ab0df-2.png"
+  },
+  {
+   "id": "raccoon",
+   "label": "Raccoon",
+   "file": "frames/raccoon-b93bfa0a-1.png"
+  },
+  {
+   "id": "octopus",
+   "label": "Octopus",
+   "file": "frames/octopus-46d0ba01-0.png"
+  },
+  {
+   "id": "bunny",
+   "label": "Bunny",
+   "file": "frames/bunny-b6441036-3.png"
+  },
+  {
+   "id": "whale",
+   "label": "Whale",
+   "file": "frames/whale-571d1193-1.png"
+  },
+  {
+   "id": "turtle",
+   "label": "Turtle",
+   "file": "frames/turtle-4def8ead-1.png"
+  },
+  {
+   "id": "duck",
+   "label": "Duck",
+   "file": "frames/duck3-0c90dbaa-0.png"
+  },
+  {
+   "id": "tiger",
+   "label": "Tiger",
+   "file": "frames/tiger-3a4a511e-1.png"
+  },
+  {
+   "id": "sloth",
+   "label": "Sloth",
+   "file": "frames/sloth-4402b681-0.png"
+  },
+  {
+   "id": "axolotl",
+   "label": "Axolotl",
+   "file": "frames/axolotl-fc1fe8b3-1.png"
+  },
+  {
+   "id": "snail",
+   "label": "Snail",
+   "file": "frames/snail-bcc3a161-0.png"
+  },
+  {
+   "id": "owl",
+   "label": "Owl",
+   "file": "frames/owl3-7d3ed74e-3.png"
+  },
+  {
+   "id": "corgi",
+   "label": "Corgi",
+   "file": "frames/dog2-6ae6e560-2.png"
+  },
+  {
+   "id": "cat",
+   "label": "Cat",
+   "file": "frames/cat2-2b7c696f-0.png"
+  },
+  {
+   "id": "bee",
+   "label": "Bee",
+   "file": "frames/bee2b-27f2a9f1-0.png"
+  },
+  {
+   "id": "trex",
+   "label": "T-Rex",
+   "file": "frames/trex-20aaa4f9-3.png"
+  },
+  {
+   "id": "pig",
+   "label": "Pig",
+   "file": "frames/pig-d6e2ffa4-0.png"
+  },
+  {
+   "id": "penguin",
+   "label": "Penguin",
+   "file": "frames/penguin3-75ead199-0.png"
+  },
+  {
+   "id": "panda",
+   "label": "Panda",
+   "file": "frames/panda-77d7a9fc-3.png"
+  },
+  {
+   "id": "giraffe",
+   "label": "Giraffe",
+   "file": "frames/giraffe-757cd636-2.png"
+  },
+  {
+   "id": "hedgehog",
+   "label": "Hedgehog",
+   "file": "frames/hedgehog2-cb2696f0-0.png"
+  }
+ ],
+ "packs": [
+  {
+   "id": "pack-ocean",
+   "title": "Ocean",
+   "stickers": [
+    {
+     "id": "ocean-crab",
+     "label": "Crab",
+     "file": "packs/ocean/crab-f3a01e91-1.png"
+    },
+    {
+     "id": "ocean-octopus",
+     "label": "Octopus",
+     "file": "packs/ocean/octopus-46d0ba01-0.png"
+    },
+    {
+     "id": "ocean-whale",
+     "label": "Whale",
+     "file": "packs/ocean/whale-571d1193-1.png"
+    },
+    {
+     "id": "ocean-turtle",
+     "label": "Turtle",
+     "file": "packs/ocean/turtle-4def8ead-1.png"
+    },
+    {
+     "id": "ocean-axolotl",
+     "label": "Axolotl",
+     "file": "packs/ocean/axolotl-fc1fe8b3-1.png"
+    },
+    {
+     "id": "ocean-penguin",
+     "label": "Penguin",
+     "file": "packs/ocean/penguin3-75ead199-0.png"
+    },
+    {
+     "id": "ocean-fish",
+     "label": "Fish",
+     "file": "packs/ocean/fish-7e4699ef-1.png"
+    },
+    {
+     "id": "ocean-seahorse",
+     "label": "The pearl seahorse",
+     "file": "packs/ocean/seahorse2-a981dabe-1.png",
+     "boss": true
+    }
+   ],
+   "egg": {
+    "id": "ocean-egg",
+    "label": "Ocean egg",
+    "file": "packs/ocean/egg-ef663c4d-3.png"
+   }
+  },
+  {
+   "id": "pack-space",
+   "title": "Space",
+   "stickers": [
+    {
+     "id": "space-rocket",
+     "label": "Rocket",
+     "file": "packs/space/space-rocket-41accb76-1.png"
+    },
+    {
+     "id": "space-alien",
+     "label": "Alien",
+     "file": "packs/space/space-alien-d383beba-2.png"
+    },
+    {
+     "id": "space-robot",
+     "label": "Robot",
+     "file": "packs/space/space-robot-3f7af875-0.png"
+    },
+    {
+     "id": "space-comet",
+     "label": "Comet",
+     "file": "packs/space/space-comet-cde4b813-0.png"
+    },
+    {
+     "id": "space-ufo",
+     "label": "UFO",
+     "file": "packs/space/space-ufo-4c50d737-0.png"
+    },
+    {
+     "id": "space-asteroid",
+     "label": "Asteroid",
+     "file": "packs/space/space-asteroid-66602eda-1.png"
+    },
+    {
+     "id": "space-astro",
+     "label": "The astronaut",
+     "file": "packs/space/space-astro2-7b202003-2.png",
+     "boss": true
+    }
+   ],
+   "egg": {
+    "id": "space-egg",
+    "label": "Space egg",
+    "file": "packs/space/space-egg2-a158a54f-0.png"
+   }
+  },
+  {
+   "id": "pack-dragons",
+   "title": "Dragons",
+   "stickers": [
+    {
+     "id": "dragons-sky",
+     "label": "Sky dragon",
+     "file": "packs/dragons/dragon-sky-12112acd-2.png"
+    },
+    {
+     "id": "dragons-mint",
+     "label": "Mint dragon",
+     "file": "packs/dragons/dragon-mint-16394122-2.png"
+    },
+    {
+     "id": "dragons-blurple",
+     "label": "Blurple dragon",
+     "file": "packs/dragons/dragon-blurple-d2ce0532-0.png"
+    },
+    {
+     "id": "dragons-yolk",
+     "label": "Yolk dragon",
+     "file": "packs/dragons/dragon-yolk-ae362290-0.png"
+    },
+    {
+     "id": "dragons-pink",
+     "label": "Pink dragon",
+     "file": "packs/dragons/dragon-pink-20744686-2.png"
+    },
+    {
+     "id": "dragons-coral",
+     "label": "Coral dragon",
+     "file": "packs/dragons/dragon-coral2-eec63624-0.png"
+    },
+    {
+     "id": "dragons-gold",
+     "label": "The gold dragon",
+     "file": "packs/dragons/dragon-gold-3ac156bb-0.png",
+     "boss": true
+    }
+   ],
+   "egg": {
+    "id": "dragons-egg",
+    "label": "Dragon egg",
+    "file": "packs/dragons/dragon-egg-87b0c11b-0.png"
+   }
+  },
+  {
+   "id": "pack-robots",
+   "title": "Robots",
+   "stickers": [
+    {
+     "id": "robots-coral",
+     "label": "Coral robot",
+     "file": "packs/robots/robot-coral-1c107d8a-0.png"
+    },
+    {
+     "id": "robots-space",
+     "label": "Blurple robot",
+     "file": "packs/robots/robot-space-3f7af875-0.png"
+    },
+    {
+     "id": "robots-mint",
+     "label": "Mint robot",
+     "file": "packs/robots/robot-mint-0ef81aa8-1.png"
+    },
+    {
+     "id": "robots-sky",
+     "label": "Sky robot",
+     "file": "packs/robots/robot-sky-cf7756a8-0.png"
+    },
+    {
+     "id": "robots-yolk",
+     "label": "Yolk robot",
+     "file": "packs/robots/robot-yolk-218e4430-2.png"
+    },
+    {
+     "id": "robots-pink",
+     "label": "Pink robot",
+     "file": "packs/robots/robot-pink-6188d5fa-0.png"
+    },
+    {
+     "id": "robots-boss",
+     "label": "The pearl robot",
+     "file": "packs/robots/robot-boss-6ada8132-3.png",
+     "boss": true
+    }
+   ],
+   "egg": {
+    "id": "robots-egg",
+    "label": "Robot egg",
+    "file": "packs/robots/robot-egg-7a692c4d-0.png"
+   }
+  }
+ ],
+ "timerIcons": [
+  {
+   "slug": "goodjob",
+   "file": "packs/timer-icons/icon-goodjob-ae753e6b-2.png"
+  },
+  {
+   "slug": "youdidit",
+   "file": "packs/timer-icons/icon-youdidit-9826ac23-0.png"
+  },
+  {
+   "slug": "hooray",
+   "file": "packs/timer-icons/icon-hooray-1f333715-2.png"
+  },
+  {
+   "slug": "love",
+   "file": "packs/timer-icons/icon-love-45b6d3b9-2.png"
+  },
+  {
+   "slug": "shoes",
+   "file": "packs/timer-icons/icon-shoes-565a0d95-0.png"
+  },
+  {
+   "slug": "socks",
+   "file": "packs/timer-icons/icon-socks-48f9ffd6-2.png"
+  },
+  {
+   "slug": "bath",
+   "file": "packs/timer-icons/icon-bath-10ae5aae-3.png"
+  },
+  {
+   "slug": "bed",
+   "file": "packs/timer-icons/icon-bed-fca52d7d-0.png"
+  },
+  {
+   "slug": "tidy",
+   "file": "packs/timer-icons/icon-tidy-7b7c1d46-1.png"
+  },
+  {
+   "slug": "teeth",
+   "file": "packs/timer-icons/icon-teeth-96cc8002-3.png"
+  }
+ ],
+ "backgrounds": [
+  {
+   "id": "ocean",
+   "label": "Ocean",
+   "file": "backgrounds-square-2048/ocean-sq-65e5c4d8-1.png",
+   "earnedBy": "pack-ocean"
+  },
+  {
+   "id": "space",
+   "label": "Space",
+   "file": "backgrounds-square-2048/space-sq-0783d807-2.png",
+   "earnedBy": "pack-space"
+  },
+  {
+   "id": "barn",
+   "label": "Farm",
+   "file": "backgrounds-square-2048/barn-sq-21dedc79-3.png"
+  },
+  {
+   "id": "bedroom",
+   "label": "Bedroom",
+   "file": "backgrounds-square-2048/house2-sq-70f69688-1.png"
+  },
+  {
+   "id": "forest",
+   "label": "Forest",
+   "file": "backgrounds-square-2048/forest-sq-11e92d14-0.png",
+   "earnedBy": "pack-dragons"
+  },
+  {
+   "id": "beach",
+   "label": "Beach",
+   "file": "backgrounds-square-2048/beach-sq-da2b385b-0.png"
+  },
+  {
+   "id": "snow",
+   "label": "Snow",
+   "file": "backgrounds-square-2048/snow-sq-fa8bc92b-2.png"
+  },
+  {
+   "id": "meadow",
+   "label": "Meadow",
+   "file": "backgrounds-square-2048/meadow-sq-b2d60ddb-2.png"
+  },
+  {
+   "id": "volcano",
+   "label": "Volcano",
+   "file": "backgrounds-square-2048/volcano-sq-ce5f5da1-2.png"
+  },
+  {
+   "id": "treehouse",
+   "label": "Treehouse",
+   "file": "backgrounds-square-2048/treehouse-sq-9c1393ce-2.png"
+  },
+  {
+   "id": "pirate",
+   "label": "Pirate ship",
+   "file": "backgrounds-square-2048/pirate-sq-38d5348e-2.png"
+  },
+  {
+   "id": "racetrack",
+   "label": "Race track",
+   "file": "backgrounds-square-2048/racetrack-sq-8edbbed1-2.png"
+  },
+  {
+   "id": "construction",
+   "label": "Building site",
+   "file": "backgrounds-square-2048/construction-sq-a836da01-0.png",
+   "earnedBy": "pack-robots"
+  },
+  {
+   "id": "castle",
+   "label": "Castle",
+   "file": "backgrounds-square-2048/castle-sq-41219fdb-3.png"
+  },
+  {
+   "id": "playground",
+   "label": "Playground",
+   "file": "backgrounds-square-2048/playground-sq-f824a15a-2.png"
+  }
+ ]
+}

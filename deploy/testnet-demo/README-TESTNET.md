@@ -12,7 +12,7 @@ Three instances now exist and none of them share anything:
 | port | 3950 | 3960 | **3963** |
 | network | test (SIM) | **main** | **test** |
 | hostname | LAN | `nimiq.kids` (shared tunnel) | `kids-demo.internal` (kids-dev tunnel) |
-| DB | `~/data/hatch/` | `~/data/hatch-competition/` | `~/data/hatch-testnet/` |
+| DB | `~/gdkc/data/hatch/` | `~/gdkc/data/hatch-competition/` | `~/gdkc/data/hatch-testnet/` |
 | env | `hatch.env` | `hatch-competition.env` | `hatch-testnet.env` |
 
 ## Why the demo is on testnet and not on mainnet
@@ -48,17 +48,17 @@ Demo households are stamped `families.demo_at` and swept hourly once they pass
 
 ```bash
 # 1. Its own checkout / worktree
-git worktree add -b feat/testnet-demo ~/worktrees/nimiq-kids-testnet-demo origin/main
-cd ~/worktrees/nimiq-kids-testnet-demo && bun install --frozen-lockfile
+git worktree add -b feat/testnet-demo ~/gdkc/worktrees/nimiq-kids-testnet-demo origin/main
+cd ~/gdkc/worktrees/nimiq-kids-testnet-demo && bun install --frozen-lockfile
 
 # 2. Data + env
-mkdir -p ~/data/hatch-testnet/media
-cp deploy/testnet-demo/hatch-testnet.env.template ~/secrets/hatch-testnet.env
-chmod 600 ~/secrets/hatch-testnet.env
+mkdir -p ~/gdkc/data/hatch-testnet/media
+cp deploy/testnet-demo/hatch-testnet.env.template ~/gdkc/secrets/hatch-testnet.env
+chmod 600 ~/gdkc/secrets/hatch-testnet.env
 
 # 3. Keys (both are required — a missing master seed throws on every kid-wallet call)
-bun run src/scripts/generate-hot-wallet.ts  ~/secrets/hatch-testnet.env
-bun run src/scripts/generate-family-seed.ts ~/secrets/hatch-testnet.env
+bun run src/scripts/generate-hot-wallet.ts  ~/gdkc/secrets/hatch-testnet.env
+bun run src/scripts/generate-family-seed.ts ~/gdkc/secrets/hatch-testnet.env
 #    then QUOTE the address line, or `set -a; source` tries to run its second word:
 #    HATCH_HOT_WALLET_ADDRESS="NQ.. .... ...."
 
@@ -143,7 +143,7 @@ then add the hostname to `kids-dev.yml` and restart that tunnel.
 
 ## Day-2
 
-- Logs: `~/logs/hatch-testnet.log`.
+- Logs: `~/gdkc/logs/hatch-testnet.log`.
 - Refill: the faucet call in step 4, any time.
 
 ### The hot wallet is a consumable, not a fixture
@@ -173,7 +173,7 @@ wallet funds roughly six times as many visitors per day. Nobody has made that ca
 **Check it before any judging window** and tap until it clears the traffic you expect:
 
 ```bash
-ADDR=$(grep '^HATCH_HOT_WALLET_ADDRESS' ~/secrets/hatch-testnet.env | cut -d= -f2- | tr -d '"')
+ADDR=$(grep '^HATCH_HOT_WALLET_ADDRESS' ~/gdkc/secrets/hatch-testnet.env | cut -d= -f2- | tr -d '"')
 curl -s -X POST https://rpc.testnet.nimiqwatch.com -H 'content-type: application/json' \
   -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"getAccountByAddress\",\"params\":[\"$ADDR\"]}"
 ```
@@ -193,5 +193,5 @@ reports a cheerful `paidHistory: 4`. Boot says which way it went — either
 `[demo] budget ok · grant N covers the M seeded history` or a `BELOW` warning naming the
 minimum. **Read that line after any change to the seed or the shelves.** Budget ~6,500 NIM per demo visitor.
 - Balance: `curl -s https://test-api.nimiqwatch.com/api/v1/account/$ADDR | jq .balance`
-- Families on the box: `sqlite3 ~/data/hatch-testnet/hatch.db "select count(*) from families where demo_at is not null;"`
+- Families on the box: `sqlite3 ~/gdkc/data/hatch-testnet/hatch.db "select count(*) from families where demo_at is not null;"`
 - Kill switch: `launchctl bootout gui/$(id -u)/com.hatch.testnet` (real Terminal).

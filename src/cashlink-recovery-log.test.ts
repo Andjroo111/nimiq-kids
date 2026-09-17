@@ -3,7 +3,7 @@
 // `logRecoverableMint` exists because a mint that throws AFTER the funding transfer leaves real
 // NIM at an address nobody has the key to, unless the claim URL is kept — and the URL IS the
 // key. Keeping it is correct and it is the sole copy. Printing it was not: on these deploys
-// stdout is a plaintext file under ~/logs that nothing redacts, so every failed mint left a
+// stdout is a plaintext file under ~/gdkc/logs that nothing redacts, so every failed mint left a
 // spendable key in a file that gets backed up, shipped, screen-shared and attached to support
 // bundles, forever. The trigger is ordinary — `waitForFunding` throws after 20s, which happened
 // on mainnet on 2026-08-01.

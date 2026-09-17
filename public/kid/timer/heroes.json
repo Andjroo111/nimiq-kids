@@ -1,5 +1,153 @@
 {
  "version": 1,
  "h": 320,
- "heroes": []
+ "heroes": [
+  {
+   "id": "hero-frog",
+   "label": "frog",
+   "w": 306,
+   "h": 320,
+   "fill": 0.741
+  },
+  {
+   "id": "hero-raccoon",
+   "label": "raccoon",
+   "w": 263,
+   "h": 320,
+   "fill": 0.706
+  },
+  {
+   "id": "hero-octopus",
+   "label": "octopus",
+   "w": 283,
+   "h": 320,
+   "fill": 0.75
+  },
+  {
+   "id": "hero-bunny",
+   "label": "bunny",
+   "w": 178,
+   "h": 320,
+   "fill": 0.661
+  },
+  {
+   "id": "hero-whale",
+   "label": "whale",
+   "w": 382,
+   "h": 320,
+   "fill": 0.684
+  },
+  {
+   "id": "hero-turtle",
+   "label": "turtle",
+   "w": 298,
+   "h": 320,
+   "fill": 0.735
+  },
+  {
+   "id": "hero-duck",
+   "label": "duck",
+   "w": 220,
+   "h": 320,
+   "fill": 0.653
+  },
+  {
+   "id": "hero-tiger",
+   "label": "tiger",
+   "w": 250,
+   "h": 320,
+   "fill": 0.77
+  },
+  {
+   "id": "hero-sloth",
+   "label": "sloth",
+   "w": 237,
+   "h": 320,
+   "fill": 0.807
+  },
+  {
+   "id": "hero-axolotl",
+   "label": "axolotl",
+   "w": 267,
+   "h": 320,
+   "fill": 0.616
+  },
+  {
+   "id": "hero-snail",
+   "label": "snail",
+   "w": 309,
+   "h": 320,
+   "fill": 0.685
+  },
+  {
+   "id": "hero-owl",
+   "label": "owl",
+   "w": 269,
+   "h": 320,
+   "fill": 0.718
+  },
+  {
+   "id": "hero-corgi",
+   "label": "corgi",
+   "w": 219,
+   "h": 320,
+   "fill": 0.716
+  },
+  {
+   "id": "hero-cat",
+   "label": "cat",
+   "w": 259,
+   "h": 320,
+   "fill": 0.714
+  },
+  {
+   "id": "hero-bee",
+   "label": "bee",
+   "w": 278,
+   "h": 320,
+   "fill": 0.592
+  },
+  {
+   "id": "hero-trex",
+   "label": "t-rex",
+   "w": 236,
+   "h": 320,
+   "fill": 0.691
+  },
+  {
+   "id": "hero-pig",
+   "label": "pig",
+   "w": 258,
+   "h": 320,
+   "fill": 0.713
+  },
+  {
+   "id": "hero-penguin",
+   "label": "penguin",
+   "w": 243,
+   "h": 320,
+   "fill": 0.723
+  },
+  {
+   "id": "hero-panda",
+   "label": "panda",
+   "w": 252,
+   "h": 320,
+   "fill": 0.774
+  },
+  {
+   "id": "hero-giraffe",
+   "label": "giraffe",
+   "w": 182,
+   "h": 320,
+   "fill": 0.537
+  },
+  {
+   "id": "hero-hedgehog",
+   "label": "hedgehog",
+   "w": 310,
+   "h": 320,
+   "fill": 0.74
+  }
+ ]
 }

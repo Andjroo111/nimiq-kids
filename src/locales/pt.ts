@@ -185,7 +185,7 @@ const pt: typeof en = {
   "app.kidPhotoSent": "Enviado! Muito bem!",
   "app.kidGamesOpen": "Seus jogos estão abertos!",
   "app.kidDockGames": "Jogos",
-  "app.kidGamesRowPlay": "Jogos",
+  "app.kidGamesRowPlay": "Jogar",
   "app.kidGamesRowLearn": "Aprender",
   "app.kidGamesRowCreate": "Criar",
   "app.kidGamesRowWatch": "Ver",
@@ -283,8 +283,8 @@ const pt: typeof en = {
   "app.kidSwitchKid": "Trocar de criança",
   "app.kidBackground": "Fundo",
   // Palavras do dock, curtas de propósito (ver en.ts).
-  "app.kidDockBox": "Baú",
-  "app.kidDockWeek": "Semana",
+  "app.kidDockBox": "Tesouro",
+  "app.kidDockWeek": "Calendário",
   "app.kidDockTimer": "Timer",
   "app.kidDockMoney": "Dinheiro",
   "app.kidMorning": "Manhã",
@@ -368,17 +368,6 @@ const pt: typeof en = {
   "app.kidUseItNow": "Usar agora?",
 
   // #123 the switch gate: a kid's secret picture on a shared family tablet
-  "app.switchPickSub": "Toca em {taps} imagens.",
-  "app.switchConfirmSub": "Toca nas mesmas {taps} outra vez!",
-  "app.switchNotMe": "Não sou eu",
-  "app.switchAskSub": "Toca nas tuas {taps} imagens.",
-  "app.switchWrong": "Não são esses. Tenta outra vez.",
-  "app.switchNotPaired": "Este tablet ainda não está configurado. Pede ajuda a um adulto.",
-  "app.switchMismatch": "Esses eram diferentes. Começa outra vez.",
-  "app.switchTooMany": "Demasiadas tentativas. Espera um bocadinho.",
-  "app.switchGrownUp": "Pede ajuda a um adulto",
-  "app.switchPinPrompt": "Escreve o PIN da família",
-  "app.switchPinBad": "Esse PIN não funcionou.",
 };
 
 export default pt;

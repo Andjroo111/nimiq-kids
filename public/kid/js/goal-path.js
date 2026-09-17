@@ -59,13 +59,17 @@ function rungNode(r, n, progress) {
 }
 
 /** The prize, last in DOM so column-reverse puts it under the banner. Grey until it is won
- *  (the component's own locked prize), gold after. A gift, not the boss sticker: see rungMark. */
-function prizeNode(boss) {
+ *  (the component's own locked prize), gold after. Since 2026-09-17 the face is ART: the
+ *  theme's PACK EGG while the set is unfinished, the boss once it is owned, both as the
+ *  <img> at 72% the component reserves (the 09-13 decision: the node is the frame, the art
+ *  goes inside the face). The gift stays as the face of a theme with no egg drawn. */
+function prizeNode(boss, eggUrl) {
+  const art = boss.owned ? boss.assetUrl : eggUrl;
   return `
     <li class="duo-path-step">
       <div class="duo-node is-prize${boss.owned ? "" : " is-locked"}">
         <button class="duo-node-face" type="button" aria-label="${esc(boss.label)}" tabindex="-1">
-          ${giftIcon()}
+          ${art ? `<img src="${esc(art)}" alt="" draggable="false" />` : giftIcon()}
         </button>
       </div>
     </li>`;
@@ -122,7 +126,7 @@ export function showGoalPath(g, opts) {
             </header>
             <ol class="duo-path-steps">
               ${rungs.map((r, i) => rungNode(r, i + 1, progress)).join("")}
-              ${boss ? prizeNode(boss) : ""}
+              ${boss ? prizeNode(boss, g.theme?.eggUrl ?? null) : ""}
             </ol>
           </section>
           ${line ? `<p class="pr-steps-total">${esc(line)}</p>` : ""}

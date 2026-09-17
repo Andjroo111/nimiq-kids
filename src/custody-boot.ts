@@ -189,7 +189,7 @@ export async function parentCustodyBootReport(deps: BootGuardDeps): Promise<Boot
   // very different words. Key still present is the lucky one: the money is reachable and the
   // operator is being told to sweep it before the door shuts. Key already gone is the autopsy,
   // and it is still worth refusing over, since an env var deleted an hour ago comes back out of
-  // ~/secrets/resolved/ while the NIM does not come back out of anywhere.
+  // ~/gdkc/secrets/resolved/ while the NIM does not come back out of anywhere.
   const snapshotLuna = deps.hotWalletSnapshotLuna();
   // null is "never snapshotted", which is UNKNOWN, not empty. Refusing every un-primed boot
   // would block SIM instances and fresh databases that have no hot wallet to lose.
@@ -224,7 +224,7 @@ export function formatBootReport(report: BootReport): string {
     switch (p.kind) {
       case "key_present":
         lines.push(`  ${p.name} is still set. Parent custody means no kid-signing key exists here.`);
-        lines.push("    Remove it from the environment, from ~/secrets/resolved/, and from fly secrets.");
+        lines.push("    Remove it from the environment, from ~/gdkc/secrets/resolved/, and from fly secrets.");
         break;
       case "funds_at_derived_address":
         lines.push(`  ${p.kid.label} (${p.kid.id}) still holds ${p.balanceLuna} luna at ${p.kid.address}`);
@@ -239,7 +239,7 @@ export function formatBootReport(report: BootReport): string {
           lines.push("    then let the deposit-check re-snapshot it before booting again.");
         } else {
           lines.push("    DEV_PARENT_PRIV is ALREADY GONE, so nothing here can reach that balance.");
-          lines.push("    Restore the key from ~/secrets/resolved/ or 1Password, sweep the wallet,");
+          lines.push("    Restore the key from ~/gdkc/secrets/resolved/ or 1Password, sweep the wallet,");
           lines.push("    and only then remove it again. The key is recoverable; the NIM is not.");
         }
         lines.push("    This is the last figure this instance recorded, so it may be stale. Stale and");

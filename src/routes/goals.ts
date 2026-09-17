@@ -52,6 +52,7 @@ goalsRoutes.get("/goal-themes", (c) => c.json({
       const b = stickersRepo.packBoss(p.id);
       return b ? { id: b.id, label: b.label, assetUrl: b.asset_url } : null;
     })(),
+    eggUrl: stickersRepo.packEggUrl(p.id),
   })),
 }));
 

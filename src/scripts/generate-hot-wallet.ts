@@ -9,7 +9,7 @@ import { appendSecretLines, readEnv } from "./secret-env";
 import { getNimiq } from "../nimiq/client";
 
 async function main() {
-  const envPath = process.argv[2] ?? `${process.env.HOME}/secrets/hatch.env`;
+  const envPath = process.argv[2] ?? `${process.env.HOME}/gdkc/secrets/hatch.env`;
   if (!existsSync(envPath)) {
     console.error(`Env file not found: ${envPath}`);
     process.exit(1);

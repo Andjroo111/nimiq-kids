@@ -253,15 +253,17 @@ function removeBtn(tk) {
  * which is the games grid's job and is where a kid goes to pick one anyway.
  */
 // ---------- dock ----------
-// FOUR destinations, each a place a kid can name: the Box, their week, their
-// games, their money. The four customization sheets that used to sit here
-// (hatch / style / sounds / background) are all ways to dress up the timer, so
+// FIVE destinations, each a place a kid can name: the Box, their week, their
+// timer, their games, their money. The four customization sheets that used to sit
+// here (hatch / style / sounds / background) are all ways to dress up the timer, so
 // they moved behind the Timer entry, which is the built timer's own bottom tray now.
 //
-// TIMER LEFT THE DOCK for that fourth slot (#398). It is a Tools tile in the games
-// grid, beside the calculator and the voice recorder, which is what it is: a thing
-// on the tablet that is not a game. Every route into it (a job card, a routine step)
-// goes through flow.js and is untouched — the dock was never how a timed job started.
+// THE TIMER IS BACK IN THE DOCK (Andjroo, 2026-09-17: "move the timer that's in the
+// games page ... back onto the main navigation bar"). #398 had folded it into the games
+// grid as a Tools tile to make room for Games, and a kid hunting for the hourglass
+// found a page of app icons instead. Games did not lose its slot: the bar is five wide
+// when the wrapper has something to launch, four when it has not. Every route into a
+// TIMED JOB (a job card, a routine step) still goes through flow.js and is untouched.
 //
 // All four glyphs come from ONE generated sheet (assets/icons/*.png, drawn as
 // masks) rather than four separately-authored SVGs. That is the point: the old
@@ -295,9 +297,10 @@ function dock() {
     <footer class="k-dock ch-dock">
       ${btn("box", "box", "app.kidDockBox", "ch-dock-box")}
       ${btn("chart", "week", "app.kidDockWeek", "is-on", ' aria-current="page"')}
+      ${btn("timer", "timer", "app.kidDockTimer")}
       ${games.present
-        ? btn("games", "games", "app.kidDockGames", `ch-dock-games ${games.locked ? "is-shut" : ""}`, "", games.minsPill)
-        : btn("timer", "timer", "app.kidDockTimer")}
+        ? btn("games", "games", "app.kidDockGames", `ch-dock-games ${games.locked ? "is-shut" : ""}`)
+        : ""}
       ${btn("money", "money", "app.kidDockMoney", "ch-dock-money")}
     </footer>`;
 }
@@ -307,9 +310,9 @@ function dock() {
  *
  * ⚠️ `present` is FALSE in a plain browser and on a household that has allowlisted nothing —
  * the same two gates the shelf bailed on (`!lock || !apps.length`). There is nothing to launch
- * there, and a dock button that opens an empty grid is worse than one that is not offered. In
- * that case the slot keeps the TIMER, so a browser, the judge demo and every existing test
- * still find `dock-timer` exactly where it has always been.
+ * there, and a dock button that opens an empty grid is worse than one that is not offered. The
+ * Timer does not depend on it either way: `dock-timer` is drawn on every board, so a browser,
+ * the judge demo and every existing test find it exactly where it has always been.
  *
  * ⚠️ The minutes pill only ever draws a number the wrapper actually gave us. An unmetered kid
  * has no budget, so there is no number, and inventing one would be a lie — the same rule
@@ -322,14 +325,10 @@ function gamesDockState() {
   const locked = lock?.mode !== "unlocked";
   const mins = !locked && typeof lock?.remainingSec === "number"
     ? Math.floor(lock.remainingSec / 60) : null;
-  return {
-    present,
-    locked,
-        // ⚠️ The unit is not decoration. The Box badge beside this one is a COUNT of new things,
-    // so a bare "18" on the next button along reads as eighteen games rather than eighteen
-    // minutes. One letter is the whole difference.
-    minsPill: mins === null ? "" : `<i class="ch-badge ch-badge-mins" aria-hidden="true">${mins}m</i>`,
-  };
+  // `mins` is still computed and still in chartFingerprint(): the shelf and the lock banner
+  // print it. The dock button does NOT wear it any more (Andjroo, 2026-09-15: "remove the time
+  // from games"); the "120m" pill was the one thing on the bar that was not a button.
+  return { present, locked, mins };
 }
 
 // ---------- the screen ----------
@@ -438,7 +437,7 @@ export function showChart() {
   $("dock-chart").onclick = toggleCalendar;
   // Andjroo, 2026-07-31: this used to open three glyphs and no timer. It opens the
   // built timer now — the three pickers survive as that timer's own bottom tray.
-  $("dock-timer")?.addEventListener("click", () => { stopChartPoll(); showEggTimer(showChart); });
+  $("dock-timer").onclick = () => { stopChartPoll(); showEggTimer(showChart); };
   $("dock-money").onclick = () => { stopChartPoll(); showMoney(); };
   // The chip goes where the number leads, same as the dock button.
   $("ch-balance")?.addEventListener("click", () => { stopChartPoll(); showMoney(); });

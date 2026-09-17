@@ -14,14 +14,15 @@ import {
   rowTitle,
 } from "./util.js";
 import { arrowIcon, checkIcon, maskIcon, glyph, minuteDialIcon } from "./icons.js";
-import { refreshStore, refreshWallet, refreshChart, refreshPrefs, refreshPurchases, refreshGoalSets } from "./data.js";
+import { refreshStore, refreshWallet, refreshChart, refreshPrefs, refreshPurchases } from "./data.js";
 import { packFan, stickerFace } from "/js/lib/box-glyphs.js";
 import { timerPreview } from "./timer-previews.js";
 import { TIMER_LABELS, equipTimerStyle } from "./timer-style.js";
 import { showChart } from "./chart.js";
-// Sets you can collect live on a shelf here now (#400), drawn by the SAME card the
-// chart used to draw. One set card in the product, not two that drift.
-import { setGroup, onSetTap } from "./upkeep.js";
+// "Sets you can collect" (#400) LEFT this screen on 2026-09-17: the four sets are now the
+// sticker shelf itself, bought whole or earned a rung at a time, and Andjroo is moving the
+// wish shelf elsewhere ("the sets you can collect part is gonna move"). Its cards still live
+// in upkeep.js (`setGroup`, `onSetTap`) for wherever it lands.
 
 // ---------- "new items" badge (client-side seen tracking, no pulsing) ----------
 const seenKey = () => `kid.boxSeen.${state.child?.id ?? ""}`;
@@ -170,42 +171,11 @@ function prizesShelf() {
     </section>`;
 }
 
-/**
- * SETS YOU CAN COLLECT — moved here off the Today list (#400).
- *
- * Andjroo, 2026-09-01: "anytime, practice, set and you collect, that part is also very
- * confusing... the set could definitely go into this sticker box." He is right about why:
- * Today answers WHAT NOW, and five of its six headings were things to do while this one was a
- * thing to want. Reading them in one column, a kid cannot tell which is which.
- *
- * ⚠️ IT IS A WISH SHELF, NOT A SALE, AND THE HEADING HAS TO SAY SO. Every other shelf in this
- * screen has a price on every tile and a tap that spends real NIM. A tap here ASKS a grown-up
- * for a ladder, and what it costs and what it is called are settled with them
- * (`src/routes/goals.ts`) — which is exactly why the card cannot show a number. Sitting
- * silently among priced shelves it would read as free stuff.
- *
- * The cards are `setGroup`'s own, imported rather than copied: the chart and the Box drawing
- * two different set cards is how the Treasure Box once had five drawing styles.
- */
-function setsShelf() {
-  const grp = setGroup(state.goalThemes, state.chart?.goals, state.goalRequests);
-  if (!grp) return "";
-  return `
-    <section class="bx-shelf bx-sets">
-      <h2 class="bx-shelf-hd">${esc(t("app.kidSets"))}</h2>
-      <p class="bx-sets-sub">${esc(t("app.kidSetsSub"))}</p>
-      <div class="bx-set-list">${grp.cards.join("")}</div>
-    </section>`;
-}
-
 // ---------- the screen ----------
 export async function showBox() {
   const kid = state.child;
   if (!kid) return showChart();
-  // refreshGoalSets is here and not only on the chart because the Box is now the ONLY
-  // place a set is offered (#400). A kid who opens it first would otherwise meet an
-  // empty shelf that fills in a second, which reads as the app losing them.
-  await Promise.all([refreshStore(), refreshWallet(), refreshPurchases(), refreshGoalSets()]);
+  await Promise.all([refreshStore(), refreshWallet(), refreshPurchases()]);
   const store = state.store ?? { categories: [], items: [] };
   const bg = bgFor();
   const balance = state.wallet?.balanceLuna ?? 0;
@@ -248,10 +218,6 @@ export async function showBox() {
             <div class="bx-row">${fresh.map(itemTile).join("")}</div>
           </section>` : ""}
         ${shelves}
-        <!-- ⚠️ LAST, and that is deliberate. Everything above is priced and a tap spends real
-             NIM; this is a wish shelf. Drawn first it took the whole opening screen with five
-             cards a kid cannot buy, which pushes the actual shop below the fold. -->
-        ${setsShelf()}
       </div>
     </div>`, "k-screen box-screen", bg);
 
@@ -261,11 +227,6 @@ export async function showBox() {
       const item = (state.store?.items ?? []).find((i) => i.id === b.dataset.item);
       if (item) openBuySheet(item);
     };
-  });
-  // A set is ASKED for, never bought, so it goes nowhere near openBuySheet. `onSetTap` is the
-  // same call the chart used to make (#400) — it is only the shelf around it that moved.
-  document.querySelectorAll("[data-set]").forEach((b) => {
-    b.onclick = () => onSetTap(b.dataset.set, showBox);
   });
 }
 

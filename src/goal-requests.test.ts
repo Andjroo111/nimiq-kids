@@ -37,28 +37,28 @@ beforeEach(async () => {
 });
 
 test("a kid can ask for a theme set, and it does NOT create a ladder", async () => {
-  const res = await send("POST", `/api/kids/${kid.id}/goal-requests`, { packId: "pack-robots" });
+  const res = await send("POST", `/api/kids/${kid.id}/goal-requests`, { packId: "pack-robots-theme" });
   expect(res.status).toBe(201);
   expect((await res.json()).request.status).toBe("pending");
   // the ask alone must not have minted anything
   expect(goals.listGoals(fam.id, kid.id).length).toBe(0);
 });
 
-test("a pack that is FOR SALE cannot be asked for", async () => {
-  const res = await send("POST", `/api/kids/${kid.id}/goal-requests`, { packId: "pack-space" });
+test("a pack that is not a theme cannot be asked for", async () => {
+  const res = await send("POST", `/api/kids/${kid.id}/goal-requests`, { packId: "pack-starter" });
   expect(res.status).toBe(400);
   expect((await res.json()).error).toBe("unknown_theme");
 });
 
 test("asking twice for the same set is one ask, not two", async () => {
-  const a = await (await send("POST", `/api/kids/${kid.id}/goal-requests`, { packId: "pack-robots" })).json();
-  const b = await (await send("POST", `/api/kids/${kid.id}/goal-requests`, { packId: "pack-robots" })).json();
+  const a = await (await send("POST", `/api/kids/${kid.id}/goal-requests`, { packId: "pack-robots-theme" })).json();
+  const b = await (await send("POST", `/api/kids/${kid.id}/goal-requests`, { packId: "pack-robots-theme" })).json();
   expect(b.request.id).toBe(a.request.id);
   expect((await (await get("/api/parent/goal-requests")).json()).requests.length).toBe(1);
 });
 
 test("approving REQUIRES a title — the ladder is named together, not by the tap", async () => {
-  const r = (await (await send("POST", `/api/kids/${kid.id}/goal-requests`, { packId: "pack-robots" })).json()).request;
+  const r = (await (await send("POST", `/api/kids/${kid.id}/goal-requests`, { packId: "pack-robots-theme" })).json()).request;
   const res = await send("POST", `/api/parent/goal-requests/${r.id}/decide`, { approve: true });
   expect(res.status).toBe(400);
   expect((await res.json()).error).toBe("title_required");
@@ -66,7 +66,7 @@ test("approving REQUIRES a title — the ladder is named together, not by the ta
 });
 
 test("approving with a title creates the ladder carrying that theme", async () => {
-  const r = (await (await send("POST", `/api/kids/${kid.id}/goal-requests`, { packId: "pack-robots" })).json()).request;
+  const r = (await (await send("POST", `/api/kids/${kid.id}/goal-requests`, { packId: "pack-robots-theme" })).json()).request;
   const res = await send("POST", `/api/parent/goal-requests/${r.id}/decide`,
     { approve: true, title: "Practise piano twice a week" });
   expect(res.status).toBe(200);
@@ -74,20 +74,20 @@ test("approving with a title creates the ladder carrying that theme", async () =
   expect(body.request.status).toBe("approved");
   const made = goals.listGoals(fam.id, kid.id);
   expect(made.length).toBe(1);
-  expect(made[0].pack_id).toBe("pack-robots");
+  expect(made[0].pack_id).toBe("pack-robots-theme");
   expect(made[0].title).toBe("Practise piano twice a week");
   expect(body.request.goal_id).toBe(made[0].id);
 });
 
 test("declining answers the ask and mints nothing", async () => {
-  const r = (await (await send("POST", `/api/kids/${kid.id}/goal-requests`, { packId: "pack-robots" })).json()).request;
+  const r = (await (await send("POST", `/api/kids/${kid.id}/goal-requests`, { packId: "pack-robots-theme" })).json()).request;
   const res = await send("POST", `/api/parent/goal-requests/${r.id}/decide`, { approve: false });
   expect((await res.json()).request.status).toBe("declined");
   expect(goals.listGoals(fam.id, kid.id).length).toBe(0);
 });
 
 test("a decided request cannot be decided again", async () => {
-  const r = (await (await send("POST", `/api/kids/${kid.id}/goal-requests`, { packId: "pack-robots" })).json()).request;
+  const r = (await (await send("POST", `/api/kids/${kid.id}/goal-requests`, { packId: "pack-robots-theme" })).json()).request;
   await send("POST", `/api/parent/goal-requests/${r.id}/decide`, { approve: true, title: "Read every night" });
   const again = await send("POST", `/api/parent/goal-requests/${r.id}/decide`, { approve: true, title: "Again" });
   expect(again.status).toBe(409);

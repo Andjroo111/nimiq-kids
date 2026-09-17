@@ -153,7 +153,7 @@ test("spending is grouped by shelf, biggest first", () => {
      VALUES (?,?,?,?,?,'x',?,'{}','done',?)`,
     [crypto.randomUUID(), fam.id, kid.id, itemId, kind, luna, WED_2000_CDT],
   );
-  buy("item-pack-space", "pack", 200 * 1e5);
+  buy("item-pack-space-theme", "pack", 200 * 1e5);
   buy("item-screen-60", "screen_time", 400 * 1e5);
   const p = kidProgress(kid.id, TZ, 7, WED_2000_CDT);
   expect(p.spendByKind).toEqual([{ kind: "screen_time", nim: 400 }, { kind: "pack", nim: 200 }]);

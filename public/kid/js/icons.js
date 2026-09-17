@@ -23,16 +23,24 @@
 //            are filled duotone marks at --ic-xl and --ink-30; they are the one exception to
 //            the stroke rule and they look the same as each other on purpose.
 //
-// The dock's six (chest, calendar, gamepad, money, hourglass, switch) were a generated PNG
-// sheet drawn as CSS masks; a raster stroke cannot follow a CSS variable, so they are drawn
-// here now, on the grid, tracing the sheet. The Nimiq set has no chest or calendar and its
-// gamepad and hourglass are filled duotone, so these six are app-own, like the egg was.
-// Where the Nimiq set HAS a stroke glyph (check, cross, plus, chevron, arrow, qr-lines) it is
-// copied verbatim from nimiq-icons.json (rule 15 of the nimiq-ui skill): geometry untouched,
-// only the stroke it renders at comes from the variable.
+// TWO SOURCES, IN THIS ORDER (2026-09-15, the icon pack research in docs/NEXT-SESSION.md):
+//   1. Nimiq's own glyph, verbatim from nimiq-icons.json, where Nimiq has one: arrow, chevron,
+//      check, cross, plus, qr-lines, the hexagon, the high-five, the staking plant. Rule 15 of
+//      the nimiq-ui skill. Their strokes render at --icon-stroke like everything else.
+//   2. Phosphor (public/js/lib/phosphor.js, MIT) for everything Nimiq lacks: the dock's six,
+//      the target, the camera, the lock screen, the Treasure Box tiles. Andjroo, 2026-09-15:
+//      "is there an icon pack that would match nimiq-ui? I don't want to be generating these
+//      all the time." Phosphor reads closest to Nimiq's own Streamline-drawn hand and has
+//      every glyph a kids app needs. Never a third pack, never a hand-drawn glyph.
+//
+// ⚠️ A Phosphor glyph is a FILLED outline, so --icon-stroke cannot thin or thicken it: its
+// weight is a class. `ph(name, "r")` (regular, 16 of 256) for --ic-l and --ic-xl, `ph(name,
+// "b")` (bold, 24 of 256) for --ic-s and --ic-m, so the two land at about the same pixels on
+// screen as the stroke glyphs do. `maskIcon()` takes the weight for that reason.
 
 import { GLYPHS, DRAWN_GLYPHS, glyphSvg, minuteDialSvg, loadGlyphs } from "/js/lib/box-glyphs.js";
-export { GLYPHS };
+import { ph } from "/js/lib/phosphor.js";
+export { GLYPHS, ph };
 
 // ---------- duotone set (fetched once at boot, inlined for currentColor) ----------
 const DUOTONE = [
@@ -66,48 +74,32 @@ export function icon(name, cls = "") {
 // ---------- the line glyphs ----------
 
 const NS = 'xmlns="http://www.w3.org/2000/svg"';
-/** One stroke glyph on the 24 grid. `d` is the path data (several subpaths are fine); `extra`
- *  is any filled detail (the gamepad's two buttons, the target's centre). The stroke attributes
- *  are the drawing's own; icons.css overrides stroke-width with the variable. */
-const line = (d, cls = "", extra = "", box = "0 0 24 24") =>
-  `<span class="k-icon k-line ${cls}"><svg viewBox="${box}" ${NS} aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">` +
-  `<path vector-effect="non-scaling-stroke" d="${d}"/>${extra}</svg></span>`;
 /** A verbatim Nimiq glyph (nimiq-icons.json body on its own w x h grid) centred in the 24. */
 const nimiq = (body, w, h, cls = "") => {
   const s = 18 / Math.max(w, h), tx = (24 - w * s) / 2, ty = (24 - h * s) / 2;
   return `<span class="k-icon k-line ${cls}"><svg viewBox="0 0 24 24" ${NS} aria-hidden="true">` +
     `<g transform="translate(${tx.toFixed(3)} ${ty.toFixed(3)}) scale(${s.toFixed(4)})">${body}</g></svg></span>`;
 };
-const dot = (cx, cy, r = 1.25) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="currentColor" stroke="none"/>`;
 
-/** The dock's glyphs, by the names the dock and the screens have always asked for. Each traces
- *  the retired PNG sheet (git: public/kid/assets/dock/*.png) so nothing on the tablet changed
- *  shape, only weight. */
+/** The dock's glyphs, by the names the dock and the screens have always asked for, and the
+ *  Phosphor glyph each one is. `week` is the BLANK calendar so calendar.js can put the day in. */
 const DOCK = {
-  // the chest: dome lid, box, keyhole
-  box: () => line("M3 10.5V10a9 6.5 0 0 1 18 0v.5M3 10.5h18M3 10.5V18a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3v-7.5",
-    "", `<circle cx="12" cy="14.2" r="1.6" vector-effect="non-scaling-stroke"/><path vector-effect="non-scaling-stroke" d="M12 15.8v2.2"/>`),
-  // the calendar: the same drawing calendar.js puts the day number into
-  week: () => line(CAL_D),
-  // the gamepad, the sheet's own outline on the grid
-  games: () => line("M8.6 4.3h6.8c4 0 7.4 4.4 7.4 9.2 0 5-3.9 7-5.8 4.6L14.6 15H9.4l-2.4 3.1C5.1 20.5 1.2 18.5 1.2 13.5c0-4.8 3.4-9.2 7.4-9.2zM6.3 9.7h3.6M8.1 7.9v3.6",
-    "", dot(14.8, 8.8) + dot(18.2, 12.2)),
-  // the coin: a disc and its dollar
-  money: () => line("M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM14.6 9.6c0-1.3-1.1-2.1-2.6-2.1s-2.6.8-2.6 2c0 2.6 5.2 1.2 5.2 3.8 0 1.3-1.2 2.1-2.6 2.1s-2.6-.8-2.6-2.1M12 6.3v1.2M12 15.4v1.3"),
-  // the hourglass (the Timer)
-  timer: () => line("M6.5 3h11M6.5 21h11M8 3v3.4c0 2.6 4 4 4 5.6 0-1.6 4-3 4-5.6V3M8 21v-3.4c0-2.6 4-4 4-5.6 0 1.6 4 3 4 5.6V21"),
-  // switch kid: the arrow around the hexagon
-  switch: () => line("M17.66 5.26A8.8 8.8 0 1 1 8.99 3.73M5.6 2.5L9 3.7 7.2 6.8",
-    "", `<path vector-effect="non-scaling-stroke" transform="translate(8 8.4) scale(0.4)" d="M19.964 8.156 15.758.844A1.69 1.69 0 0014.299 0H5.887c-.6 0-1.156.32-1.456.844L.225 8.156c-.3.523-.3 1.165 0 1.688l4.206 7.312c.3.523.856.844 1.456.844h8.412c.6 0 1.156-.32 1.456-.844l4.206-7.312a1.69 1.69 0 00.003-1.688z"/>`),
+  box: "treasure-chest", week: "calendar-blank", games: "game-controller",
+  money: "currency-circle-dollar", timer: "hourglass", switch: "arrows-clockwise",
 };
-/** The calendar's path, exported so calendar.js draws the SAME calendar with a day number in it. */
-export const CAL_D = "M3.5 6.5A2.5 2.5 0 0 1 6 4h12a2.5 2.5 0 0 1 2.5 2.5v12A2.5 2.5 0 0 1 18 21H6a2.5 2.5 0 0 1-2.5-2.5v-12zM3.5 9.6h17M8 2.5v3.2M16 2.5v3.2";
-
 /** A dock glyph by name. Kept under the name every screen already calls, so the Treasure Box
- *  header, the Games title and the Timer tile pick up the new drawing without moving. */
-export function maskIcon(name, cls = "") {
-  const draw = DOCK[name];
-  return draw ? draw().replace('class="k-icon k-line "', `class="k-icon k-line ${cls}"`) : `<span class="k-icon ${cls}"></span>`;
+ *  header, the Games title and the Timer tile pick it up without moving. weight: "r" at
+ *  --ic-l and above (the dock, a title pill, a row glyph), "b" at --ic-s / --ic-m. */
+export function maskIcon(name, cls = "", weight = "r") {
+  const n = DOCK[name];
+  return n ? `<span class="k-icon k-ph ${cls}">${ph(n, weight)}</span>` : `<span class="k-icon ${cls}"></span>`;
+}
+/** The calendar with the day number in its page: the dock's own drawing, so the month row and
+ *  the Calendar button are one calendar. Phosphor's blank calendar keeps its page clear from
+ *  y=96 to y=208 of 256, which is where the number sits. */
+export function calendarIcon(day, cls = "") {
+  const num = day ? `<text x="128" y="186" text-anchor="middle" font-size="92" font-weight="800" fill="currentColor" font-family="Mulish, system-ui, sans-serif" textLength="${day > 9 ? 108 : 56}" lengthAdjust="spacingAndGlyphs">${day}</text>` : "";
+  return `<span class="k-icon k-ph ${cls}">${ph("calendar-blank", "r").replace("</svg>", `${num}</svg>`)}</span>`;
 }
 
 /** The arrow (verbatim nimiq `arrow-left`, turned). dir: up|down|left|right */
@@ -140,25 +132,25 @@ export function plusIcon(cls = "") {
 export function scanIcon(cls = "") {
   return nimiq('<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.305" vector-effect="non-scaling-stroke" d="M7.658 12.299h2.32v-4.64M4.76.7H1.28a.58.58 0 00-.58.58v3.48c0 .32.26.58.58.58h3.48c.32 0 .58-.26.58-.58V1.28A.58.58 0 004.76.7m0 6.959H1.28a.58.58 0 00-.58.58v3.479c0 .32.26.58.58.58h3.48c.32 0 .58-.26.58-.58v-3.48a.58.58 0 00-.58-.58M11.719.7h-3.48a.58.58 0 00-.58.58v3.48c0 .32.26.58.58.58h3.48c.32 0 .58-.26.58-.58V1.28a.58.58 0 00-.58-.58M7.66 7.659v2.32m2.318-1.16h2.32m.002 2.321v1.159"/>', 13, 13, cls);
 }
-/** Search magnifier, on the grid. */
+/** Search magnifier (Phosphor). */
 export function searchIcon(cls = "") {
-  return line("M10.5 4a6.5 6.5 0 1 1 0 13 6.5 6.5 0 0 1 0-13zM15.3 15.3L20 20", cls);
+  return `<span class="k-icon k-ph ${cls}">${ph("magnifying-glass", "r")}</span>`;
 }
-/** Backspace for the number pads: the arrow's own stroke, with the small x inside. */
+/** Backspace for the number pads (Phosphor). */
 export function deleteIcon(cls = "") {
-  return line("M20.5 5.5H9.6L3 12l6.6 6.5h10.9a1 1 0 0 0 1-1v-11a1 1 0 0 0-1-1zM12 9l6 6M18 9l-6 6", cls);
+  return `<span class="k-icon k-ph ${cls}">${ph("backspace", "r")}</span>`;
 }
-/** Little hourglass (pending / waiting states): the Timer's drawing, one hourglass in the app. */
+/** Little hourglass (pending / waiting states): the Timer's drawing, bold at the small steps. */
 export function waitIcon(cls = "") {
-  return maskIcon("timer", cls);
+  return maskIcon("timer", cls, "b");
 }
-/** Stroke play triangle (start buttons). */
+/** Play triangle (start buttons), bold at its --ic-m step. */
 export function playIcon(cls = "") {
-  return line("M6 4.6v14.8c0 1.1 1.2 1.8 2.2 1.2l11.6-7.4c.9-.6.9-1.9 0-2.4L8.2 3.4C7.2 2.8 6 3.5 6 4.6z", cls);
+  return `<span class="k-icon k-ph ${cls}">${ph("play", "b")}</span>`;
 }
-/** The savings target (the thermometer row): rings and a centre. */
+/** The savings target (the thermometer row). */
 export function targetIcon(cls = "") {
-  return line("M12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zM12 7.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9z", cls, dot(12, 12, 1.4));
+  return `<span class="k-icon k-ph ${cls}">${ph("target", "r")}</span>`;
 }
 /** The Nimiq hexagon as a filled SPOT glyph (the money screen's empty feed): money is a
  *  hexagon (nimiq-ui rule 22), drawn like the high-five so the two empty states match. */

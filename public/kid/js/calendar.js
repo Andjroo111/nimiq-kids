@@ -14,7 +14,7 @@
 import { state, esc, t } from "./util.js";
 import { api } from "./api.js";
 import { stickerNode } from "./stickers.js";
-import { checkIcon, arrowIcon, chevronIcon, closeIcon, maskIcon, CAL_D } from "./icons.js";
+import { checkIcon, arrowIcon, chevronIcon, closeIcon, maskIcon, calendarIcon } from "./icons.js";
 
 const OPEN_KEY = "kid.calOpen";
 const isOpen = () => { try { return localStorage.getItem(OPEN_KEY) === "1"; } catch { return false; } };
@@ -106,16 +106,9 @@ function calGlyph(heading, chart) {
   //    for anyone west of Greenwich, which is every user of this app.
   const today = chart?.today ?? "";
   const day = today.slice(0, 7) === String(heading).slice(0, 7) ? Number(today.slice(8, 10)) : 0;
-  // The dock's own calendar (icons.js CAL_D), so the month row and the My week button are one
-  // drawing at one weight, with the day number sitting in the page below the binding.
-  return `<span class="k-icon k-line cal-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-    xmlns="http://www.w3.org/2000/svg">
-    <path vector-effect="non-scaling-stroke" d="${CAL_D}"/>
-    ${day ? `<text x="12" y="18.6" text-anchor="middle" font-size="8.6" font-weight="800" stroke="none"
-      fill="currentColor" font-family="Mulish, system-ui, sans-serif"
-      textLength="${day > 9 ? 11 : 5.5}" lengthAdjust="spacingAndGlyphs">${day}</text>` : ""}
-  </svg></span>`;
+  // The dock's own calendar (icons.js calendarIcon), so the month row and the Calendar button
+  // are one drawing at one weight, with the day number in the page.
+  return calendarIcon(day, "cal-glyph");
 }
 
 function monthName(day) {

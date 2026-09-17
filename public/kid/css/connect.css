@@ -180,56 +180,6 @@
   .k-roster-list .identicon-and-label { gap: 20px; }
 }
 
-/* ---- the switch gate (#123): a kid's secret pictures ---------------------------------
- * Same page composition as the roster above, because it is the same moment: the screen
- * between a tap and the app. The pictures are the whole interface. They are sized for a
- * four-year-old's finger first (the reference is the roster's identicons, not a keypad)
- * and the count is shown as dots rather than digits, since the reader cannot read. */
-.k-secret-sub {
-  margin: 0 0 16px; text-align: center; text-wrap: balance;
-  color: var(--nq-neutral-800, #1f2348);
-}
-.k-secret-dots { display: flex; gap: 10px; justify-content: center; margin: 0 0 20px; }
-.k-secret-dots i {
-  width: 14px; height: 14px; border-radius: 50%;
-  background: rgba(31, 35, 72, 0.14); transition: background 120ms ease, transform 120ms ease;
-}
-.k-secret-dots i.on { background: var(--nq-light-blue, #0582ca); transform: scale(1.15); }
-
-.k-secret-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
-}
-.k-secret-pic {
-  aspect-ratio: 1; display: grid; place-items: center;
-  font-size: clamp(28px, 9vw, 42px); line-height: 1;
-  border: 0; border-radius: 16px; cursor: pointer;
-  background: rgba(31, 35, 72, 0.06);
-  transition: transform 100ms ease, background 100ms ease;
-}
-.k-secret-pic:active { transform: scale(0.92); background: rgba(31, 35, 72, 0.12); }
-/* The drawn picture (assets/secret/*.png). The tile keeps its font-size above, because the
-   emoji is still what renders when the art fails — .k-secret-face holds whichever arrived.
-   The art is drawn on flat white and the tile is a light grey, so it needs its own white
-   rounded plate or every picture sits in a visible pale square. */
-.k-secret-face { display: grid; place-items: center; width: 100%; height: 100%; }
-.k-secret-face img {
-  width: 100%; height: 100%; display: block;
-  border-radius: 16px; background: #fff;
-}
-
-.k-secret-msg {
-  margin: 16px 0 0; text-align: center; text-wrap: balance;
-  color: var(--nq-red, #d94432);
-}
-.k-secret-grown {
-  display: block; margin: 20px auto 0;
-  background: transparent; color: var(--nq-neutral-700, #5f6377);
-}
-
-@media (min-width: 480px) {
-  .k-secret-grid { grid-template-columns: repeat(6, 1fr); }
-}
-
 /* ---- "Which one is you?" — the character picker (#381) ----------------------
    Same shell as the roster above it, on purpose: this screen and the one that
    follows it are the same moment in a kid's head, and reusing `.k-connect` +

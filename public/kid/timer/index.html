@@ -23,15 +23,16 @@
      file — the scan takes the first match, including one inside a comment. Get it
      wrong and the token becomes `undefined-<mtime>`: still unique, so nothing looks
      broken, and the stamp quietly stops naming a build. */
-  const BUILD='tmr-a0865a';
+  const BUILD='tmr-965651';
   window.TIMER_BUILD = BUILD;
   window.TIMER_VER = new URLSearchParams(location.search).get('v') || BUILD;
   try {
-    /* ⚠️ NO SCENES SHIP (2026-09-15): bg/ is empty while the backgrounds are redrawn, so
-       there is nothing to preload. TIMER_BGS is the one list; the module reads it too. */
-    window.TIMER_BGS = [];
-    var bg = (JSON.parse(localStorage.getItem('kidtimer3') || '{}').bg) || '';
-    if (!/^[a-z]+$/.test(bg)) bg = '';   // it is a stored value; it is not trusted
+    /* The fifteen lineless scenes (2026-09-17, tools/art/lineless-list.json), the same files
+       the app's wallpaper picker offers, copied to bg/ because this rig resolves relative to
+       its own document. TIMER_BGS is the one list; the module reads it too. */
+    window.TIMER_BGS = [['ocean','Ocean'],['space','Space'],['barn','Farm'],['bedroom','Bedroom'],['forest','Forest'],['beach','Beach'],['snow','Snow'],['meadow','Meadow'],['volcano','Volcano'],['treehouse','Treehouse'],['pirate','Pirate ship'],['racetrack','Race track'],['construction','Building site'],['castle','Castle'],['playground','Playground']];
+    var bg = (JSON.parse(localStorage.getItem('kidtimer3') || '{}').bg) || 'meadow';
+    if (!/^[a-z]+$/.test(bg)) bg = 'meadow';   // it is a stored value; it is not trusted
     if (window.TIMER_BGS.some(function (b) { return b[0] === bg; })) {
       var l = document.createElement('link');
       l.rel = 'preload'; l.as = 'image';
@@ -932,7 +933,7 @@ const LS='kidtimer3';
    room; Lullaby is one tap away on the same sheet for the ones that are bedtime.
    ⚠️ 'none' STAYS THE FIRST TILE. It is a real choice and it is where a parent looks
    to turn the music off — this changes which tile arrives ticked, not the lane. */
-const S={min:2, sec:0, bg:'city', heroes:null, reminder:'off',
+const S={min:2, sec:0, bg:'meadow', heroes:null, reminder:'off',
          during:'bounce', end:'chime', muteMusic:false, muteBell:false,
          pie:'rim', pieXY:null};
 try{ Object.assign(S, JSON.parse(localStorage.getItem(LS)||'{}')) }catch(e){}
@@ -1555,6 +1556,10 @@ const SFX={};
    the tap that chose it is itself a gesture. */
 const END_SRC={ chime:'sfx/end-chime.mp3', fanfare:'sfx/end-fanfare.mp3',
                 bell:'sfx/end-bell.mp3', pop:'sfx/end-pop.mp3' };
+/* lullaby, bounce and space are Suno loops since 2026-09-17 (about 30s each, -25 LUFS,
+   picked over the ElevenLabs originals on an A/B); clock is still the ElevenLabs file.
+   Recipe: tools/sound/gen-timer-sounds.py, the DURING note. BUILD above was bumped with
+   them, which is what makes a cached copy of the old bed let go. */
 const BED_SRC={ lullaby:'sfx/bed-lullaby.mp3', bounce:'sfx/bed-bounce.mp3',
                 space:'sfx/bed-space.mp3', clock:'sfx/bed-clock.mp3' };
 const SAY_SRC={};

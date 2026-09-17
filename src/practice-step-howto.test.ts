@@ -138,10 +138,10 @@ test("http is allowed as well as https", async () => {
   // hosting a clip on it, which is the one place a link COULD reach the tablet later.
   const p = piano();
   const r = await post(`/api/practices/${p.id}/steps`, {
-    title: "Scales", videoUrl: "http://192.168.0.10:3950/clips/scales.mp4",
+    title: "Scales", videoUrl: "http://192.168.1.42:3950/clips/scales.mp4",
   });
   expect(r.status).toBe(201);
-  expect(practices.listSteps(p.id)[0]!.video_url).toBe("http://192.168.0.10:3950/clips/scales.mp4");
+  expect(practices.listSteps(p.id)[0]!.video_url).toBe("http://192.168.1.42:3950/clips/scales.mp4");
 });
 
 test("adding instructions never changes what the day pays", async () => {

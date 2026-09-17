@@ -3,7 +3,7 @@
 // zero the star ledger with a matching negative 'adjust' row (the star invariant stays intact).
 //
 // Run MANUALLY on the instance (server may be running — SQLite WAL handles a writer):
-//   DB_PATH=~/data/hatch/kids.db bun run src/scripts/migrate-stars-to-nim.ts
+//   DB_PATH=~/gdkc/data/hatch/kids.db bun run src/scripts/migrate-stars-to-nim.ts
 // Idempotent: kids whose star balance is already 0 are skipped, so a re-run is a no-op.
 // SIM note: these opening deposits are ledger rows (no tx) — exactly how SIM balances work.
 

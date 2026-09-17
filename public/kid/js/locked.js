@@ -14,32 +14,17 @@
 // existed. This screen is only for the two locks that no amount of doing can lift.
 
 import { state, $, esc, t, setScreen, bgFor } from "./util.js";
+import { ph } from "./icons.js";
 
-// The three faces, drawn HERE rather than added to the shared box-glyphs palette. That
-// palette is what a parent picks a Treasure Box shelf icon from, and "the tablet is
-// asleep" is not a thing anyone should be able to choose for a shelf.
-const S = 'fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"';
-const box = (body) => `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" ${S}>${body}</svg>`;
-const GLYPH = {
-  // Crescent and a spark: night.
-  moon: box(`<path d="M21 14.4A8.9 8.9 0 019.8 3.2a8.7 8.7 0 1011.2 11.2z"/><path d="M5.6 2.6v3.2M4 4.2h3.2"/>`),
-  // Hourglass, sand down: the time is spent.
-  hourglass: box(`<path d="M6.5 2.8h11M6.5 21.2h11"/>
-    <path d="M8 2.8v3.4c0 2 1.4 3.7 3.1 4.6L12 11.2l.9-.4C14.6 9.9 16 8.2 16 6.2V2.8"/>
-    <path d="M8 21.2v-3.4c0-2 1.4-3.7 3.1-4.6l.9-.4.9.4c1.7.9 3.1 2.6 3.1 4.6v3.4"/>
-    <path d="M9.6 19.4h4.8"/>`),
-  // Two bars: paused, and it will start again.
-  rest: box(`<rect x="5.6" y="4.4" width="4.6" height="15.2" rx="1.8"/>
-    <rect x="13.8" y="4.4" width="4.6" height="15.2" rx="1.8"/>`),
-  // Padlock, shackle down: a grown-up decided this.
-  lock: box(`<rect x="4.2" y="10.2" width="15.6" height="11" rx="2.4"/>
-    <path d="M8 10.2V7.4a4 4 0 018 0v2.8"/><circle cx="12" cy="15.4" r="1.4"/><path d="M12 16.8v1.6"/>`),
-};
-// Deliberately NOT `class="k-icon"`. That class is the app's 18px inline-icon idiom and it
-// carries a size and a display mode from a stylesheet this file does not own; wearing it
-// here meant fighting those rules with specificity forever, for a glyph that is neither
-// inline nor 18px. The lock screen's face is its own thing.
-const glyph = (name) => `<span class="lk-glyph">${GLYPH[name] ?? GLYPH.lock}</span>`;
+// The four faces, from Phosphor (public/js/lib/phosphor.js) since 2026-09-15, named HERE
+// rather than through the shared box-glyphs palette: that palette is what a parent picks a
+// Treasure Box shelf icon from, and "the tablet is asleep" is not a thing anyone should be able
+// to choose for a shelf. Regular weight: the lock screen's face is big.
+const GLYPH = { moon: "moon", hourglass: "hourglass", rest: "couch", lock: "lock" };
+// Deliberately NOT `class="k-icon"`. That class is the app's inline-icon idiom and it carries a
+// size and a display mode from a stylesheet this file does not own; the lock screen's face is
+// its own thing.
+const glyph = (name) => `<span class="lk-glyph">${ph(GLYPH[name] ?? GLYPH.lock, "r")}</span>`;
 
 /** The reasons that take the whole screen. `override_lock` (a grounding) is here too:
  *  a kid cannot work it off either, and being told "a grown-up locked this" is the

@@ -20,11 +20,11 @@
 
 set -u
 
-REPO="$HOME/apps/nimiq.kids-testnet"
-ENV_FILE="$HOME/secrets/hatch-testnet.env"
+REPO="$HOME/gdkc/projects/nimiq.kids-testnet"
+ENV_FILE="$HOME/gdkc/secrets/hatch-testnet.env"
 BUN="$HOME/.bun/bin/bun"
-LOG="$HOME/logs/nimiq-kids-faucet-topup.log"
-STATE_DIR="$HOME/data/automation/nimiq-kids-topup"
+LOG="$HOME/gdkc/logs/nimiq-kids-faucet-topup.log"
+STATE_DIR="$HOME/gdkc/data/automation/nimiq-kids-topup"
 REALERT_SECS="${REALERT_SECS:-21600}"   # at most one page per 6h while still broken
 
 MIN_INTERVAL="${MIN_INTERVAL:-3600}"    # do real work at most hourly
@@ -45,7 +45,7 @@ should_run() {
 }
 
 alert() {
-  helper="$HOME/scripts/owner-alert.sh"
+  helper="$HOME/gdkc/scripts/gdkc-owner-alert.sh"
   [ -x "$helper" ] || { log "ALERT-SEND: helper missing"; return 1; }
   mkdir -p "$STATE_DIR" 2>/dev/null || { log "ALERT: state dir unwritable"; return 1; }
   stamp="$STATE_DIR/last-alert"

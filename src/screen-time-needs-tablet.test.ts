@@ -122,8 +122,8 @@ test("the same buy succeeds the moment a tablet is paired", async () => {
 });
 
 test("everything else in the Box still sells with no tablet", async () => {
-  fund(priceOf("item-pack-space") + 100_000);
-  const res = await post(`/api/kids/${kid.id}/buy`, { itemId: "item-pack-space" });
+  fund(priceOf("item-pack-space-theme") + 100_000);
+  const res = await post(`/api/kids/${kid.id}/buy`, { itemId: "item-pack-space-theme" });
   expect(res.status).toBe(200);
   expect(lockRepo.familyHasDevice(fam.id)).toBe(false);
 });

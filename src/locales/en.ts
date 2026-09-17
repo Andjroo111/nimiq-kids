@@ -207,7 +207,7 @@ const en = {
   "app.kidPhotoSent": "Sent! Great job!",
   "app.kidGamesOpen": "Your games are open!",
   "app.kidDockGames": "Games",
-  "app.kidGamesRowPlay": "Games",
+  "app.kidGamesRowPlay": "Play",
   "app.kidGamesRowLearn": "Learn",
   "app.kidGamesRowCreate": "Make",
   "app.kidGamesRowWatch": "Watch",
@@ -318,8 +318,8 @@ const en = {
   // The dock's four words. Short on purpose: these sit under a glyph in a
   // quarter of the bar, so they are not the screen titles ("Treasure box",
   // "My timer") that name the same destinations elsewhere.
-  "app.kidDockBox": "Box",
-  "app.kidDockWeek": "My week",
+  "app.kidDockBox": "Treasure",
+  "app.kidDockWeek": "Calendar",
   "app.kidDockTimer": "Timer",
   "app.kidDockMoney": "Money",
   "app.kidMorning": "Morning",
@@ -411,17 +411,6 @@ const en = {
   "app.kidUseItNow": "Use it now?",
 
   // #123 the switch gate: a kid's secret picture on a shared family tablet
-  "app.switchPickSub": "Tap {taps} pictures.",
-  "app.switchConfirmSub": "Tap the same {taps} again!",
-  "app.switchNotMe": "Not me",
-  "app.switchAskSub": "Tap your {taps} pictures.",
-  "app.switchWrong": "Not those ones. Try again.",
-  "app.switchNotPaired": "This tablet is not set up yet. Ask a grown up.",
-  "app.switchMismatch": "Those were different. Start again.",
-  "app.switchTooMany": "Too many tries. Wait a moment.",
-  "app.switchGrownUp": "Ask a grown up",
-  "app.switchPinPrompt": "Type the family PIN",
-  "app.switchPinBad": "That PIN did not work.",
 };
 
 export default en;

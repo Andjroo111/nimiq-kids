@@ -71,9 +71,9 @@ test("on a strict instance pricing a SHARED seeded row never writes the row itse
   // move the row: one `family_id IS NULL` row is what every household on the instance
   // shops, so the price is filed per family and the shared row is left alone.
   reseedCatalog(); // populate the seeded (family_id NULL) rows
-  const seeded = stickersRepo.getStoreItem("item-pack-space")!;
+  const seeded = stickersRepo.getStoreItem("item-pack-space-theme")!;
   expect(seeded.family_id).toBeNull();
-  const res = await send(tokenA, "PATCH", "/api/parent/store/items/item-pack-space", { priceNim: 25 });
+  const res = await send(tokenA, "PATCH", "/api/parent/store/items/item-pack-space-theme", { priceNim: 25 });
   expect(res.status).toBe(200);
   expect(stickersRepo.getStoreItem(seeded.id)!.price_luna).toBe(seeded.price_luna); // row untouched
   expect(stickersRepo.getStoreItem(seeded.id)!.parent_edited).toBe(0); // still the catalogue's
@@ -84,7 +84,7 @@ test("on a strict instance pricing a SHARED seeded row never writes the row itse
 
 test("a shared catalogue row is PRICE only — its name and its art stay the catalogue's", async () => {
   reseedCatalog();
-  const seeded = stickersRepo.getStoreItem("item-pack-space")!;
+  const seeded = stickersRepo.getStoreItem("item-pack-space-theme")!;
   for (const body of [{ title: "Mine now" }, { active: 0 }, { icon: "gamepad" }, { priceNim: 5, title: "Mine" }]) {
     const res = await send(tokenA, "PATCH", `/api/parent/store/items/${seeded.id}`, body);
     expect(res.status).toBe(400);

@@ -426,7 +426,7 @@
 /* .ch-empty-ic is a spot glyph: icons.css .k-spot sizes and tints it. */
 .ch-empty p { font-size: 16px; font-weight: 700; color: rgba(31, 35, 72, 0.6); text-align: center; }
 
-/* ---------- dock: Box | Chart | studio quartet | Money ---------- */
+/* ---------- dock: Box | Calendar | Timer | Games | Money ---------- */
 /* Screens with a dock publish its height so the toast clears it (the toast is
    the ONLY surface reporting "Waiting for Mom", and it used to cover ~75% of
    the dock while up). */
@@ -437,7 +437,7 @@
    loses no scroll. */
 /* 82, up from 74: the buttons grew 8px so a badge could sit above the glyph instead of on
    it. This var is what every screen reserves at the bottom, so it has to move with them. */
-body:has(#kid-app.chart-screen), body:has(#kid-app.box-screen) { --kid-dock-h: 88px; }
+body:has(#kid-app.chart-screen), body:has(#kid-app.box-screen) { --kid-dock-h: 84px; }
 .ch-dock {
   gap: 4px; justify-content: space-evenly; align-items: center;
   padding: 10px 6px calc(10px + env(safe-area-inset-bottom));
@@ -447,49 +447,49 @@ body:has(#kid-app.chart-screen), body:has(#kid-app.box-screen) { --kid-dock-h: 8
    grow to 54px just to out-rank the others, which is rank expressed as size.
    What the disc still owned was the SELECTED state, so that moves to colour:
    is-on is blue glyph + blue word.
-   min-width keeps the four columns even when the words are not (German's
+   min-width keeps the five columns even when the words are not (German's
    "Woche" against "Geld"), so the row does not re-space per language. */
 .ch-dock-btn {
-  /* ⚠️ 68px (62 before the icon system, 2026-09-15), and the column is BOTTOM-aligned, so the badge has a lane of its own above the
-     glyph (Andjroo, 2026-09-01: "there's eighteen minutes, but it's on top of the controller.
-     Same thing with the box. Nine is on top of the box"). At 54px centred there was nowhere
-     for a badge to go that was not over ink: the glyph is a 23px mask with no padding, so it
-     fills its box corner to corner and an iOS-style corner badge lands on the drawing. */
-  position: relative; flex: none; min-width: 64px; height: 68px;
-  display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-  padding-bottom: 2px;
+  /* ONE HEIGHT, GLYPH AND WORD CENTRED, no badge lane. The lane (2026-09-01) kept the badge
+     off the drawing by bottom-aligning every column under an empty strip, and the strip read
+     as the other three buttons sitting low (Andjroo, 2026-09-15: "the 120 minutes pushes the
+     others that don't have anything low on the bar"). The badge rides the glyph's top-right
+     corner now, outside its ink: the SVG glyphs draw inside 2..22 of their 24 box, so there is a
+     margin the old edge-to-edge masks never had, and .ch-badge is anchored past it. */
+  position: relative; flex: none; min-width: 64px; height: 64px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
   /* 12px is the icon-tile tier of the Nimiq radius scale; there is no 16px
      tier. Invisible at rest (the button has no fill) but it shapes the focus
      ring, so it still has to be a real value. */
   gap: 4px; padding: 0 4px; border-radius: 12px;
   background: none; color: var(--navy); font-size: var(--ic-l);
 }
-.ch-dock-btn.is-on { color: var(--blue); }
-.ch-dock-box { color: var(--navy); }
-.ch-dock-money { color: var(--green-2); }
+/* Five columns (the Timer came back 2026-09-17) are 348px at 64 each; under 360 they are 56.
+   phone.css loads BEFORE this file, so the override has to live here to win the cascade. */
+@media (max-width: 360px) { .ch-dock { gap: 2px; } .ch-dock-btn { min-width: 56px; padding: 0 2px; } }
+/* ONE COLOUR, FULL STOP: navy, all five, always. Money wore green and the selected button wore
+   blue (Andjroo, 2026-09-15: "Week in blue and money in green ... looks weird"), and then the
+   blue alone made no sense either: this bar only exists on the Calendar screen (the other three
+   are reached from it and left by their back button), so "the one you are on" is always the
+   same one. `is-on` and aria-current stay for assistive tech; they paint nothing. */
+.ch-dock-btn.is-on, .ch-dock-box, .ch-dock-money { color: var(--navy); }
 /* Inherits the button's colour so the word and its glyph are never two hues. */
 .ch-dock-lbl {
   font-size: 11px; font-weight: 800; letter-spacing: 0.1px; line-height: 1;
-  color: inherit; opacity: 0.85; white-space: nowrap;
+  color: inherit; white-space: nowrap;
 }
-.ch-dock-btn.is-on .ch-dock-lbl { opacity: 1; }
-/* Rides the glyph, not the button: the button is now a two-row box 64px wide,
-   so a badge pinned to its own corner would float out beside the word. */
-/* Its own lane at the top of the button, clear of the glyph rather than on it, and CENTRED
-   over it. Pinned right, a wide pill ("18m") drifts toward its neighbour and reads as though
-   it belongs to the button next door; centred, a one-character badge and a three-character one
-   both sit over the thing they are counting. */
+/* The glyph's top-right corner, OUTSIDE its ink. The glyph is centred, so 50% is its middle;
+   a Phosphor glyph's ink reaches about 232 of 256, 18px right of centre at --ic-l (40px), and
+   the badge's left edge starts at +20, 2px above the box. The column is 64px tall with the 40 + 4 + 12 stack centred in it, so the
+   glyph's box begins 4px down and a badge at top: 0 overlaps only the box's top-right corner,
+   which is empty for every dock drawing (chest dome, calendar pin, gamepad shoulder, coin). */
 .ch-badge {
-  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  position: absolute; top: -2px; left: calc(50% + 20px);
   min-width: 18px; height: 17px;
   border-radius: var(--r-pill); padding: 0 5px; font-style: normal;
   background: var(--navy); color: #fff; font-size: 11px; font-weight: 800;
   display: grid; place-items: center;
 }
-/* GAMES (#398). The minutes badge is BLUE, not navy: the Box's navy badge counts things
-   that are new and will still be there tomorrow, and this one counts a number that is
-   running down. Two badges the same colour on one bar would read as one kind of fact. */
-.ch-badge-mins { background: var(--blue); }
 /* Routine-locked. Greyed, never hidden and never disabled: the tap still answers, because a
    control that ignores a four-year-old reads as a broken tablet rather than as a rule. */
 .ch-dock-games.is-shut { color: var(--ink-30); }
@@ -586,7 +586,7 @@ body:has(#kid-app.chart-screen), body:has(#kid-app.box-screen) { --kid-dock-h: 8
   /* The bar is 80px of button plus 10px of padding either side, and the var is what every
      screen pads its own bottom by, so the two have to be stated together or Today's last card
      sits under the bar (which is the mismatch this block shipped with for a month). */
-  body:has(#kid-app.chart-screen), body:has(#kid-app.box-screen) { --kid-dock-h: 100px; }
+  body:has(#kid-app.chart-screen), body:has(#kid-app.box-screen) { --kid-dock-h: 84px; }
   .ch-dock { gap: 16px; }
   /* ⚠️ ONE SIZE FOR ALL FOUR. This block used to size them as the discs they were before each
      grew a word underneath (66px, and 80 for the two that were filled circles), so the bar
@@ -594,7 +594,7 @@ body:has(#kid-app.chart-screen), body:has(#kid-app.box-screen) { --kid-dock-h: 8
      been working around exactly this. Rank is the word and the colour now, not the size. */
   .ch-dock-btn,
   .ch-dock-btn.is-on,
-  .ch-dock-box { width: 96px; height: 80px; font-size: var(--ic-l); }
+  .ch-dock-box { width: auto; min-width: 96px; height: 64px; font-size: var(--ic-l); }
   .tm-opts { gap: 26px; }
   .tm-opt { width: 132px; height: 132px; }
   .tm-opt-ic { font-size: 64px; }

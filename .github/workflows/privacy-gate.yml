@@ -10,7 +10,7 @@ name: privacy gate
 # extended-regex alternation, seeded from ~/.git-privacy/blocklist.txt plus the
 # host/tunnel sweep the publish script adds. Set or rotate it with:
 #   gh secret set PRIVACY_PATTERNS --repo Andjroo111/nimiq-kids  < patterns.txt
-#   gh secret set PRIVACY_PATTERNS --repo Andjroo111/nimiq.kids  < patterns.txt
+#   gh secret set PRIVACY_PATTERNS --repo Andjroo111/nimiq-kids  < patterns.txt
 #
 # A hit is reported as path:line ONLY. The matched text is never printed: these
 # Actions logs are public on the public repo, so echoing a hit would publish the

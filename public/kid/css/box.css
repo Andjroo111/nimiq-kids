@@ -116,7 +116,7 @@
   position: absolute; width: 42px; height: 42px; left: calc(2px + var(--i) * 11px); top: calc(5px + var(--i) * 1px);
   transform: rotate(calc(-10deg + var(--i) * 10deg));
 }
-.bx-item-ic { font-size: 34px; color: var(--blue); height: 52px; display: flex; align-items: center; flex: none; }
+.bx-item-ic { font-size: 34px; color: var(--navy); height: 52px; display: flex; align-items: center; flex: none; }
 /* The drawn face (#404). Same 52px band the glyph occupies, so a shelf mixing art tiles and
    glyph tiles keeps one baseline for its titles. `contain`, not `cover`: these are cut to a
    square with the ink inset, and cropping one would eat the outline the whole family shares. */
@@ -141,7 +141,7 @@
 .bx-owned .k-icon { font-size: 11px; }
 
 /* buy sheet */
-.bx-buy-face { display: grid; place-items: center; min-height: 60px; font-size: 44px; color: var(--blue); }
+.bx-buy-face { display: grid; place-items: center; min-height: 60px; font-size: 44px; color: var(--navy); }
 .bx-buy-face .bx-fan { width: 90px; height: 64px; }
 .bx-buy-face .bx-fan .stk { width: 52px; height: 52px; left: calc(6px + var(--i) * 14px); }
 .bx-buy-title { font-size: 21px; font-weight: 800; color: var(--navy); text-align: center; }

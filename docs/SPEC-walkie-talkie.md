@@ -61,7 +61,7 @@ answer that bearer question rather than ignore it.
 
 What does exist and helps:
 
-* **HTTPS with a real certificate on the LAN.** The family instance is `https://<mini-lan-ip>:3950`
+* **HTTPS with a real certificate on the LAN.** The family instance is `https://192.168.1.42:3950`
   under mkcert, and the kiosk build bakes and installs the CA. `getUserMedia` requires a secure
   context, so this is already satisfied. A plain `http://` LAN origin would be refused outright by
   the browser, which is worth knowing before anyone "simplifies" the setup.
@@ -172,7 +172,7 @@ kill switch, the do not disturb and the call log are common to both and get prov
 2. Provision device owner **before** adding any Google account, same order as the first tablet.
 3. Ship the `kidkiosk-android` microphone change (manifest, policy pre grant,
    `onPermissionRequest`) and sideload it to **both** tablets.
-4. Both tablets on the same wifi network and able to reach `<mini-lan-ip>:3950`, with the mkcert
+4. Both tablets on the same wifi network and able to reach `192.168.1.42:3950`, with the mkcert
    CA installed on both.
 5. Only then is any of the above testable. Everything before that point is emulator work, and the
    first tablet already taught us that the emulator is not One UI.

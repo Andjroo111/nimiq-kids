@@ -193,18 +193,6 @@ const FALLBACK = {
   "app.charNoMore": "That is all of them. Pick your favourite.",
   "app.charTryAgain": "Someone was quicker. Here are some more.",
   "app.charPickOne": "Character {n}",
-  "app.switchPickTitle": "Pick your secret pictures",
-  "app.switchPickSub": "Tap {taps} pictures. You will tap the same ones to open your app.",
-  "app.switchConfirm": "Tap the same {taps} pictures again",
-  "app.switchAskTitle": "Tap your secret pictures",
-  "app.switchAskSub": "Tap your {taps} pictures to open your app.",
-  "app.switchWrong": "Not those ones. Try again.",
-  "app.switchNotPaired": "This tablet is not set up yet. Ask a grown up.",
-  "app.switchMismatch": "Those were different. Start again.",
-  "app.switchTooMany": "Too many tries. Wait a moment.",
-  "app.switchGrownUp": "Ask a grown up",
-  "app.switchPinPrompt": "Type the family PIN",
-  "app.switchPinBad": "That PIN did not work.",
   "app.pairTitle": "Connect your tablet",
   "app.pairSub": "Ask a grown-up to open the parent app, go to Settings, tap Pair a device, and read you the 6 digits.",
   "app.pairGo": "Connect",
@@ -241,8 +229,8 @@ const FALLBACK = {
   // The dock's four words. They paint on the FIRST frame of the chart screen,
   // so without a fallback the bar reads "app.kidDockBox" until the shell bundle
   // lands -- which is exactly the window a cold tablet spends here.
-  "app.kidDockBox": "Box",
-  "app.kidDockWeek": "My week",
+  "app.kidDockBox": "Treasure",
+  "app.kidDockWeek": "Calendar",
   "app.kidDockTimer": "Timer",
   "app.kidDockMoney": "Money",
   // The home money card renders with the first paint of the chart, which is
@@ -598,6 +586,10 @@ export function bgFor(scope = "app") {
   }
   const dark = DARK_BGS.includes(id) ? " bg-dark" : "";
   if (BUILTIN_BGS.includes(id)) return { cls: `bg-${id}${dark}`, image: "" };
+  // Nothing chosen, or a scene that no longer ships: the catalogue's meadow if it reached the
+  // tablet (2026-09-17, the lineless scenes), else the gradient it always was.
+  const meadow = (state.catalog?.backgrounds ?? []).find((b) => b.id === "meadow" && b.url);
+  if (meadow) return { cls: "bg-image", image: `url('${esc(meadow.url)}')` };
   return { cls: "bg-meadow", image: "" };
 }
 export { BUILTIN_BGS, DARK_BGS };

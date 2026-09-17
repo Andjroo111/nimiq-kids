@@ -246,7 +246,7 @@ test("placement: persists position + tilt, upserts on re-place, guards not-done/
 
   // Unknown / unowned stickers rejected.
   expect((await post(`/api/task-runs/${tr.id}/sticker`, { stickerId: "nope" })).status).toBe(404);
-  expect((await post(`/api/task-runs/${tr.id}/sticker`, { stickerId: "stk-rocket" })).status).toBe(403);
+  expect((await post(`/api/task-runs/${tr.id}/sticker`, { stickerId: "stk-space-rocket" })).status).toBe(403);
 
   const res = await post(`/api/task-runs/${tr.id}/sticker`, {
     stickerId: "stk-star", xPct: 31, yPct: 64, tiltDeg: 9,
@@ -334,10 +334,12 @@ test("store list: data-driven categories + items with owned flags", async () => 
   // side no longer offers it. The row is still there — see the retirement test
   // below; a purchase referencing it must stay readable forever.
   expect(body.categories.map((c: { id: string }) => c.id)).toEqual(["cat-stickers", "cat-screen", "cat-coupons"]);
-  const pack = body.items.find((i: { id: string }) => i.id === "item-pack-space");
+  const pack = body.items.find((i: { id: string }) => i.id === "item-pack-space-theme");
   expect(pack.kind).toBe("pack");
   expect(pack.owned).toBe(false);
-  expect(pack.stickers.length).toBe(5);
+  // The six members and not the boss: the tile shows what the box holds.
+  expect(pack.stickers.length).toBe(6);
+  expect(pack.stickers.some((s: { id: string }) => s.id === "stk-space-astro")).toBe(false);
 });
 
 test("Timers are retired, not deleted: rows survive and a purchase stays readable", async () => {
@@ -370,27 +372,43 @@ test("Timers are retired, not deleted: rows survive and a purchase stays readabl
 test("buy pack: spend event, balance drops, stickers granted, no double-buy", async () => {
   // Packs are priced in WHOLE NIM against dollar-sized rewards now (see
   // sticker-catalog.ts) — the old 2 NIM price was a tenth of a cent.
-  const price = STICKER_PACKS.find((p) => p.id === "pack-space")!.priceLuna;
+  const price = STICKER_PACKS.find((p) => p.id === "pack-space-theme")!.priceLuna;
   fund(price + 100_000);
-  const res = await post(`/api/kids/${kid.id}/buy`, { itemId: "item-pack-space" });
+  const res = await post(`/api/kids/${kid.id}/buy`, { itemId: "item-pack-space-theme" });
   expect(res.status).toBe(200);
   const body = await res.json();
   expect(body.kind).toBe("pack");
   expect(body.balanceLuna).toBe(100_000);
-  expect(body.stickers.length).toBe(5);
+  expect(body.stickers.length).toBe(6);
   expect(body.event.kind).toBe("spend");
   expect(body.event.valueLuna).toBe(-price);
-  expect(stickersRepo.ownsSticker(kid.id, "stk-rocket")).toBe(true);
+  expect(stickersRepo.ownsSticker(kid.id, "stk-space-rocket")).toBe(true);
+  // Bought: the members, usable at once. NOT the boss, and NOT the scene (2026-09-17): those
+  // are a ladder's to give, and a bought set is finished on the first rung climbed toward it.
+  expect(stickersRepo.ownsSticker(kid.id, "stk-space-astro")).toBe(false);
+  expect(stickersRepo.packOwned(kid.id, "pack-space-theme")).toBe(true);
+  expect(stickersRepo.packComplete(kid.id, "pack-space-theme")).toBe(true);
+  expect(stickersRepo.packFinished(kid.id, "pack-space-theme")).toBe(false);
+  expect(stickersRepo.ownsBackground(kid.id, "space")).toBe(false);
+  expect(stickersRepo.ownedStickers(kid.id).some((s) => s.id === "stk-space-rocket")).toBe(true);
   expect(wrepo.spendableFromLedger(kid.id)).toBe(100_000);
 
-  expect((await post(`/api/kids/${kid.id}/buy`, { itemId: "item-pack-space" })).status).toBe(400);
+  expect((await post(`/api/kids/${kid.id}/buy`, { itemId: "item-pack-space-theme" })).status).toBe(400);
+
+  const rung = stickersRepo.grantNextThemeSticker(kid.id, "pack-space-theme");
+  expect(rung.sticker).toBeUndefined();
+  expect(rung.boss?.id).toBe("stk-space-astro");
+  expect(rung.complete).toBe(true);
+  expect(stickersRepo.packFinished(kid.id, "pack-space-theme")).toBe(true);
+  expect(stickersRepo.ownsBackground(kid.id, "space")).toBe(true);
+  expect(stickersRepo.grantNextThemeSticker(kid.id, "pack-space-theme")).toEqual({ complete: true });
 });
 
 test("buy: insufficient balance moves no money, grants nothing", async () => {
-  const res = await post(`/api/kids/${kid.id}/buy`, { itemId: "item-pack-space" });
+  const res = await post(`/api/kids/${kid.id}/buy`, { itemId: "item-pack-space-theme" });
   expect(res.status).toBe(400);
   expect((await res.json()).error).toBe("insufficient_funds");
-  expect(stickersRepo.ownsSticker(kid.id, "stk-rocket")).toBe(false);
+  expect(stickersRepo.ownsSticker(kid.id, "stk-space-rocket")).toBe(false);
   expect(wrepo.spendableFromLedger(kid.id)).toBe(0);
 });
 
@@ -493,10 +511,14 @@ test("catalog: every art sticker has art that actually exists on disk", () => {
   for (const row of rows) {
     expect(row.emoji).toBeTruthy();
     expect(row.asset_url).toBe(stickerAssetUrl(row.id));
-    if (STICKER_ART_SHIPPED) {
-      expect(existsSync(join(import.meta.dir, "..", "public", row.asset_url!))).toBe(true);
+    // Since 2026-09-17 only the THEME stickers (the lineless packs) carry a file; the emoji
+    // packs for sale keep a null url and draw their emoji.
+    const themed = STICKER_PACKS.some((p) => p.id === row.pack_id && p.theme);
+    if (STICKER_ART_SHIPPED && themed) {
+      expect(row.asset_url, row.id).not.toBeNull();
+      expect(existsSync(join(import.meta.dir, "..", "public", row.asset_url!)), row.id).toBe(true);
     } else {
-      expect(row.asset_url).toBeNull();
+      expect(row.asset_url, row.id).toBeNull();
     }
   }
 });
@@ -504,14 +526,11 @@ test("catalog: every art sticker has art that actually exists on disk", () => {
 test("catalog: the starter pack is free and auto-granted, the rest cost real NIM", () => {
   const starter = STICKER_PACKS.find((p) => p.id === "pack-starter")!;
   expect(starter.priceLuna).toBe(0);
-  // A THEME is free and not on the shelf either, for a different reason: it is earned by
-  // climbing a goal ladder, and putting a price on one would make the climb optional.
-  for (const p of STICKER_PACKS.filter((x) => x.theme)) {
-    expect(p.priceLuna, `theme ${p.id} must not be priced`).toBe(0);
-    expect(packStoreItems().map((i) => i.packId), `theme ${p.id} must not be on the shelf`)
-      .not.toContain(p.id);
-  }
-  for (const p of STICKER_PACKS.filter((x) => x.id !== "pack-starter" && !x.theme)) {
+  // The shelf IS the four themes (2026-09-17: "buy the pack, or earn it rung by rung"), and
+  // nothing else: the emoji packs left with the old icon.
+  expect(packStoreItems().map((i) => i.packId).sort())
+    .toEqual(STICKER_PACKS.filter((x) => x.theme).map((p) => p.id).sort());
+  for (const p of STICKER_PACKS.filter((x) => x.id !== "pack-starter")) {
     // Whole NIM, and enough to be worth saving for: the old 2 NIM price was a
     // tenth of a cent once rewards became dollar-sized.
     expect(p.priceLuna % 100_000).toBe(0);
@@ -522,5 +541,5 @@ test("catalog: the starter pack is free and auto-granted, the rest cost real NIM
   const owned = stickersRepo.ownedStickers(kid2.id);
   expect(owned.length).toBe(STICKERS.filter((s) => s.packId === "pack-starter").length);
   expect(owned.every((s) => !!s.emoji)).toBe(true);
-  expect(stickersRepo.ownsSticker(kid2.id, "stk-rocket")).toBe(false); // a paid pack
+  expect(stickersRepo.ownsSticker(kid2.id, "stk-space-rocket")).toBe(false); // a paid pack
 });

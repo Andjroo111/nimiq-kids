@@ -4,88 +4,69 @@
 // can pick from but the kid cannot draw is a bug waiting to happen, and it is
 // exactly the drift that put five drawing styles in this app to begin with.
 //
-// Two sources, and which is which is deliberate:
-//  · DUOTONE — Nimiq's own vendored set (/vendor/nq/icons/duotone-*.svg),
-//    fetched once and inlined so `currentColor` still applies.
-//  · DRAWN — app-own, in the wallet's stroke language, ONLY for the things the
-//    Nimiq set cannot say. It has no meal, no bedtime and no prize ticket, and
-//    its one food icon is a Bitcoin-pizza reference at a 0.6 stroke that
-//    dissolves at tile size.
+// SINCE 2026-09-15 THE PALETTE IS PHOSPHOR (public/js/lib/phosphor.js, generated from
+// tools/icons/phosphor-list.json). Andjroo: "the parents are gonna need basically to be able to
+// pick an icon for their coupons or for other stuff that they wanna give to the kid", and "I
+// don't want to be generating these all the time." 133 kid-safe glyphs in nine categories,
+// duotone with the shade at Nimiq's 0.4, navy. The eleven names the two apps drew before
+// (Nimiq duotones and three app-own drawings) still resolve through ALIAS, so a shelf or a
+// coupon a parent already saved keeps its picture and no row moves.
 
-/** Names the vendored Nimiq duotone set covers. */
-export const DUOTONE_GLYPHS = [
-  "gamepad", "high-five", "medal", "handshake", "group", "globe", "bell", "nim-phone",
-];
+import { PH, PH_CATALOG, ph } from "./phosphor.js";
 
-const S = 'fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"';
-const box24 = (body) => `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" ${S}>${body}</svg>`;
+/** The old names, mapped to the Phosphor glyph that means the same thing. A `payload.icon` or
+ *  a `store_categories.icon` written before 2026-09-15 carries one of these; the seeded rows
+ *  in src/sticker-catalog.ts still do (dinner, moon, gamepad, ticket). Never remove a key. */
+export const ALIAS = {
+  dinner: "fork-knife", gamepad: "game-controller", "high-five": "hands-clapping",
+  handshake: "handshake", group: "users", globe: "globe", bell: "bell", "nim-phone": "device-mobile",
+  medal: "medal", moon: "moon", ticket: "ticket", music: "music-notes", picture: "image", camera: "camera",
+};
+const resolve = (name) => (PH[name] ? name : ALIAS[name]);
 
-/** App-own glyphs, raw <svg>. Each app wraps these in its own icon box. */
+/** What a parent may pick, by category, in order. Names are Phosphor's. */
+export const CATALOG = PH_CATALOG;
+/** THE palette, flat. Everything in it renders in both apps. */
+export const GLYPHS = [...new Set(Object.values(PH_CATALOG).flat())];
+/** The three chrome glyphs the kid app's sheets draw (Sounds, Background, the camera tile). */
 export const DRAWN_GLYPHS = {
-  // Plate between a fork and a knife — "pick what's for dinner".
-  dinner: box24(`<circle cx="12" cy="12" r="5.2"/>
-    <path d="M2.6 2.8v4.6a1.9 1.9 0 003.8 0V2.8M4.5 2.8v4.6M4.5 9.3V21.2"/>
-    <path d="M19.5 21.2V2.8c-1.7 1.3-2.5 3.9-2.5 6.6h2.5"/>`),
-  // Crescent and a spark — "stay up late".
-  moon: box24(`<path d="M21 14.4A8.9 8.9 0 019.8 3.2a8.7 8.7 0 1011.2 11.2z"/>
-    <path d="M5.6 2.6v3.2M4 4.2h3.2"/>`),
-  // Torn ticket — the generic "a prize the parent makes real" face.
-  ticket: box24(`<path d="M2.8 7.4a1.6 1.6 0 011.6-1.6h15.2a1.6 1.6 0 011.6 1.6v2a2.6 2.6 0 000 5.2v2a1.6 1.6 0 01-1.6 1.6H4.4a1.6 1.6 0 01-1.6-1.6v-2a2.6 2.6 0 000-5.2z"/>
-    <path d="M13.8 6.6v1.8M13.8 11.1v1.8M13.8 15.6v1.8"/>`),
-  music: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>`,
-  picture: `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="8.5" cy="9.5" r="1.8"/>
-    <path d="M3.5 17.5l4.8-4.6a2 2 0 012.7 0l3 2.9 1.6-1.5a2 2 0 012.7 0l2.2 2.1"/></svg>`,
-  camera: `<svg viewBox="0 0 18 16" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M1.5 5.2A1.7 1.7 0 013.2 3.5h2l1.3-2h5l1.3 2h2a1.7 1.7 0 011.7 1.7v7.6a1.7 1.7 0 01-1.7 1.7H3.2a1.7 1.7 0 01-1.7-1.7z"/>
-    <circle cx="9" cy="8.7" r="3"/></svg>`,
+  music: ph("music-notes", "r"), picture: ph("image", "r"), camera: ph("camera", "r"),
 };
 
-/** THE palette. Everything in it must render in both apps. */
-export const GLYPHS = [...DUOTONE_GLYPHS, ...Object.keys(DRAWN_GLYPHS)];
+/** Nothing to fetch any more: the glyphs are in the module. Kept so both apps' boot sequences
+ *  keep their one call. */
+export async function loadGlyphs() {}
 
-const cache = new Map();
-
-/** Fetch the duotone half once. Safe to call from either app, and to call twice. */
-export async function loadGlyphs() {
-  await Promise.all(DUOTONE_GLYPHS.map(async (name) => {
-    if (cache.has(name)) return;
-    try {
-      const res = await fetch(`/vendor/nq/icons/duotone-${name}.svg`);
-      if (res.ok) cache.set(name, await res.text());
-    } catch { /* offline + uncached: the caller's placeholder renders */ }
-  }));
-}
-
-/** Raw <svg> for a glyph name — "" until loadGlyphs() has run, for duotones. */
+/** Raw <svg> for a glyph name, duotone. "" for a name neither Phosphor nor ALIAS knows, which
+ *  is what a caller's placeholder is for. */
 export function glyphSvg(name) {
-  return DRAWN_GLYPHS[name] ?? cache.get(name) ?? "";
+  const n = resolve(name);
+  return n ? ph(n, "d") : "";
 }
 
 /**
- * Minutes as a DIAL: the wedge is minutes/60 of a turn.
- *
- * The three Screen time tiles all drew one gamepad, so 15, 30 and 60 minutes
- * were the same picture three times. Deriving the face from the datum means the
- * difference IS the difference, and a shelf that later sells 45 or 90 minutes
- * gets correct art with nothing new drawn.
+ * Minutes as a face. The three shelf values are Phosphor clocks (quarter past, half past, a
+ * full turn); any other number of minutes the shelf might sell is drawn as a dial whose wedge
+ * is minutes/60 of a turn, the same duotone, so 45 or 90 minutes get honest art with nothing
+ * new drawn.
  */
 export function minuteDialSvg(minutes) {
-  const f = Math.max(0, Math.min(1, (Number(minutes) || 0) / 60));
-  const R = 6.6;
-  // A full turn has no arc endpoint distinct from its start, so it is a disc.
+  const m = Number(minutes) || 0;
+  const named = { 15: "clock", 30: "clock-afternoon", 60: "clock-countdown" }[m];
+  if (named) return ph(named, "d");
+  const f = Math.max(0, Math.min(1, m / 60));
+  const R = 9.4;
   let wedge = "";
   if (f >= 1) {
-    wedge = `<circle cx="12" cy="12" r="${R}" fill="currentColor" stroke="none"/>`;
+    wedge = `<circle cx="12" cy="12" r="${R}" fill="currentColor" fill-opacity="0.4" stroke="none"/>`;
   } else if (f > 0) {
     const th = 2 * Math.PI * f;
     const x = (12 + R * Math.sin(th)).toFixed(2);
     const y = (12 - R * Math.cos(th)).toFixed(2);
-    wedge = `<path d="M12 12V${12 - R}A${R} ${R} 0 ${f > 0.5 ? 1 : 0} 1 ${x} ${y}Z" fill="currentColor" stroke="none"/>`;
+    wedge = `<path d="M12 12V${12 - R}A${R} ${R} 0 ${f > 0.5 ? 1 : 0} 1 ${x} ${y}Z" fill="currentColor" fill-opacity="0.4" stroke="none"/>`;
   }
   return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="12" cy="12" r="9.4"/><path d="M12 1.4v1.8"/>${wedge}</svg>`;
+    ${wedge}<circle cx="12" cy="12" r="${R}"/><path d="M12 2.6v2.4M12 12V2.6"/></svg>`;
 }
 
 // ---------------------------------------------------------------- pack art

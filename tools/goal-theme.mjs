@@ -33,13 +33,13 @@ const P = mint.parentToken, D = mint.deviceToken;
 const themes = (await api("/api/goal-themes", {}, P)).body.themes;
 check("the instance offers themes with art", themes.length > 0 && themes[0].stickers.length === 5,
   themes.map((t) => `${t.packId}:${t.stickers.length}+boss`).join(" "));
-const DRAGONS = themes.find((t) => t.packId === "pack-dragons");
+const DRAGONS = themes.find((t) => t.packId === "pack-dragons-theme");
 check("dragons is one of them, five plus a boss", !!DRAGONS && !!DRAGONS.boss);
 
 /** Build a ladder on the dragons theme and climb every rung. */
 async function ladder(name, rungs) {
   const g = (await api("/api/goals", { method: "POST",
-    body: JSON.stringify({ childId: kid.id, title: name, packId: "pack-dragons" }) }, P)).body.goal;
+    body: JSON.stringify({ childId: kid.id, title: name, packId: "pack-dragons-theme" }) }, P)).body.goal;
   for (let i = 0; i < rungs; i++) {
     await api(`/api/goals/${g.id}/rungs`, { method: "POST",
       body: JSON.stringify({ title: `${name} step ${i + 1}`, rewardLuna: 10e5 }) }, P);
@@ -85,7 +85,7 @@ check("the whole pack is usable now", DRAGONS.stickers.every((s) => owned2.has(s
 
 // ---- a theme is not for sale, at any price ----
 const shelf = (await api(`/api/kids/${kid.id}/store`, {}, D)).body;
-const shelved = JSON.stringify(shelf).includes("pack-dragons");
+const shelved = JSON.stringify(shelf).includes("pack-dragons-theme");
 check("no theme is on the Treasure Box shelf", !shelved);
 
 // ---- and it all renders ----

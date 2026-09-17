@@ -56,7 +56,7 @@ export function youtubeId(url: string): string | null {
  * still be hardcoded by editing the file, but on a deployed instance setting the
  * env var is enough: no code edit, no PR, no rebuild.
  *
- * Set it on the Mini in ~/secrets/hatch-competition.env, then
+ * Set it on the Mini in ~/gdkc/secrets/hatch-competition.env, then
  *   launchctl kickstart -k gui/$(id -u)/com.hatch.competition
  *
  * A non-YouTube VIDEO_URL (Loom, Vimeo, a file) is left alone here: /video still

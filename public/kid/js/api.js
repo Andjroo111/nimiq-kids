@@ -35,23 +35,10 @@ export const api = {
   // 6-digit code from the parent app (Settings -> Pair a device) -> device token.
   pairDevice: (pairCode, label) => post("/api/devices/register", { pairCode, label }),
 
-  // #123 the switch gate: a kid's secret picture on a shared tablet. `unlock` is called on
-  // EVERY switch, including for a kid who has no secret, the server decides whether that
-  // cost anything, so the client never has to hold a second copy of that rule.
-  switchPictures: () => get("/api/switch/pictures"),
+  // Called on EVERY switch so the tablet records which kid it is acting as. Nothing to prove
+  // since 2026-09-16 (the secret pictures are gone).
   unlockKid: async (childId, body) => {
     const r = await fetch(`/api/kids/${childId}/unlock`, {
-      method: "POST", headers: headers({ "content-type": "application/json" }),
-      body: JSON.stringify(body ?? {}),
-    });
-    return { status: r.status, body: await r.json().catch(() => ({})) };
-  },
-  // KEEPS THE HTTP STATUS, for the same reason bootChildren does: a tablet that is not paired
-  // gets 401 here, and a kid who tapped their pictures correctly must not be told "not those
-  // ones". Enrolling is the one screen where the failure a child CAN fix and the failure only
-  // a grown-up can fix look identical, so the caller needs to tell them apart.
-  setSwitchSecret: async (childId, body) => {
-    const r = await fetch(`/api/kids/${childId}/switch-secret`, {
       method: "POST", headers: headers({ "content-type": "application/json" }),
       body: JSON.stringify(body ?? {}),
     });

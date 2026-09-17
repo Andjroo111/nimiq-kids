@@ -61,6 +61,12 @@ ENDING = {
 }
 
 # ---- DURING: the bed that plays while the egg counts down ---------------------------
+# ⚠️ lullaby, bounce and space are NOT these files any more (2026-09-17). Andjroo A/B'd the
+# ElevenLabs beds against Suno takes and picked Suno for those three: v6, Custom, no lyrics,
+# 1:10 masters, then audio.make_loop (whole bars, spectral seam match, 0.4s equal-power
+# crossfade) to a ~30s loop, normalised to -25 LUFS (what these files measured after the
+# 0.35 bake, so the kid hears the same level) and lame -V2 mono. Re-running this script
+# for those three would overwrite a chosen bed with the losing one. `clock` stayed.
 # ⚠️ `clock` is in the list because the sheet lists it, NOT because it is recommended.
 # tools/sound/README.md: a ticking clock is a stress cue for children. Selectable, never
 # the default. Keep it soft and slow if it is regenerated.

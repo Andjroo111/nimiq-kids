@@ -22,7 +22,7 @@ bypasses `ChainClient` for its two boot-time reads, and it talks to the same sin
 This is the same shape that blinded the nimiq.sale POS for roughly 60 hours on 2026-07-24, and
 the reason `nimiq-settlement` exists as the place to fix it once. **Do not build failover here.**
 Building it in nimiq.kids fixes one app. Building it in the shared package fixes this one,
-nimiq.sale and a merchant payment widget together. What nimiq.kids owes that effort is a clean seam,
+nimiq.sale and the GDKC payment widget together. What nimiq.kids owes that effort is a clean seam,
 and `ChainClient` is already the SIM-swappable interface, which is most of the work.
 
 Read `nimiq-settlement/docs/MULTI-PROVIDER.md` first. nimiq.sale PRs **#67 + #71** already shipped

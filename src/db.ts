@@ -499,13 +499,23 @@ function syncStickerCatalog(db: Database) {
   // reference it) but retire it from the packs so it can't be granted again.
   const keep = STICKERS.map((s) => `'${s.id}'`).join(",");
   db.run(`UPDATE stickers SET pack_id=NULL WHERE kind='art' AND id NOT IN (${keep})`);
+  // Packs that left the catalogue (2026-09-17: the five lined-era themes, replaced by the four
+  // lineless ones under new ids) go INACTIVE, never deleted: a ladder already set to one keeps
+  // its pack_id and its progress reads, it just cannot be picked for a new ladder.
+  const keepPacks = STICKER_PACKS.map((p) => `'${p.id}'`).join(",");
+  db.run(`UPDATE sticker_packs SET active=0 WHERE id NOT IN (${keepPacks})`);
+  db.run(`UPDATE sticker_packs SET active=1 WHERE id IN (${keepPacks})`);
 
+  // A pack row whose pack left the shelf (2026-09-17: the four emoji packs) goes inactive
+  // whatever a parent did to its price: there is no pack behind it to grant any more.
+  const keepPackItems = packStoreItems().map((i) => `'${i.id}'`).join(",");
+  db.run(`UPDATE store_items SET active=0 WHERE kind='pack' AND id NOT IN (${keepPackItems})`);
   for (const item of packStoreItems()) {
     db.run(
       `INSERT INTO store_items (id, category_id, kind, title, title_key, price_luna, payload, active, sort)
        VALUES (?,?,?,?,?,?,?,1,?)
        ON CONFLICT(id) DO UPDATE SET
-         title=excluded.title, title_key=excluded.title_key,
+         title=excluded.title, title_key=excluded.title_key, active=1,
          price_luna=excluded.price_luna, payload=excluded.payload, sort=excluded.sort
        WHERE parent_edited=0`,
       [item.id, item.categoryId, item.kind, item.title, rowKey(item.packId), item.priceLuna, item.payload, item.sort],

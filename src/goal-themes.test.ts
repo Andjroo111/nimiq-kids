@@ -22,7 +22,7 @@ import * as approvalsRepo from "./repo-approvals";
 import * as lockRepo from "./repo-lock";
 import * as media from "./repo-media";
 import { hashPin, newToken, sha256Hex } from "./auth";
-import { STICKER_ART_SHIPPED, STICKER_PACKS, packStoreItems } from "./sticker-catalog";
+import { STICKER_ART_SHIPPED, STICKER_PACKS, STICKERS, packStoreItems } from "./sticker-catalog";
 import { goalsRoutes } from "./routes/goals";
 import { prefsRoutes } from "./routes/prefs";
 import { approvalsRoutes } from "./routes/approvals";
@@ -33,7 +33,10 @@ const app = new Hono()
   .route("/api", prefsRoutes);
 
 const PARENT = "NQ07 0000 0000 0000 0000 0000 0000 0000 0000";
-const DRAGONS = "pack-dragons";
+const DRAGONS = "pack-dragons-theme";
+// The set's size comes from the catalogue, not from this file: the lined-era themes were five
+// plus a boss, the lineless ones (2026-09-17) are six or seven. Every climb below is relative.
+const SET = STICKERS.filter((s) => s.packId === DRAGONS && !s.boss).length;
 const RUNG = 20_000;
 
 let fam: repo.Family;
@@ -82,15 +85,15 @@ const usable = () => stickers.ownedStickers(kid.id).map((s) => s.id);
 
 // ---- the collection is the unit, not the ladder --------------------------------
 
-test("every theme the catalogue ships is five plus a boss", () => {
+test("every theme the catalogue ships is a set of at least five plus exactly one boss", () => {
   const themes = STICKER_PACKS.filter((p) => p.theme);
-  // Unicorns and robots are designed and not drawn — see sticker-catalog.ts. What is asserted
-  // is the SHAPE every theme has to have, not which ones happen to ship, so the next pack
-  // landing does not edit this test. Only that at least one does.
+  // What is asserted is the SHAPE every theme has to have, not which ones happen to ship, so
+  // the next pack landing does not edit this test. Only that at least one does.
   expect(themes.length).toBeGreaterThan(0);
   for (const t of themes) {
-    expect(stickers.packRungStickers(t.id), `${t.id} rung stickers`).toHaveLength(5);
+    expect(stickers.packRungStickers(t.id).length, `${t.id} rung stickers`).toBeGreaterThanOrEqual(5);
     expect(stickers.packBoss(t.id), `${t.id} boss`).not.toBeNull();
+    expect(STICKERS.filter((s) => s.packId === t.id && s.boss), `${t.id} bosses`).toHaveLength(1);
   }
 });
 
@@ -104,13 +107,13 @@ test("one sticker per rung, in the set's own order", async () => {
 test("a SECOND ladder finishes the set the first one started", async () => {
   await climb(3);
   expect(stickers.packComplete(kid.id, DRAGONS)).toBe(false);
-  await climb(2);
+  await climb(SET - 3);
   expect(stickers.packComplete(kid.id, DRAGONS)).toBe(true);
   expect(dragonSet().every((s) => owns(s.id))).toBe(true);
 });
 
 test("a rung climbed after the set is finished still pays, and grants nothing", async () => {
-  await climb(5);
+  await climb(SET);
   const before = stickers.collectedStickers(kid.id, DRAGONS).length;
   await climb(1);
   expect(stickers.collectedStickers(kid.id, DRAGONS)).toHaveLength(before);
@@ -137,14 +140,14 @@ test("a collected dragon cannot be placed on anything until the set is done", as
 });
 
 test("finishing the set grants the boss and releases the whole pack at once", async () => {
-  await climb(5);
+  await climb(SET);
   const boss = stickers.packBoss(DRAGONS)!;
   expect(owns(boss.id)).toBe(true);
   for (const s of [...dragonSet(), boss]) expect(usable(), s.label).toContain(s.id);
 });
 
 test("the boss is never handed out a rung at a time", async () => {
-  await climb(4);
+  await climb(SET - 1);
   expect(owns(stickers.packBoss(DRAGONS)!.id)).toBe(false);
   // And it is not one of the five: a set that included its own prize could never finish.
   expect(dragonSet().map((s) => s.id)).not.toContain(stickers.packBoss(DRAGONS)!.id);
@@ -166,7 +169,7 @@ test("one theme finishing does not release another", async () => {
   db.run("INSERT INTO stickers (id, pack_id, label, emoji) VALUES (?,?,?,?)",
     ["stk-other-2", "pack-other", "Other two", "❓"]);
 
-  await climb(5);
+  await climb(SET);
   expect(usable()).toContain(stickers.packBoss(DRAGONS)!.id);
   stickers.grantSticker(kid.id, "stk-other-1");
   expect(usable()).not.toContain("stk-other-1");
@@ -178,7 +181,7 @@ test("one theme finishing does not release another", async () => {
 // a full-screen background for the kid's app. The background is never painted behind the boss.
 
 test("an unfinished theme has unlocked no wallpaper", async () => {
-  await climb(4);
+  await climb(SET - 1);
   expect(stickers.unlockedBackgrounds(kid.id)).toHaveLength(0);
 });
 
@@ -189,7 +192,7 @@ test("an unfinished theme has unlocked no wallpaper", async () => {
 const WALLED = STICKER_PACKS.some((p) => p.theme && p.backgroundIds?.length);
 
 test.skipIf(WALLED)("while no theme names a wallpaper, finishing one unlocks nothing and the built-ins stay free", async () => {
-  await climb(5);
+  await climb(SET);
   expect(stickers.unlockedBackgrounds(kid.id)).toEqual([]);
   const res = await app.request(`http://hatch.test/api/children/${kid.id}/prefs`, {
     method: "PUT", body: JSON.stringify({ backgroundId: "space" }),
@@ -200,7 +203,7 @@ test.skipIf(WALLED)("while no theme names a wallpaper, finishing one unlocks not
 });
 
 test.skipIf(!WALLED)("finishing the set unlocks its wallpapers, and only its own", async () => {
-  await climb(5);
+  await climb(SET);
   const bgs = stickers.unlockedBackgrounds(kid.id);
   const pack = STICKER_PACKS.find((p) => p.id === DRAGONS)!;
   expect(bgs.map((b) => b.id)).toEqual(pack.backgroundIds!);
@@ -210,11 +213,11 @@ test.skipIf(!WALLED)("finishing the set unlocks its wallpapers, and only its own
   if (other) for (const id of other.backgroundIds!) expect(bgs.map((b) => b.id)).not.toContain(id);
 });
 
-// A pack may name more than one wallpaper, and finishing it hands over ALL of them. Robots is
-// the first to do it: four were drawn to pick one from and Andjroo kept three (2026-08-06).
-test.skipIf(!WALLED)("a pack naming several wallpapers unlocks every one of them", () => {
+// A pack may name more than one wallpaper, and finishing it hands over ALL of them. Robots did
+// in the lined era (three); the lineless four name one each (2026-09-17), so the several-per-
+// pack half only runs when a pack does that again. The no-sharing half always runs.
+test("no two themes claim the same wallpaper, and a pack naming several unlocks every one", () => {
   const many = STICKER_PACKS.filter((p) => p.theme && (p.backgroundIds?.length ?? 0) > 1);
-  expect(many.length).toBeGreaterThan(0);
   for (const p of many) expect(new Set(p.backgroundIds).size).toBe(p.backgroundIds!.length);
   // No two themes may claim the same wallpaper, or finishing one would light up another's.
   const all = STICKER_PACKS.flatMap((p) => p.backgroundIds ?? []);
@@ -225,7 +228,7 @@ test.skipIf(!WALLED)("the kid's prefs carry the wallpapers they earned", async (
   const before = await (await app.request(`http://hatch.test/api/children/${kid.id}/prefs`))
     .json() as { backgrounds: { id: string }[] };
   expect(before.backgrounds).toHaveLength(0);
-  await climb(5);
+  await climb(SET);
   const after = await (await app.request(`http://hatch.test/api/children/${kid.id}/prefs`))
     .json() as { backgrounds: { id: string }[] };
   expect(after.backgrounds).toHaveLength(1);
@@ -242,7 +245,7 @@ test.skipIf(!WALLED)("a wallpaper cannot be worn until it is earned, and the bui
   // ...and the four scenes every kid has always had are not caught by that guard.
   expect((await put({ backgroundId: "space" })).status).toBe(200);
 
-  await climb(5);
+  await climb(SET);
   expect((await put({ backgroundId: wall })).status).toBe(200);
   expect(media.getPrefs(kid.id).background_id).toBe(wall);
 });
@@ -258,12 +261,20 @@ test.skipIf(!WALLED)("every theme wallpaper the catalogue names has art on disk"
 
 // ---- earned, never sold ---------------------------------------------------------
 
-test("no theme is on the Treasure Box shelf at any price", () => {
+test("every theme is on the Treasure Box shelf, priced, and it sells the members only", () => {
+  // 2026-09-17, Andjroo: "buy the pack, or earn it rung by rung". The shelf sells the set's
+  // members; the boss and the scene are still only ever earned by finishing it on a ladder.
   const shelved = new Set(packStoreItems().map((i) => i.packId));
   for (const t of STICKER_PACKS.filter((p) => p.theme)) {
-    expect(shelved, `${t.id} must not be buyable`).not.toContain(t.id);
-    expect(t.priceLuna, `${t.id} must be unpriced`).toBe(0);
+    expect(shelved, `${t.id} must be buyable`).toContain(t.id);
+    expect(t.priceLuna, `${t.id} must be priced`).toBeGreaterThan(0);
   }
+  const bought = stickers.grantPackMembers(kid.id, DRAGONS);
+  expect(bought.length).toBe(SET);
+  expect(bought.some((s) => s.is_boss)).toBe(false);
+  expect(stickers.packComplete(kid.id, DRAGONS)).toBe(true);
+  expect(stickers.packFinished(kid.id, DRAGONS)).toBe(false);
+  expect(stickers.unlockedBackgrounds(kid.id)).toEqual([]);
 });
 
 // ---- the ladder says where the collection has got to ----------------------------
@@ -273,9 +284,9 @@ test("the ladder reports the set filling up, empty slots and all", async () => {
   const view = goals.goalView(goals.getGoal(goal.id)!);
   expect(view.packId).toBe(DRAGONS);
   expect(view.theme!.collected).toBe(2);
-  expect(view.theme!.total).toBe(5);
+  expect(view.theme!.total).toBe(SET);
   expect(view.theme!.complete).toBe(false);
-  expect(view.theme!.slots.map((s) => s.owned)).toEqual([true, true, false, false, false]);
+  expect(view.theme!.slots.map((s) => s.owned)).toEqual([true, true, ...Array(SET - 2).fill(false)]);
   expect(view.theme!.boss!.owned).toBe(false);
 });
 
@@ -292,7 +303,7 @@ test("GET /goal-themes offers every set with its art", async () => {
     themes: { packId: string; stickers: { assetUrl: string | null }[]; boss: { id: string } }[];
   };
   expect(themes.length).toBeGreaterThan(0);
-  expect(themes[0]!.stickers).toHaveLength(5);
+  expect(themes[0]!.stickers.length).toBeGreaterThanOrEqual(5);
   // The art rides the row while it ships; while it does not (2026-09-15) the URL is null and
   // the client draws the emoji, so the shape is pinned either way.
   if (STICKER_ART_SHIPPED) expect(themes[0]!.stickers[0]!.assetUrl).toMatch(/^\/assets\/stickers\//);
@@ -337,13 +348,13 @@ test("approving a rung tells the parent which sticker the kid just earned", asyn
 });
 
 test("the rung that finishes the set reports the boss as well", async () => {
-  await climb(4);
+  await climb(SET - 1);
   const goal = goals.createGoal(fam.id, kid.id, "Last", { packId: DRAGONS });
   const rung = goals.addRung(goal.id, "Step", { rewardLuna: RUNG });
   await post(`/api/goals/${goal.id}/rungs/${rung.id}/claim`);
   const a = approvalsRepo.pendingApprovalFor("goal_rung", rung.id)!;
   const body = await (await post(`/api/approvals/${a.id}/approve`, { pin: "1234" })).json() as
     { stickerId?: string; bossStickerId?: string };
-  expect(body.stickerId).toBe(dragonSet()[4]!.id);
+  expect(body.stickerId).toBe(dragonSet()[SET - 1]!.id);
   expect(body.bossStickerId).toBe(stickers.packBoss(DRAGONS)!.id);
 });

@@ -616,7 +616,10 @@ select.nq-input { appearance: none; background: none; }
 .bx-shelf-p.is-off .bx-shelf-hd-p h3, .bx-shelf-p.is-off .bx-shelf-ic,
 .bx-row-p.is-off .bx-row-title, .bx-row-p.is-off .bx-row-ic { color: var(--ink-40); }
 
-/* the face picker -- one palette, the same names the kid app draws with */
+/* the face picker -- one palette, the same names the kid app draws with. Nine categories
+   (2026-09-15, Phosphor), scrolling inside the sheet so the name field and Save stay put. */
+.glyph-cats { display: flex; flex-direction: column; gap: 14px; max-height: 42vh; overflow-y: auto; overscroll-behavior: contain; padding-right: 4px; }
+.glyph-cat-hd { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-40); margin: 0 0 6px; }
 .glyph-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 8px; }
 .glyph-opt {
   height: 52px; border-radius: 12px; display: grid; place-items: center;

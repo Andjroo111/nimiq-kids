@@ -178,7 +178,7 @@ const isLocalClip = (url: string) => url.startsWith("/") && !url.startsWith("//"
 test("a served path plays on the card; an outside link does not", () => {
   expect(isLocalClip("/api/media/abc/file")).toBe(true);
   expect(isLocalClip("https://www.youtube.com/watch?v=x")).toBe(false);
-  expect(isLocalClip("http://<mini-lan-ip>:3950/x.mp4")).toBe(false);
+  expect(isLocalClip("http://192.168.1.42:3950/x.mp4")).toBe(false);
 });
 
 test("a protocol-relative URL is NOT local", () => {

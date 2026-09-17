@@ -12,12 +12,17 @@
         "nimiq-settlement": "github:Andjroo111/nimiq-settlement#v0.3.0",
       },
       "devDependencies": {
+        "@iconify-json/ph": "^1.2.2",
         "@types/bun": "^1.2.0",
         "typescript": "^5.7.0",
       },
     },
   },
   "packages": {
+    "@iconify-json/ph": ["@iconify-json/ph@1.2.2", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-PgkEZNtqa8hBGjHXQa4pMwZa93hmfu8FUSjs/nv4oUU6yLsgv+gh9nu28Kqi8Fz9CCVu4hj1MZs9/60J57IzFw=="],
+
+    "@iconify/types": ["@iconify/types@2.0.0", "", {}, "sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg=="],
+
     "@nimiq/core": ["@nimiq/core@2.5.1", "", { "dependencies": { "comlink": "^4.4.1", "websocket": "^1.0.34" } }, "sha512-YkAPENU01ILTsuWQlD+4wRdcDYmuBKr3HveKUrVJdJ/K3ai1nBUQWBpBVWQStdKTa1cDDnqDScU2hgWJvTuMSg=="],
 
     "@nimiq/fastspot-api": ["@nimiq/fastspot-api@1.10.3", "", {}, "sha512-CUkIAcF7R3OlN45idB+yC9Wnuz2YXTPx25xYswCdmbMGu/EGZFNnGHLIe6HkbHd8Eh+uBrwqBmLZGm8jyQ9+6A=="],
@@ -66,9 +71,9 @@
 
     "next-tick": ["next-tick@1.1.0", "", {}, "sha512-CXdUiJembsNjuToQvxayPZF9Vqht7hewsvy2sOWafLvi2awflj9mOC6bHIg50orX8IJvWKY9wYQ/zB2kogPslQ=="],
 
-    "nimiq-app-shell": ["nimiq-app-shell@github:Andjroo111/nimiq-app-shell#0d75b9a", { "dependencies": { "@nimiq/hub-api": "^1.14.0", "@nimiq/mini-app-sdk": "^0.1.0" }, "peerDependencies": { "@nimiq/iqons": "^1.6.0" }, "optionalPeers": ["@nimiq/iqons"] }, "Andjroo111-nimiq-app-shell-0d75b9a", "sha512-loJNku4qiHFcYIa94LS0jZYbzzfzlyjOovjWKxWT/3L4FkAzZNKgM6Jbxl02lya7+RZ2lKwbbChNhdAowr9pkg=="],
+    "nimiq-app-shell": ["nimiq-app-shell@github:Andjroo111/nimiq-app-shell#78de35e", { "dependencies": { "@nimiq/hub-api": "^1.14.0", "@nimiq/mini-app-sdk": "^0.1.0" }, "peerDependencies": { "@nimiq/iqons": "^1.6.0" }, "optionalPeers": ["@nimiq/iqons"] }, "Andjroo111-nimiq-app-shell-78de35e", "sha512-R67QTsyOObhgaqHgjiP54wYpjDMRbVYCWxMxRkkkH1x0xT362p2MwyvoUrwWMW4uGU4VeebfTeH5QFyOVnDxhg=="],
 
-    "nimiq-settlement": ["nimiq-settlement@github:Andjroo111/nimiq-settlement#473ec6c", {}, "Andjroo111-nimiq-settlement-473ec6c", "sha512-XGzhzb+MSlZ3qzOo9ZKHJYjXKu3oT9WvMKQQgPZs3KhwRe0CdmbocraKeAeAePmCIs5LOUYPS1xKjE/tdUrZhw=="],
+    "nimiq-settlement": ["nimiq-settlement@github:Andjroo111/nimiq-settlement#971afc1", {}, "Andjroo111-nimiq-settlement-971afc1", "sha512-wUjnHeb+I0HYbRTiQb56hYUd48ibbWLLYUzGe4xh9eVmV6qjpDcpkByxLZuY32esG/p8JRcyxWK0wQYZNG1jPw=="],
 
     "node-gyp-build": ["node-gyp-build@4.8.4", "", { "bin": { "node-gyp-build": "bin.js", "node-gyp-build-optional": "optional.js", "node-gyp-build-test": "build-test.js" } }, "sha512-LA4ZjwlnUblHVgq0oBF3Jl/6h/Nvs5fzBLwdEF4nuxnFdsfajde4WfxtJr3CaiH+F6ewcIB/q4jQ4UzPyid+CQ=="],
 

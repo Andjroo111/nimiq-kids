@@ -46,32 +46,48 @@ test("a locked Games button is still a button that answers a tap", () => {
   expect(CHART).not.toMatch(/id="dock-games"[^>]*disabled/);
 });
 
-test("with no wrapper the slot keeps the Timer, so a browser is unchanged", () => {
-  // In a plain browser and on a household that has allowlisted nothing there is nothing to
-  // launch, and a dock button opening an empty grid is worse than one that is not offered. The
-  // judge demo, every browser driver and the existing timer tests all still find `dock-timer`.
-  expect(CHART).toMatch(/games\.present\s*\n?\s*\?\s*btn\("games"/);
-  expect(CHART).toMatch(/:\s*btn\("timer", "timer", "app\.kidDockTimer"\)/);
-  expect(CHART).toMatch(/\$\("dock-timer"\)\?\.addEventListener/);
+test("the Timer is in the dock on every board, and Games joins it only when there is something to launch", () => {
+  // Andjroo, 2026-09-17: "move the timer that's in the games page ... back onto the main
+  // navigation bar." #398 had made the Timer a Games tile to free the slot; the bar is five
+  // wide now, so nothing has to give way. Games is still withheld in a plain browser and on a
+  // household that has allowlisted nothing (an empty grid is worse than no button), and the
+  // Timer is not behind that gate: the judge demo, every browser driver and the timer tests
+  // all find `dock-timer` unconditionally.
+  const dock = CHART.slice(CHART.indexOf("function dock("));
+  const body = dock.slice(0, dock.indexOf("\n}"));
+  expect(body).toMatch(/\$\{btn\("timer", "timer", "app\.kidDockTimer"\)\}/);
+  expect(body).not.toMatch(/present[^\n]*\n?[^\n]*btn\("timer"/);
+  expect(body).toMatch(/games\.present\s*\n?\s*\?\s*btn\("games"[\s\S]*?:\s*""/);
+  expect(CHART).toMatch(/\$\("dock-timer"\)\.onclick = /);
+  // Order a kid can say: Treasure, Calendar, Timer, Games, Money.
+  const order = ["box", "chart", "timer", "games", "money"].map((id) => body.indexOf(`btn("${id}"`));
+  expect(order).toEqual([...order].sort((x, y) => x - y));
+  expect(order.every((i) => i >= 0)).toBe(true);
 });
 
-test("the minutes pill only ever shows a number the wrapper gave us", () => {
-  // An unmetered kid has no budget, so there is no number, and inventing one would be a lie —
-  // the rule the shelf's status line held. `mins === null` is the whole guard.
+test("the dock's Games button wears no minutes, and the minutes are still a number the wrapper gave us", () => {
+  // The "120m" pill left the bar on 2026-09-15 (Andjroo: "remove the time from games"). The
+  // number itself stays honest where it is still printed (the shelf, the lock banner): an
+  // unmetered kid has no budget, so there is no number, and inventing one would be a lie.
   const fn = CHART.slice(CHART.indexOf("function gamesDockState"));
   const body = fn.slice(0, fn.indexOf("\n}"));
   expect(body).toMatch(/typeof lock\?\.remainingSec === "number"/);
-  expect(body).toMatch(/mins === null \? "" :/);
+  expect(body).not.toMatch(/ch-badge-mins/);
+  const dock = CHART.slice(CHART.indexOf("function dock("));
+  expect(dock.slice(0, dock.indexOf("\n}"))).not.toMatch(/minsPill/);
 });
 
-test("a badge sits ABOVE its glyph, never on it", () => {
+test("a badge sits at the glyph's corner, OUTSIDE its ink, and the column is centred", () => {
   // Andjroo, 2026-09-01: "there's eighteen minutes, but it's on top of the controller. Same
-  // thing with the box. Nine is on top of the box, which is not very valuable to us."
+  // thing with the box. Nine is on top of the box." The first fix was a LANE: bottom-align the
+  // column and let the badge own the strip above it. Andjroo, 2026-09-15: "the 120 minutes
+  // pushes the others that don't have anything low on the bar", which is the lane read from
+  // the other three buttons.
   //
-  // A dock glyph is a 23px mask with no padding, so it fills its box corner to corner and the
-  // iOS habit of hanging a badge off the icon's top-right corner puts it straight on the
-  // drawing. The fix is a lane, not a nudge: the glyph+word column is BOTTOM-aligned in a
-  // taller button, and the badge owns the space above it.
+  // Since the icon system (2026-09-15) a dock glyph is an SVG whose ink stops at 20 of its 24
+  // units, so at --ic-l (40px) the ink ends 16.7px right of centre and a badge whose left edge
+  // starts past that is beside the drawing, not on it. The column is centred again, the badge
+  // is pinned to the top-right corner of the glyph's box, and both complaints hold at once.
   const rule = (sel: string) => {
     const m = CHART_CSS.replace(/\/\*[\s\S]*?\*\//g, "")
       .match(new RegExp(`(?:^|\\n)\\s*${sel.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}\\s*\\{([^}]*)\\}`));
@@ -79,19 +95,24 @@ test("a badge sits ABOVE its glyph, never on it", () => {
   };
   const btn = rule("\\.ch-dock-btn");
   expect(btn).not.toBeNull();
-  expect(btn!).toMatch(/justify-content:\s*flex-end/);
+  expect(btn!).toMatch(/justify-content:\s*center/);
   const badge = rule("\\.ch-badge");
   expect(badge).not.toBeNull();
-  expect(badge!).toMatch(/top:\s*0/);
-  // ⚠️ Centred over its own button. Pinned right, a wide pill ("18m") drifts toward the
-  // neighbouring button and reads as though it belongs to that one.
-  expect(badge!).toMatch(/left:\s*50%/);
-  expect(badge!).toMatch(/translateX\(-50%\)/);
-  // The regression is a corner pin coming back, in any of the three blocks that size this bar.
+  // At the top of the glyph's box or a hair above it (Phosphor ink reaches 232 of 256, so the
+  // badge lifts 2px to stay off it); never below the top, which would be on the drawing.
+  const top = badge!.match(/top:\s*(-?\d+)(?:px)?/);
+  expect(top, "the badge is pinned by top").not.toBeNull();
+  expect(Number(top![1])).toBeLessThanOrEqual(0);
+  // Past the ink: 50% + at least 17px (the ink ends at +16.7 for a 40px glyph).
+  const off = badge!.match(/left:\s*calc\(50% \+ (\d+)px\)/);
+  expect(off, "the badge is anchored right of the glyph's centre").not.toBeNull();
+  expect(Number(off![1])).toBeGreaterThanOrEqual(17);
+  // The regression is a badge back ON the drawing: centred over it (the old lane) or pinned to
+  // the button's right edge (the iOS habit), in any block that sizes this bar.
   for (const [name, css] of [["chart.css", CHART_CSS], ["landscape.css", LANDSCAPE_CSS]] as const) {
-    const corner = css.replace(/\/\*[\s\S]*?\*\//g, "")
-      .match(/\.ch-badge\s*\{[^}]*right:\s*-?\d/);
-    expect({ file: name, cornerPinned: !!corner }).toEqual({ file: name, cornerPinned: false });
+    const bare = css.replace(/\/\*[\s\S]*?\*\//g, "");
+    const onGlyph = bare.match(/\.ch-badge\s*\{[^}]*(?:right:\s*-?\d|translateX\(-50%\))/);
+    expect({ file: name, onGlyph: !!onGlyph }).toEqual({ file: name, onGlyph: false });
   }
 });
 
@@ -118,12 +139,15 @@ test("an unrecognised package is sorted, never hidden", () => {
   expect(grp).toMatch(/\.filter\(\(c\) => c\.items\.length\)/);
 });
 
-test("the Timer is a Tools tile and never goes through the launcher", () => {
-  // It is a screen in this app, not an Android package, so it neither can be nor should be
-  // refused by the wrapper's allowlist. Routing it through launchApp would toast "Game time is
-  // over" at a kid trying to time a chore.
-  expect(GAMES).toMatch(/\{ category: "tools", act: "timer", mask: "timer", label: t\("app\.kidDockTimer"\) \}/);
-  expect(GAMES).toMatch(/querySelectorAll\('\[data-act="timer"\]'\)/);
+test("the Timer is not a Games tile, and every Games tile goes through the launcher", () => {
+  // The Timer is a screen in this app, not an Android package. While it was a Tools tile
+  // (#398) it needed its own tap route past launchApp, or the wrapper would toast "Game time
+  // is over" at a kid trying to time a chore. It lives in the dock now, so the grid has no
+  // non-package tile and no second tap route: a tile that is not `data-pkg` is a regression.
+  expect(GAMES).not.toMatch(/act: "timer"/);
+  expect(GAMES).not.toMatch(/data-act/);
+  expect(GAMES).not.toMatch(/showEggTimer/);
+  expect(GAMES).toMatch(/const rows = groupApps\(allowedGames\(\)\);/);
   const launch = GAMES.slice(GAMES.indexOf('querySelectorAll("[data-pkg]")'));
   expect(launch.slice(0, launch.indexOf("});"))).toMatch(/launchApp\?\.\(b\.dataset\.pkg\)/);
 });
@@ -132,9 +156,9 @@ test("the photos tile is a RENAME, and it still goes through the launcher", () =
   // #405. Andjroo: "there's not really a way for them to even view their pictures right now."
   // There is — Samsung Gallery has been on both tablets' allowlists all along — so the fix is a
   // door with the right word on it, not an in-app viewer. The two ways to get this wrong are
-  // both a one-line change: giving it the Timer's `onTap` shape (a tile that opens nothing),
-  // or letting the rename leak into the parent's picker (a grown-up ticking a name they will
-  // never see again).
+  // both a one-line change: giving it a non-package shape (a tile that opens nothing, the way
+  // the Timer tile once did), or letting the rename leak into the parent's picker (a grown-up
+  // ticking a name they will never see again).
   expect(GAMES).toMatch(/"com\.sec\.android\.gallery3d":\s*"app\.kidGamesPhotos"/);
   // The map is applied on the way out of allowedGames, so `pkg` survives and the tile keeps
   // its `data-pkg` attribute — which is the ONLY thing that routes a tap to launchApp.

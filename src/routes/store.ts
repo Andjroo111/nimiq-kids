@@ -54,7 +54,8 @@ function parsePayload(item: stickersRepo.StoreItem): Record<string, unknown> {
  * generated; without it the fan renders as lettered fallback dots ("M", "S", "G").
  */
 function packArt(packId: string) {
-  return stickersRepo.packStickers(packId)
+  // Members only: the boss is not in the box a kid buys, so it is not on the tile either.
+  return stickersRepo.packRungStickers(packId)
     .map((s) => ({ id: s.id, label: s.label, emoji: s.emoji, assetUrl: s.asset_url }));
 }
 
@@ -575,7 +576,9 @@ storeRoutes.post("/kids/:id/buy", async (c) => {
     };
 
     if (item.kind === "pack") {
-      const stickers = stickersRepo.grantPack(child.id, packId);
+      // The members, never the boss (2026-09-17): the four sets on this shelf are the goal
+      // ladders' themes, and the boss is still only ever earned by finishing one on a ladder.
+      const stickers = stickersRepo.grantPackMembers(child.id, packId);
       receipt("done");
       return c.json({
         ...base, kind: "pack",

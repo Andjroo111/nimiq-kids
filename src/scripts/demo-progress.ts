@@ -13,7 +13,7 @@ import * as lockRepo from "../repo-lock";
 import { localDay } from "../repo-routines";
 
 const path = process.env.DB_PATH;
-if (!path || path.includes("data/hatch/hatch.db")) {
+if (!path || path.includes("gdkc/data/hatch/hatch.db")) {
   console.error("Set DB_PATH to a COPY. Refusing to invent history in a real household.");
   process.exit(1);
 }

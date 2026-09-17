@@ -32,17 +32,6 @@
 .games-emoji { color: var(--navy); }
 .bg-dark .games-emoji { color: #fff; }
 
-/* A tile that is not an Android app (today: the Timer) draws the dock's own mask instead of an
- * icon PNG, so the two Timers in this product are one drawing. Same 108px box the real icons
- * get, with the glyph inset inside it the way an app icon's art is inset in its rounded square. */
-.game-icon-mask {
-  display: grid;
-  place-items: center;
-  background: rgba(31, 35, 72, 0.06);
-  color: var(--navy);
-}
-.game-icon-mask .k-icon { font-size: 62px; }
-
 @media (max-width: 767px) {
   .games-rows { gap: 18px; }
   .games-row { gap: 10px; }
@@ -50,7 +39,6 @@
      undid the 20/800 re-scale on every phone: Andjroo saw "Play, Learn and Tools are very
      tiny" on exactly this breakpoint. Padding may shrink; the type may not. */
   .games-row-hd { padding: 3px 11px; }
-  .game-icon-mask .k-icon { font-size: 38px; }
 }
 
 /* ---- the slab, and the wash it replaces (Andjroo, 2026-09-10) ----

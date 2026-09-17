@@ -338,15 +338,9 @@
 }
 .k-roster-list .account-entry:active { box-shadow: none; transition-duration: 110ms; }
 
-.k-secret-pic {
-  background: var(--card);
-  box-shadow: var(--lift-1);
-  transition: box-shadow 190ms var(--ease);
-}
 /* ⚠️ connect.css already keys `:active` on this element for the 0.92 squash and a darker fill.
    Only the shadow is added here, so the two do not fight over `background`. */
-.k-secret-pic:active { box-shadow: none; transition-duration: 110ms; }
 
 @media (prefers-reduced-motion: reduce) {
-  .k-roster-list .account-entry, .k-secret-pic { transition: none; }
+  .k-roster-list .account-entry { transition: none; }
 }

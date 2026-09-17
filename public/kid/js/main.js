@@ -18,7 +18,6 @@ import { flushOutbox } from "./outbox.js";
 import { showChart, stopChartPoll } from "./chart.js";
 import { stopMoneyPoll, showMoney } from "./money.js";
 import { showPayout } from "./payout.js";
-import { showSwitchGate } from "./switch-gate.js";
 import { applyKidLang } from "./kid-lang.js";
 import { mountBattery, repaintBattery } from "./battery.js";
 import { showCharacterPicker } from "./character.js";
@@ -77,13 +76,8 @@ export function showLogin() {
 /**
  * Tapping a face on the roster (#123).
  *
- * ONE KID IN THE HOUSE MEANS NO GATE. The gate exists because a sibling can become you on
- * the shared tablet; where there is no sibling it is pure friction, and the demo a judge
- * opens is a one-kid household. So the enrolment prompt is a two-or-more-kids rule, and a
- * kid who already has a secret is always asked, however many of them there are.
- *
- * The client uses `hasSecret` only to decide which SCREEN to show. What actually stops a
- * sibling is the 403 from childMoneyGate; this is its front door.
+ * The tap on a kid's face. The secret-picture gate that stood between the roster and the app
+ * from #123 to 2026-09-16 is gone; `unlock` still runs so the tablet records who it is.
  */
 export async function enterChild(child) {
   if (!child) return showLogin();
@@ -93,15 +87,8 @@ export async function enterChild(child) {
   // before the app changed under them. The roster above is the one screen that cannot be in
   // anybody's language, because it belongs to all of them.
   setKidLang(child);
-  if (child.hasSecret || state.children.length > 1) {
-    // "Not me" hands the tablet back to the household, so the language goes back with it:
-    // `applyKidLang(null)` is the device's own. Without this the roster stays in the language
-    // of the kid who just backed out of it, and the screen that belongs to all of them reads
-    // as belonging to one.
-    return showSwitchGate(child, () => selectChild(child), () => { setKidLang(null); showLogin(); });
-  }
-  // No sibling and no secret: unlock is still called, so the device row records who it is
-  // acting as and the server stays the only thing that decides.
+  // No gate (2026-09-16, the secret pictures are gone): unlock is still called, so the device
+  // row records who it is acting as, then straight into the app.
   await api.unlockKid(child.id, {}).catch(() => null);
   return selectChild(child);
 }

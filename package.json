@@ -1,6 +1,6 @@
 {
   "name": "nimiq.kids",
-  "version": "0.120.5",
+  "version": "0.121.5",
   "private": true,
   "type": "module",
   "description": "A family ecosystem where kids do chores, routines and activities, and parents reward them in NIM.",
@@ -22,6 +22,7 @@
     "nimiq-settlement": "github:Andjroo111/nimiq-settlement#v0.3.0"
   },
   "devDependencies": {
+    "@iconify-json/ph": "^1.2.2",
     "@types/bun": "^1.2.0",
     "typescript": "^5.7.0"
   }

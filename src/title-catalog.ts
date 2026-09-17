@@ -64,13 +64,13 @@ export const JOB_CATALOG: readonly CatalogJob[] = [
   { id: "teeth", emoji: "🪥", en: "Brush your teeth", group: "selfcare" },
   { id: "hair", emoji: "💇", en: "Brush your hair", group: "selfcare" },
   { id: "shower", emoji: "🚿", en: "Take a shower", group: "selfcare" },
-  { id: "pajamas", emoji: "🩳", en: "Pajamas on", group: "selfcare" },
-  { id: "shoes", emoji: "👟", en: "Shoes away", group: "selfcare" },
+  { id: "pajamas", emoji: "🩳", en: "Put on your pajamas", group: "selfcare" },
+  { id: "shoes", emoji: "👟", en: "Put your shoes away", group: "selfcare" },
   { id: "bag", emoji: "🎒", en: "Pack your bag", group: "selfcare" },
 
   // bedroom
   { id: "bed", emoji: "🛏️", en: "Make your bed", group: "bedroom" },
-  { id: "room", emoji: "🧸", en: "Tidy your room", group: "bedroom" },
+  { id: "room", emoji: "🧸", en: "Clean your room", group: "bedroom" },
   { id: "clothes", emoji: "👚", en: "Put your clothes away", group: "bedroom" },
   { id: "laundry", emoji: "🧺", en: "Fold the laundry", group: "bedroom" },
   { id: "laundrysort", emoji: "🧦", en: "Sort the laundry", group: "bedroom" },
@@ -80,7 +80,7 @@ export const JOB_CATALOG: readonly CatalogJob[] = [
   { id: "table", emoji: "🍽️", en: "Set the table", group: "kitchen" },
   { id: "cleartable", emoji: "🍴", en: "Clear the table", group: "kitchen" },
   { id: "dishes", emoji: "🫧", en: "Wash the dishes", group: "kitchen" },
-  { id: "groceries", emoji: "🛒", en: "Help with the groceries", group: "kitchen" },
+  { id: "groceries", emoji: "🛒", en: "Put the groceries away", group: "kitchen" },
   { id: "lunch", emoji: "🥪", en: "Pack your lunch", group: "kitchen" },
 
   // cleaning
@@ -88,7 +88,7 @@ export const JOB_CATALOG: readonly CatalogJob[] = [
   { id: "recycling", emoji: "♻️", en: "Take out the recycling", group: "cleaning" },
   { id: "vacuum", emoji: "🧹", en: "Vacuum the floor", group: "cleaning" },
   { id: "sweep", emoji: "🪠", en: "Sweep the floor", group: "cleaning" },
-  { id: "bathroom", emoji: "🚽", en: "Wipe the bathroom", group: "cleaning" },
+  { id: "bathroom", emoji: "🚽", en: "Clean the bathroom", group: "cleaning" },
   { id: "mirror", emoji: "🪞", en: "Clean the mirror", group: "cleaning" },
   { id: "dust", emoji: "🪶", en: "Dust the shelves", group: "cleaning" },
 
@@ -98,12 +98,18 @@ export const JOB_CATALOG: readonly CatalogJob[] = [
   { id: "catfeed", emoji: "🐈", en: "Feed the cat", group: "pets" },
   { id: "litter", emoji: "🧾", en: "Clean the litter box", group: "pets" },
   { id: "waterbowl", emoji: "🥣", en: "Fill the water bowl", group: "pets" },
-  { id: "petfeed", emoji: "🐾", en: "Feed the pet", group: "pets" },
+  // Retired from the picker 2026-09-17, kept in the table so the boards already
+  // carrying `cat.job.petfeed` still translate. "Feed the pet" sat next to "Feed the
+  // dog" and "Feed the cat" and read as a placeholder beside them; a household with a
+  // rabbit types its own words, which is the path this file already prefers. No group =
+  // not offered (see CatalogJob.group); `/api/jobs` filters by group, so it simply stops
+  // being drawn.
+  { id: "petfeed", emoji: "🐾", en: "Feed the pet" },
 
   // outdoors
   { id: "plants", emoji: "🌱", en: "Water the plants", group: "outdoors" },
   { id: "leaves", emoji: "🍂", en: "Rake the leaves", group: "outdoors" },
-  { id: "yard", emoji: "🌳", en: "Tidy the yard", group: "outdoors" },
+  { id: "yard", emoji: "🌳", en: "Clean up the yard", group: "outdoors" },
   { id: "car", emoji: "🚗", en: "Wash the car", group: "outdoors" },
   { id: "mail", emoji: "📬", en: "Get the mail", group: "outdoors" },
 
@@ -112,8 +118,8 @@ export const JOB_CATALOG: readonly CatalogJob[] = [
   { id: "read20", emoji: "📚", en: "Read for 20 minutes", group: "learning" },
   { id: "piano", emoji: "🎹", en: "Practice piano", group: "learning" },
   { id: "spelling", emoji: "🔤", en: "Practice spelling", group: "learning" },
-  { id: "mathlesson", emoji: "📐", en: "Finish a Brilliant algebra lesson", group: "learning" },
-  { id: "codinglesson", emoji: "💻", en: "Do a Brilliant coding lesson", group: "learning" },
+  { id: "mathlesson", emoji: "📐", en: "Do a math lesson", group: "learning" },
+  { id: "codinglesson", emoji: "💻", en: "Do a coding lesson", group: "learning" },
 ];
 
 /** Routine names. Separate namespace: "Morning routine" is a container, not a job. */
@@ -145,12 +151,13 @@ export const PACK_CATALOG: readonly { id: string; en: string }[] = [
   { id: "pack-ocean", en: "Ocean pack" },
   { id: "pack-party", en: "Party pack" },
   { id: "pack-animals", en: "Animal pack" },
-  // Goal-ladder themes: earned, never sold.
-  { id: "pack-dragons", en: "Dragons" },
-  { id: "pack-dragon-friends", en: "Dragon friends" },
-  { id: "pack-unicorns", en: "Unicorns" },
-  { id: "pack-unicorn-friends", en: "Unicorn friends" },
-  { id: "pack-robots", en: "Robots" },
+  // Goal-ladder themes: earned, never sold. The lineless four (2026-09-17); the five lined-era
+  // ids that were here keep their `cat.*` strings in locales/catalog.ts for the ladders that
+  // still carry them.
+  { id: "pack-ocean-theme", en: "Ocean" },
+  { id: "pack-space-theme", en: "Space" },
+  { id: "pack-dragons-theme", en: "Dragons" },
+  { id: "pack-robots-theme", en: "Robots" },
 ];
 
 // ---------- keys ----------

@@ -77,15 +77,37 @@ const SHELL = [
   "/kid/js/coach.js", "/kid/js/confetti.js", "/kid/js/eggtimer.js", "/kid/js/goal-path.js",
   "/kid/js/grow-gate.js", "/kid/js/kid-lang.js", "/kid/js/me.js", "/kid/js/polaroid.js",
   "/kid/js/practice.js", "/kid/js/scan.js", "/kid/js/sticker-maker.js",
-  "/kid/js/switch-gate.js", "/kid/js/thermo.js", "/kid/js/upkeep.js",
+  "/kid/js/thermo.js", "/kid/js/upkeep.js",
   "/js/lib/app-categories.js", "/js/lib/box-glyphs.js", "/js/lib/esc.js",
-  "/js/lib/job-picker.js", "/js/lib/local-photos.js",
-  // NO GENERATED ART IS LISTED, AND src/sw-shell.test.ts AGREES. The sixty stickers, the
-  // forty-five job icons, the five Treasure Box faces and the twelve switch-gate pictures all
-  // left the tree on 2026-09-15 (the art repass; src/sticker-catalog.ts has the story) and
-  // every renderer draws its emoji or glyph instead. When the new files land, list ALL of
-  // each set here again, in the four blocks this note replaced (git shows them): a partial
-  // list was how "Feed the dog" drew a broken-image glyph offline on 2026-09-11.
+  "/js/lib/job-picker.js", "/js/lib/local-photos.js", "/js/lib/phosphor.js",
+  // THE LINELESS ART (2026-09-17, tools/art/lineless-list.json), ALL of it, into the unstamped
+  // art cache: the 33 theme stickers and pack eggs (a ladder's set strip and prize face), the
+  // 21 hatch characters (the egg's surprise), the 15 scenes (the wallpaper a kid picked). A
+  // partial list was how "Feed the dog" drew a broken-image glyph offline on 2026-09-11;
+  // src/sw-shell.test.ts fails when a file lands in these directories without an entry.
+  "/assets/stickers/dragons-blurple.png", "/assets/stickers/dragons-coral.png", "/assets/stickers/dragons-egg.png",
+  "/assets/stickers/dragons-gold.png", "/assets/stickers/dragons-mint.png", "/assets/stickers/dragons-pink.png",
+  "/assets/stickers/dragons-sky.png", "/assets/stickers/dragons-yolk.png", "/assets/stickers/ocean-axolotl.png",
+  "/assets/stickers/ocean-crab.png", "/assets/stickers/ocean-egg.png", "/assets/stickers/ocean-fish.png",
+  "/assets/stickers/ocean-octopus.png", "/assets/stickers/ocean-penguin.png", "/assets/stickers/ocean-seahorse.png",
+  "/assets/stickers/ocean-turtle.png", "/assets/stickers/ocean-whale.png", "/assets/stickers/robots-boss.png",
+  "/assets/stickers/robots-coral.png", "/assets/stickers/robots-egg.png", "/assets/stickers/robots-mint.png",
+  "/assets/stickers/robots-pink.png", "/assets/stickers/robots-sky.png", "/assets/stickers/robots-space.png",
+  "/assets/stickers/robots-yolk.png", "/assets/stickers/space-alien.png", "/assets/stickers/space-asteroid.png",
+  "/assets/stickers/space-astro.png", "/assets/stickers/space-comet.png", "/assets/stickers/space-egg.png",
+  "/assets/stickers/space-robot.png", "/assets/stickers/space-rocket.png", "/assets/stickers/space-ufo.png",
+  "/assets/heroes/hero-axolotl.png", "/assets/heroes/hero-bee.png", "/assets/heroes/hero-bunny.png",
+  "/assets/heroes/hero-cat.png", "/assets/heroes/hero-corgi.png", "/assets/heroes/hero-duck.png",
+  "/assets/heroes/hero-frog.png", "/assets/heroes/hero-giraffe.png", "/assets/heroes/hero-hedgehog.png",
+  "/assets/heroes/hero-octopus.png", "/assets/heroes/hero-owl.png", "/assets/heroes/hero-panda.png",
+  "/assets/heroes/hero-penguin.png", "/assets/heroes/hero-pig.png", "/assets/heroes/hero-raccoon.png",
+  "/assets/heroes/hero-sloth.png", "/assets/heroes/hero-snail.png", "/assets/heroes/hero-tiger.png",
+  "/assets/heroes/hero-trex.png", "/assets/heroes/hero-turtle.png", "/assets/heroes/hero-whale.png",
+  "/assets/backgrounds/barn.jpg", "/assets/backgrounds/beach.jpg", "/assets/backgrounds/bedroom.jpg",
+  "/assets/backgrounds/castle.jpg", "/assets/backgrounds/construction.jpg", "/assets/backgrounds/forest.jpg",
+  "/assets/backgrounds/meadow.jpg", "/assets/backgrounds/ocean.jpg", "/assets/backgrounds/pirate.jpg",
+  "/assets/backgrounds/playground.jpg", "/assets/backgrounds/racetrack.jpg", "/assets/backgrounds/snow.jpg",
+  "/assets/backgrounds/space.jpg", "/assets/backgrounds/treehouse.jpg", "/assets/backgrounds/volcano.jpg",
   // vendored nq registry pieces (offline tablet: iqons + fonts + icons local)
   "/vendor/nq/nimiq/legacy/nimiq-style.min.css", "/vendor/nq/nq-bundle.css",
   // The Duolingo path a goal opens as (goal-path.js). Under kid/vendor, so the shell test's

@@ -1,6 +1,7 @@
 // Kid customization prefs (cosmetic — kid-driven, no auth) + the asset catalog.
 
 import { Hono } from "hono";
+import { readFileSync } from "node:fs";
 import * as repo from "../repo";
 import * as media from "../repo-media";
 import * as stickersRepo from "../repo-stickers";
@@ -13,6 +14,20 @@ export const prefsRoutes = new Hono();
  *  a scene here that the app cannot draw is a blank screen, and one there that is missing
  *  here is refused with `background_not_owned` the moment a kid taps it. */
 const BUILTIN_BACKGROUNDS = ["meadow", "ocean", "space", "city"];
+/** The FREE scenes of the bundled catalogue (public/assets/manifest.json `backgrounds`, eleven
+ *  lineless scenes since 2026-09-17). Read once: the manifest is authored by the art pipeline
+ *  and only changes with a deploy. A scene a theme EARNS is not in it; `ownsBackground` is the
+ *  guard for those. */
+let freeCatalog: Set<string> | null = null;
+function freeBackground(id: string): boolean {
+  if (!freeCatalog) {
+    try {
+      const m = JSON.parse(readFileSync("public/assets/manifest.json", "utf8")) as { backgrounds?: { id: string }[] };
+      freeCatalog = new Set((m.backgrounds ?? []).map((b) => b.id));
+    } catch { freeCatalog = new Set(); }
+  }
+  return BUILTIN_BACKGROUNDS.includes(id) || freeCatalog.has(id);
+}
 
 /** prefs + everything EARNED that the kid can equip: timer styles (free egg + purchased Box
  *  styles) and the wallpapers finishing a sticker theme handed over.
@@ -62,7 +77,7 @@ prefsRoutes.put("/children/:id/prefs", async (c) => {
   for (const id of [body.backgroundId, body.timerBackgroundId]) {
     if (id === undefined || id === null) continue;
     const bg = String(id);
-    if (BUILTIN_BACKGROUNDS.includes(bg)) continue;
+    if (freeBackground(bg)) continue;
     if (!stickersRepo.ownsBackground(child.id, bg)) {
       return c.json({ error: "background_not_owned" }, 403);
     }

@@ -1,6 +1,6 @@
 // Keep the testnet demo's hot wallet funded. Cron runs this; see src/topup.ts for the policy.
 //
-//   set -a; . ~/secrets/hatch-testnet.env; set +a
+//   set -a; . ~/gdkc/secrets/hatch-testnet.env; set +a
 //   bun run src/scripts/topup-hot-wallet.ts --dry-run   # decide, tap nothing
 //   bun run src/scripts/topup-hot-wallet.ts             # decide and tap
 //

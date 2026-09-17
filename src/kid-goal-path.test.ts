@@ -50,7 +50,7 @@ test("the active rung wears the tunnel and the bubble, waiting wears the track o
 
 test("rungs come before the prize in DOM order: column-reverse then climbs to the boss", () => {
   const rungs = PATH_JS.indexOf("rungs.map((r, i) => rungNode(r, i + 1, progress))");
-  const prize = PATH_JS.indexOf("boss ? prizeNode(boss)");
+  const prize = PATH_JS.indexOf("boss ? prizeNode(boss,");
   expect(rungs).toBeGreaterThan(-1);
   expect(prize).toBeGreaterThan(rungs);
   // and the path is CLIMBED: nothing here asks for the lesson order

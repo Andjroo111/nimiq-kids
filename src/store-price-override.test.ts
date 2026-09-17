@@ -27,8 +27,8 @@ const app = new Hono().route("/api", storeRoutes).route("/api", stickersRoutes);
 let famA: repo.Family, famB: repo.Family, kidA: repo.Child, kidB: repo.Child;
 let tokenA: string, tokenB: string;
 
-const SPACE = "item-pack-space";
-const CATALOGUE = STICKER_PACKS.find((p) => p.id === "pack-space")!.priceLuna;
+const SPACE = "item-pack-space-theme";
+const CATALOGUE = STICKER_PACKS.find((p) => p.id === "pack-space-theme")!.priceLuna;
 
 const auth = (t: string) => ({ Authorization: `Bearer ${t}`, "Content-Type": "application/json" });
 const send = (t: string, method: string, path: string, body: Record<string, unknown> = {}) =>
@@ -100,7 +100,7 @@ test("a household priced OUT of a pack cannot buy it with the catalogue's price"
   const res = await send(tokenA, "POST", `/api/kids/${kidA.id}/buy`, { itemId: SPACE });
   expect(res.status).toBe(400);
   expect((await res.json()).error).toBe("insufficient_funds");
-  expect(stickersRepo.packOwned(kidA.id, "pack-space")).toBe(false);
+  expect(stickersRepo.packOwned(kidA.id, "pack-space-theme")).toBe(false);
   expect(wrepo.spendableFromLedger(kidA.id)).toBe(CATALOGUE);
 });
 
@@ -156,7 +156,7 @@ test("the sticker book serves no price at all, so it cannot disagree with the ti
   // `store_items`. Once a family can set their own, the copy is simply wrong.
   await send(tokenA, "PATCH", `/api/parent/store/items/${SPACE}`, { priceNim: 40 });
   const inv = await (await get(tokenA, `/api/kids/${kidA.id}/stickers`)).json();
-  const pack = inv.packs.find((p: { id: string }) => p.id === "pack-space");
+  const pack = inv.packs.find((p: { id: string }) => p.id === "pack-space-theme");
   expect(pack.title).toBeTruthy();
   expect(pack.priceLuna).toBeUndefined();
 });

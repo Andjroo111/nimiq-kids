@@ -21,7 +21,7 @@
 import { rowTitle, state, t, views, call, render, toast, openSheet, closeSheet, go, $ } from "./core.js";
 import { icon, duotone, boxGlyph, boxMinutes, GLYPHS, loadGlyphs } from "./icons.js";
 import { esc, fmtNim, LUNA } from "./fmt.js";
-import { packFan } from "/js/lib/box-glyphs.js";
+import { packFan, CATALOG } from "/js/lib/box-glyphs.js";
 import { canManageBoard } from "./grownups.js";
 
 const NIM_LABEL = (luna) => `${fmtNim(luna)} NIM`;
@@ -201,10 +201,21 @@ views.store = (el) => {
 
 // ---- the glyph picker (one palette, shared with the kid app) ----
 
+// 148 Phosphor glyphs in nine categories (public/js/lib/phosphor.js, from
+// tools/icons/phosphor-list.json). Andjroo, 2026-09-15: "the parents are gonna need basically to
+// be able to pick an icon for their coupons or for other stuff that they wanna give to the kid."
+// The selected one always shows, even an old name (dinner, gamepad) the catalogue no longer
+// lists: it rides at the top as its own row so an edit never loses the picture a shelf has.
 function glyphPicker(selected) {
-  return `<div class="glyph-grid">${GLYPHS.map((g) => `
+  const listed = GLYPHS.includes(selected);
+  const grid = (names) => `<div class="glyph-grid">${names.map((g) => `
     <button type="button" class="glyph-opt ${g === selected ? "on" : ""}" data-glyph="${esc(g)}"
       aria-label="${esc(g)}" aria-pressed="${g === selected}">${boxGlyph(g, 26)}</button>`).join("")}</div>`;
+  return `<div class="glyph-cats">
+    ${selected && !listed ? grid([selected]) : ""}
+    ${Object.entries(CATALOG).map(([cat, names]) => `
+      <div class="glyph-cat"><div class="glyph-cat-hd">${esc(cat)}</div>${grid(names)}</div>`).join("")}
+  </div>`;
 }
 /** Wire the picker: one selected at a time, the value read back off the DOM. */
 function wireGlyphPicker() {

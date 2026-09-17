@@ -12,7 +12,7 @@
 // Source the instance's env first, so DB_PATH, HATCH_MASTER_SEED and NIMIQ_RPC_URL are the
 // ones that actually own these accounts:
 //
-//   set -a; . ~/secrets/hatch-testnet.env; set +a
+//   set -a; . ~/gdkc/secrets/hatch-testnet.env; set +a
 //
 // --include-active is the dangerous flag and is deliberately awkward. Without it this only
 // touches households past HATCH_DEMO_TTL_MS, which are abandoned by definition. WITH it, every

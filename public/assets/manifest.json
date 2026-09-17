@@ -1,7 +1,169 @@
 {
   "style": "pastel-navy",
-  "animals": [],
-  "backgrounds": [],
+  "animals": [
+    {
+      "id": "frog",
+      "label": "Frog",
+      "url": "/assets/heroes/hero-frog.png"
+    },
+    {
+      "id": "raccoon",
+      "label": "Raccoon",
+      "url": "/assets/heroes/hero-raccoon.png"
+    },
+    {
+      "id": "octopus",
+      "label": "Octopus",
+      "url": "/assets/heroes/hero-octopus.png"
+    },
+    {
+      "id": "bunny",
+      "label": "Bunny",
+      "url": "/assets/heroes/hero-bunny.png"
+    },
+    {
+      "id": "whale",
+      "label": "Whale",
+      "url": "/assets/heroes/hero-whale.png"
+    },
+    {
+      "id": "turtle",
+      "label": "Turtle",
+      "url": "/assets/heroes/hero-turtle.png"
+    },
+    {
+      "id": "duck",
+      "label": "Duck",
+      "url": "/assets/heroes/hero-duck.png"
+    },
+    {
+      "id": "tiger",
+      "label": "Tiger",
+      "url": "/assets/heroes/hero-tiger.png"
+    },
+    {
+      "id": "sloth",
+      "label": "Sloth",
+      "url": "/assets/heroes/hero-sloth.png"
+    },
+    {
+      "id": "axolotl",
+      "label": "Axolotl",
+      "url": "/assets/heroes/hero-axolotl.png"
+    },
+    {
+      "id": "snail",
+      "label": "Snail",
+      "url": "/assets/heroes/hero-snail.png"
+    },
+    {
+      "id": "owl",
+      "label": "Owl",
+      "url": "/assets/heroes/hero-owl.png"
+    },
+    {
+      "id": "corgi",
+      "label": "Corgi",
+      "url": "/assets/heroes/hero-corgi.png"
+    },
+    {
+      "id": "cat",
+      "label": "Cat",
+      "url": "/assets/heroes/hero-cat.png"
+    },
+    {
+      "id": "bee",
+      "label": "Bee",
+      "url": "/assets/heroes/hero-bee.png"
+    },
+    {
+      "id": "trex",
+      "label": "T-Rex",
+      "url": "/assets/heroes/hero-trex.png"
+    },
+    {
+      "id": "pig",
+      "label": "Pig",
+      "url": "/assets/heroes/hero-pig.png"
+    },
+    {
+      "id": "penguin",
+      "label": "Penguin",
+      "url": "/assets/heroes/hero-penguin.png"
+    },
+    {
+      "id": "panda",
+      "label": "Panda",
+      "url": "/assets/heroes/hero-panda.png"
+    },
+    {
+      "id": "giraffe",
+      "label": "Giraffe",
+      "url": "/assets/heroes/hero-giraffe.png"
+    },
+    {
+      "id": "hedgehog",
+      "label": "Hedgehog",
+      "url": "/assets/heroes/hero-hedgehog.png"
+    }
+  ],
+  "backgrounds": [
+    {
+      "id": "barn",
+      "label": "Farm",
+      "url": "/assets/backgrounds/barn.jpg"
+    },
+    {
+      "id": "bedroom",
+      "label": "Bedroom",
+      "url": "/assets/backgrounds/bedroom.jpg"
+    },
+    {
+      "id": "beach",
+      "label": "Beach",
+      "url": "/assets/backgrounds/beach.jpg"
+    },
+    {
+      "id": "snow",
+      "label": "Snow",
+      "url": "/assets/backgrounds/snow.jpg"
+    },
+    {
+      "id": "meadow",
+      "label": "Meadow",
+      "url": "/assets/backgrounds/meadow.jpg"
+    },
+    {
+      "id": "volcano",
+      "label": "Volcano",
+      "url": "/assets/backgrounds/volcano.jpg"
+    },
+    {
+      "id": "treehouse",
+      "label": "Treehouse",
+      "url": "/assets/backgrounds/treehouse.jpg"
+    },
+    {
+      "id": "pirate",
+      "label": "Pirate ship",
+      "url": "/assets/backgrounds/pirate.jpg"
+    },
+    {
+      "id": "racetrack",
+      "label": "Race track",
+      "url": "/assets/backgrounds/racetrack.jpg"
+    },
+    {
+      "id": "castle",
+      "label": "Castle",
+      "url": "/assets/backgrounds/castle.jpg"
+    },
+    {
+      "id": "playground",
+      "label": "Playground",
+      "url": "/assets/backgrounds/playground.jpg"
+    }
+  ],
   "music": [],
   "timerSounds": [],
   "alarms": []

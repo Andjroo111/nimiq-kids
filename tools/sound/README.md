@@ -57,7 +57,7 @@ Shout-outs have **no slot yet**; that's new code (see the handoff doc).
 | **Deepgram** `aura-2` | `DEEPGRAM_API_KEY` ✅ | Accents but voice-agent stock, no emotion steering. Unjudged. |
 | **ElevenLabs** | ⚠️ **expired** | The intended fix. Only library with child + character voices. |
 
-The ElevenLabs key in `~/apps/competitor-intel/.env` returns `401 invalid_api_key`
+The ElevenLabs key in `~/gdkc/projects/competitor-intel/.env` returns `401 invalid_api_key`
 (file dated Feb 21). Use the laptop's key.
 
 **Suno licensing, non-obvious and expensive to get wrong:** rights attach only to songs generated

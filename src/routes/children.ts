@@ -2,7 +2,6 @@ import { Hono } from "hono";
 import * as repo from "../repo";
 import { familyForSubject, PAIRING_REQUIRED, requestFamily } from "./families";
 import { INVALID_EMOJI, readEmoji } from "../emoji-field";
-import { gatedChildIds } from "../kid-switch";
 import { refuseBoardWrite } from "./members";
 
 export const children = new Hono();
@@ -10,13 +9,7 @@ export const children = new Hono();
 children.get("/children", async (c) => {
   const fam = await requestFamily(c);
   if (!fam) return c.json(PAIRING_REQUIRED, 401);
-  // `hasSecret` is the ONLY thing about a kid's switch secret that crosses the wire (#123) —
-  // the roster has to know which faces cost something to tap. The hash lives in its own
-  // table precisely so a route like this one cannot spread it by returning the row.
-  const gated = new Set(gatedChildIds(fam.id));
-  return c.json({
-    children: repo.listChildren(fam.id).map((ch) => ({ ...ch, hasSecret: gated.has(ch.id) })),
-  });
+  return c.json({ children: repo.listChildren(fam.id) });
 });
 
 children.post("/children", async (c) => {

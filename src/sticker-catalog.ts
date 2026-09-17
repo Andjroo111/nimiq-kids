@@ -3,23 +3,21 @@
 // edit here rather than three INSERT blocks in schema.sql that only ever apply
 // to a fresh database.
 //
-// ART. NONE SHIPS RIGHT NOW. Andjroo, 2026-09-15: the backgrounds, the stickers, the
-// characters and the chore icons are all being redrawn, so every generated file came out of
-// the tree in one pass (`public/assets/{stickers,heroes,backgrounds,secret,store,icons}`,
-// the timer's scenes and hero cut-outs). What stayed is the MECHANICS: the packs, the goal
-// ladders, the wallpaper unlock, the Treasure Box, the switch gate and the egg. Each one
-// already had a no-art path (a sticker draws its `emoji`, a job card its emoji, a wallpaper
-// falls back to the built-in gradient, the egg hatches with nothing above the shells), and
-// that path is what a kid sees until the new set lands.
+// ART. THE LINELESS SET, since 2026-09-17. Andjroo and a Midjourney session (brand-voice-research
+// on the Mini, branch mj-hunt-0915, `ART-VOICE.md`: pebbles, no ink) drew four THEME packs, each
+// members + one boss + one pack egg, plus 21 egg-hatch characters and 15 scenes. What ships from
+// it is listed in tools/art/lineless-list.json and cut by tools/art/cut-lineless.py into
+// /assets/stickers/<id>.png (512 square, ink inside the inscribed circle, see
+// tools/recut-stickers.py for why), /assets/heroes/, /assets/backgrounds/ and the timer's copies.
 //
-// To bring art back: drop the files in, flip `STICKER_ART_SHIPPED`, restore `backgroundIds`
-// on the themes below, and the boot upsert in db.ts rewrites every row on the next start.
-// The tests that gate art on disk are `skipIf`'d on that flag and come back with it.
+// The packs are goal-ladder THEMES (Andjroo, 2026-09-17: "goal-ladder themes"): members are
+// earned a rung at a time, the boss lands when the set is complete, and the PACK EGG is the
+// ladder's prize face until the boss is owned (`eggId` below, `themeProgress` hands it to the
+// path). Ocean, space, forest and building-site wallpapers are earned by finishing the matching
+// theme; the other eleven are free (`backgroundIds`).
 //
-// The four sets before this one, for the record: hand-authored SVG (a triangle horn was the
-// unicorn), emoji ("too basic"), generated art on a coloured plate (read as imported from
-// another app), and the Higgsfield set that shared one style sentence with the 21 egg-timer
-// heroes. That fourth set is what was pulled; its recipe lives in the kids-sticker-art skill.
+// The 2026-09-15 strip (every generated file out, mechanics on their no-art faces) is what this
+// replaced; that commit is the recipe for stripping again if the art is ever redrawn.
 //
 // PRICE. Whole NIM, like every reward (see ../rates). The old prices were 2-3
 // NIM, which was about a tenth of a cent once rewards became dollar-sized — a
@@ -31,9 +29,10 @@ export interface PackDef {
   /** Roughly what the pack costs in dollars at the rate it was priced at,
    *  for the record. NIM is what is charged; the dollar value floats. */
   aboutUsd: number;
-  /** A GOAL-LADDER THEME: earned by climbing, never on the shelf at any price.
-   *  `priceLuna` stays 0 on these and `packStoreItems()` skips them by that alone,
-   *  but the flag is what says it is deliberate rather than an unpriced oversight. */
+  /** A GOAL-LADDER THEME: collected a rung at a time by a ladder set to it. Since 2026-09-17
+   *  a theme is ALSO for sale (Andjroo: "buy the pack, or earn it rung by rung"): the shelf
+   *  sells its MEMBERS for `priceLuna`, and the boss only ever comes from finishing the set
+   *  on a ladder. A theme with `priceLuna: 0` is ladder-only. */
   theme?: boolean;
   /** The app WALLPAPERS finishing this theme unlocks, each `/assets/backgrounds/<id>.jpg`.
    *
@@ -50,6 +49,9 @@ export interface PackDef {
    *  A pack with no entry here unlocks nothing, so a theme can still ship its stickers before
    *  its wallpaper is drawn. */
   backgroundIds?: string[];
+  /** The PACK EGG (2026-09-17): the face of a theme's prize node before the boss is owned, at
+   *  `/assets/stickers/<eggId>.png`. Not a sticker row: nothing collects it, nothing places it. */
+  eggId?: string;
 }
 export interface StickerDef {
   id: string; packId: string; label: string;
@@ -61,30 +63,36 @@ export interface StickerDef {
   boss?: boolean;
 }
 
-/** Whether generated sticker art is in the tree. False since 2026-09-15 (see ART above);
+/** Whether generated sticker art is in the tree. True since 2026-09-17 (see ART above);
  *  the on-disk gates in sticker-art.test.ts, stickers.test.ts and goal-themes.test.ts read it. */
-export const STICKER_ART_SHIPPED = false;
+export const STICKER_ART_SHIPPED = true;
 
 /** Generated art lives under /assets/stickers/<id>.png, keyed off the sticker id minus its
- *  `stk-` prefix, so adding a sticker means dropping in one file. Null while none ships: the
- *  row's `asset_url` goes null at boot and `stickerFace` draws the emoji instead. */
+ *  `stk-` prefix. Only the THEME stickers have a file (the lineless packs); the five emoji packs
+ *  for sale keep drawing their emoji, so their rows carry a null `asset_url` and `stickerFace`
+ *  falls through. Null for everything while the flag is off. */
 export const stickerAssetUrl = (id: string): string | null =>
-  STICKER_ART_SHIPPED ? `/assets/stickers/${id.replace(/^stk-/, "")}.png` : null;
+  STICKER_ART_SHIPPED && hasStickerArt(id) ? `/assets/stickers/${id.replace(/^stk-/, "")}.png` : null;
+const hasStickerArt = (id: string): boolean => {
+  const s = STICKERS.find((x) => x.id === id);
+  return !!s && STICKER_PACKS.some((p) => p.id === s.packId && p.theme);
+};
 
 const NIM = 100_000;
 
 export const STICKER_PACKS: PackDef[] = [
   { id: "pack-starter", title: "Starter stickers", priceLuna: 0, sort: 0, aboutUsd: 0 },
-  { id: "pack-space", title: "Space pack", priceLuna: 2_000 * NIM, sort: 1, aboutUsd: 0.93 },
-  { id: "pack-ocean", title: "Ocean pack", priceLuna: 2_000 * NIM, sort: 2, aboutUsd: 0.93 },
-  { id: "pack-party", title: "Party pack", priceLuna: 3_000 * NIM, sort: 3, aboutUsd: 1.39 },
-  { id: "pack-animals", title: "Animal pack", priceLuna: 3_000 * NIM, sort: 4, aboutUsd: 1.39 },
+  // The five emoji packs for sale (space, ocean, party, animals) left the shelf 2026-09-17
+  // (Andjroo: "the sticker packs use an old icon ... these should be the same ocean space
+  // dragons and robot packs"). Their rows stay in `sticker_packs` inactive and their stickers
+  // keep their `pack_id`-less rows, so a kid who bought one keeps every sticker they placed.
 
   // ---- goal-ladder themes (Andjroo, 2026-08-04) ----
-  // Five to collect plus a boss, and NOT FOR SALE at any price. A kid gets one sticker per
-  // rung climbed, across as many ladders as it takes; finishing the five lands the boss and
-  // releases the whole set into the picker. `priceLuna: 0` and `theme: true` together are
-  // what keep them off the Treasure Box shelf.
+  // Five to collect plus a boss. A kid gets one sticker per rung climbed, across as many
+  // ladders as it takes; finishing the five lands the boss and releases the whole set into
+  // the picker. Since 2026-09-17 the SAME four sets are the Treasure Box's sticker shelf
+  // (Andjroo: "buy the pack, or earn it rung by rung"): `priceLuna` buys the five members at
+  // once, and the boss is still only ever earned by finishing the set on a ladder.
   // Two KINDS of theme, and the difference is deliberate (Andjroo, 2026-08-04: "we should have
   // the two styles"). Dragons is a GROWTH pack: one dragon growing up, and the order it is
   // collected in is the story. Dragon friends is a COMMUNITY pack: six different dragons of one
@@ -94,31 +102,17 @@ export const STICKER_PACKS: PackDef[] = [
   // keeping: `family` in this codebase already means the HOUSEHOLD (`families`), and separately
   // the house art family every sticker is drawn into. A third meaning would have made the word
   // ungreppable.
-  // The wallpapers each theme used to unlock (dragons, dragon-valley, unicorns, unicorn-glade,
-  // robot-city + robot-scrapyard + robot-hangar) left with the art on 2026-09-15. A theme with
-  // no `backgroundIds` unlocks nothing, a state this file always allowed.
-  { id: "pack-dragons", title: "Dragons", priceLuna: 0, sort: 10, aboutUsd: 0, theme: true },
-  { id: "pack-dragon-friends", title: "Dragon friends", priceLuna: 0, sort: 11, aboutUsd: 0,
-    theme: true },
-  { id: "pack-unicorns", title: "Unicorns", priceLuna: 0, sort: 12, aboutUsd: 0, theme: true },
-  { id: "pack-unicorn-friends", title: "Unicorn friends", priceLuna: 0, sort: 13, aboutUsd: 0,
-    theme: true },
-  // ⚠️ ROBOTS IS A COMMUNITY PACK, NOT A GROWTH ONE. It was written here as a growth ladder
-  // (bolt, rover, jet, digger, guard, titan as AGES) while it was still undrawn. Andjroo looked
-  // at the first four drawings on 2026-08-05 and read them as a community, and chose COMMUNITY
-  // when asked. Nobody here is older than anyone else: six machines of one world.
-  //
-  // The names survived the change of kind, and so did the rule above them -- Andjroo asked for
-  // Transformers, that is Hasbro's, and this app ships publicly, so these are ORIGINAL robots.
-  // The seed was regenerated once for exactly that reason: the build he picked came back in
-  // red-and-white with helmet fins, a grille and a blue visor, which is Optimus Prime's face.
-  // The build language stayed; the face became a brushed steel faceplate carrying the same
-  // navy dot eyes, smile and pink cheeks every other sticker in the app has.
-  //
-  // A community pack varies by MATERIAL, never by hue. Here the material is the MACHINE each
-  // one is built out of -- the exact analogue of a unicorn whose mane is made of water -- so
-  // each member's colour means a vehicle and that vehicle's real parts are bolted onto it.
-  { id: "pack-robots", title: "Robots", priceLuna: 0, sort: 14, aboutUsd: 0, theme: true },
+  // THE FOUR THEMES (2026-09-17). Ids carry `-theme` because `pack-ocean` and `pack-space` are
+  // the purchasable emoji packs above and `sticker_packs.id` is a primary key the old rows keep.
+  // Each unlocks the scene that matches it; robots get the building site.
+  { id: "pack-ocean-theme", title: "Ocean", priceLuna: 2_000 * NIM, sort: 10, aboutUsd: 0.93, theme: true,
+    backgroundIds: ["ocean"], eggId: "ocean-egg" },
+  { id: "pack-space-theme", title: "Space", priceLuna: 2_000 * NIM, sort: 11, aboutUsd: 0.93, theme: true,
+    backgroundIds: ["space"], eggId: "space-egg" },
+  { id: "pack-dragons-theme", title: "Dragons", priceLuna: 3_000 * NIM, sort: 12, aboutUsd: 1.39, theme: true,
+    backgroundIds: ["forest"], eggId: "dragons-egg" },
+  { id: "pack-robots-theme", title: "Robots", priceLuna: 3_000 * NIM, sort: 13, aboutUsd: 1.39, theme: true,
+    backgroundIds: ["construction"], eggId: "robots-egg" },
 ];
 
 /** Every sticker is chosen to still READ at 24px, the size it appears on a
@@ -137,29 +131,9 @@ export const STICKERS: StickerDef[] = [
   { id: "stk-flower", packId: "pack-starter", label: "Flower", emoji: "🌸" },
   { id: "stk-trophy", packId: "pack-starter", label: "Trophy", emoji: "🏆" },
 
-  { id: "stk-rocket", packId: "pack-space", label: "Rocket", emoji: "🚀" },
-  { id: "stk-planet", packId: "pack-space", label: "Planet", emoji: "🪐" },
-  { id: "stk-moon", packId: "pack-space", label: "Moon", emoji: "🌙" },
-  { id: "stk-alien", packId: "pack-space", label: "Alien", emoji: "👽" },
-  { id: "stk-star2", packId: "pack-space", label: "Shooting star", emoji: "🌟" },
-
-  { id: "stk-fish", packId: "pack-ocean", label: "Fish", emoji: "🐠" },
-  { id: "stk-octopus", packId: "pack-ocean", label: "Octopus", emoji: "🐙" },
-  { id: "stk-shell", packId: "pack-ocean", label: "Shell", emoji: "🐚" },
-  { id: "stk-crab", packId: "pack-ocean", label: "Crab", emoji: "🦀" },
-  { id: "stk-whale", packId: "pack-ocean", label: "Whale", emoji: "🐳" },
-
-  { id: "stk-balloon", packId: "pack-party", label: "Balloon", emoji: "🎈" },
-  { id: "stk-cupcake", packId: "pack-party", label: "Cupcake", emoji: "🧁" },
-  { id: "stk-gift", packId: "pack-party", label: "Gift", emoji: "🎁" },
-  { id: "stk-partyhat", packId: "pack-party", label: "Party face", emoji: "🥳" },
-  { id: "stk-medal", packId: "pack-party", label: "Medal", emoji: "🏅" },
-
-  { id: "stk-cat", packId: "pack-animals", label: "Cat", emoji: "🐱" },
-  { id: "stk-dog", packId: "pack-animals", label: "Dog", emoji: "🐶" },
-  { id: "stk-bunny", packId: "pack-animals", label: "Bunny", emoji: "🐰" },
-  { id: "stk-bear", packId: "pack-animals", label: "Bear", emoji: "🐻" },
-  { id: "stk-fox", packId: "pack-animals", label: "Fox", emoji: "🦊" },
+  // The twenty emoji stickers of the four emoji packs were here until 2026-09-17. Their rows
+  // stay in `stickers` with `pack_id` NULL (db.ts), which is exactly what keeps them usable by
+  // the kids who bought them and off every shelf for everyone else.
 
   // ---- Dragons (goal-ladder theme) ----
   // ONE DRAGON GROWING UP, in order, and the order is the story: an egg, a hatchling, a young
@@ -169,91 +143,42 @@ export const STICKERS: StickerDef[] = [
   //
   // Every stage adds a NOUN the eye can see -- horns, then scales, then fire -- and holds
   // everything else. A colour change alone is not a stage. See the `kids-sticker-art` skill.
-  { id: "stk-dragon-egg", packId: "pack-dragons", label: "Dragon egg", emoji: "🥚" },
-  { id: "stk-dragon-baby", packId: "pack-dragons", label: "Baby dragon", emoji: "🐣" },
-  { id: "stk-dragon-young", packId: "pack-dragons", label: "Young dragon", emoji: "🦎" },
-  { id: "stk-dragon-horns", packId: "pack-dragons", label: "Horned dragon", emoji: "🐲" },
-  { id: "stk-dragon-scales", packId: "pack-dragons", label: "Scaled dragon", emoji: "🦎" },
-  { id: "stk-dragon-great", packId: "pack-dragons", label: "The great dragon", emoji: "🐉", boss: true },
-
-  // ---- Dragon friends (goal-ladder theme, COMMUNITY) ----
-  // Six dragons of one world rather than one dragon six times: same species, same body, same
-  // face, same hand -- each with its own colour and its own single feature. The order means
-  // nothing here, which is the whole difference from the pack above.
-  { id: "stk-df-ember", packId: "pack-dragon-friends", label: "Ember", emoji: "🔴" },
-  { id: "stk-df-sunny", packId: "pack-dragon-friends", label: "Sunny", emoji: "🟡" },
-  { id: "stk-df-splash", packId: "pack-dragon-friends", label: "Splash", emoji: "🔵" },
-  { id: "stk-df-twist", packId: "pack-dragon-friends", label: "Twist", emoji: "🟣" },
-  { id: "stk-df-fluff", packId: "pack-dragon-friends", label: "Fluff", emoji: "🩷" },
-  { id: "stk-df-pearl", packId: "pack-dragon-friends", label: "Pearl", emoji: "🤍", boss: true },
-
-  // ---- Unicorns (goal-ladder theme, GROWTH) ----
-  // THE UNICORN THE APP ALREADY HAS, growing up. Every stage is anchored on the seed
-  // `art-hero/regen/unicorn.png` -- which is the very drawing that ships above as `stk-unicorn`
-  // and as an egg-timer hero.
-  //
-  // ⚠️ That is not a shortcut, it is the fix. The first attempt at this pack was drawn off
-  // `anim-unicorn.png`, a DIFFERENT and older unicorn, and came back as six unrelated creatures
-  // -- Andjroo, 2026-08-04: "we should have one single unicorn that's already... and she's not
-  // even in this lineup." Anchoring on the shipped one also answers the never-draw-a-creature-
-  // twice rule that `stk-unicorn` would otherwise break: a kid is not meeting a second unicorn,
-  // she is meeting the one she has, at six ages.
-  //
-  // The arc adds one NOUN the eye can see per stage and never a hue: no horn at all, then a
-  // blunt horn nub, then the spiral horn and full mane, then star markings and gold hooves,
-  // then the wings. The wings are the one dramatic thing and they arrive on the boss alone.
-  { id: "stk-unicorn-egg", packId: "pack-unicorns", label: "Unicorn egg", emoji: "🥚" },
-  { id: "stk-unicorn-foal", packId: "pack-unicorns", label: "Unicorn foal", emoji: "🐴" },
-  { id: "stk-unicorn-horn", packId: "pack-unicorns", label: "First horn", emoji: "🦄" },
-  { id: "stk-unicorn-mane", packId: "pack-unicorns", label: "Rainbow mane", emoji: "🌈" },
-  { id: "stk-unicorn-stars", packId: "pack-unicorns", label: "Starlit unicorn", emoji: "✨" },
-  { id: "stk-unicorn-great", packId: "pack-unicorns", label: "The great unicorn", emoji: "🦄", boss: true },
-
-  // ---- Unicorn friends (goal-ladder theme, COMMUNITY) ----
-  // Six unicorns of one world, no order. Same seed as the growth pack above, so the two
-  // collections are the same world -- the way dragons and dragon-friends are.
-  //
-  // ⚠️ EACH ONE'S COLOUR MEANS AN ELEMENT, AND HER MANE IS MADE OF IT. Colour alone was not
-  // enough: a first pass gave all six the same flowing rainbow-shaped mane in six pastels and
-  // Andjroo's note was "they are a little bit too similar... we need them to kind of be unique.
-  // So green for grass, blue for water, white for cloud." Recolouring one drawing reads as one
-  // drawing recoloured. The MATERIAL of the mane is what the eye catches in a 34px slot.
-  //
-  // NO WINGS anywhere in this pack -- "we are working on unicorns, not Pegasus, we will do that
-  // in a different version." The winged one is the growth pack's boss and hers alone.
-  //
-  // The boss is the pure white one. She carried a gold rim and gold hooves to mark her as the
-  // prize and they came off ("I wouldn't have the gold on the white cloud boss"); the gold
-  // spiral horn stays only because all six share it. Her rarity is the white plus the gold well
-  // the board already draws behind `.bd-set-boss`.
-  { id: "stk-uf-petal", packId: "pack-unicorn-friends", label: "Petal", emoji: "🌸" },
-  { id: "stk-uf-wave", packId: "pack-unicorn-friends", label: "Wave", emoji: "💧" },
-  { id: "stk-uf-meadow", packId: "pack-unicorn-friends", label: "Meadow", emoji: "🌿" },
-  { id: "stk-uf-blaze", packId: "pack-unicorn-friends", label: "Blaze", emoji: "🔥" },
-  { id: "stk-uf-twilight", packId: "pack-unicorn-friends", label: "Twilight", emoji: "🌙" },
-  { id: "stk-uf-cloud", packId: "pack-unicorn-friends", label: "Cloud", emoji: "☁️", boss: true },
-
-  // Robots. Bolt IS the seed the other five were drawn from, the way stage 3 is the seed in a
-  // growth pack, which is why the fire-engine red one has the plain grille chest and everyone
-  // else replaced it with their own machine's hardware.
-  //
-  // The boss is Titan, and in a world where every member is painted steel the rare material is
-  // a MIRROR FINISH. No gold: that came off the cloud unicorn boss for the same reason, and the
-  // board already draws a gold well behind `.bd-set-boss`.
-  { id: "stk-bot-bolt", packId: "pack-robots", label: "Bolt", emoji: "🚒" },
-  { id: "stk-bot-rover", packId: "pack-robots", label: "Rover", emoji: "🚜" },
-  { id: "stk-bot-jet", packId: "pack-robots", label: "Jet", emoji: "✈️" },
-  { id: "stk-bot-digger", packId: "pack-robots", label: "Digger", emoji: "🏗️" },
-  { id: "stk-bot-guard", packId: "pack-robots", label: "Guard", emoji: "🛡️" },
-  { id: "stk-bot-titan", packId: "pack-robots", label: "Titan", emoji: "🤖", boss: true },
+  { id: "stk-ocean-crab", packId: "pack-ocean-theme", label: "Crab", emoji: "✨" },
+  { id: "stk-ocean-octopus", packId: "pack-ocean-theme", label: "Octopus", emoji: "✨" },
+  { id: "stk-ocean-whale", packId: "pack-ocean-theme", label: "Whale", emoji: "✨" },
+  { id: "stk-ocean-turtle", packId: "pack-ocean-theme", label: "Turtle", emoji: "✨" },
+  { id: "stk-ocean-axolotl", packId: "pack-ocean-theme", label: "Axolotl", emoji: "✨" },
+  { id: "stk-ocean-penguin", packId: "pack-ocean-theme", label: "Penguin", emoji: "✨" },
+  { id: "stk-ocean-fish", packId: "pack-ocean-theme", label: "Fish", emoji: "✨" },
+  { id: "stk-ocean-seahorse", packId: "pack-ocean-theme", label: "The pearl seahorse", emoji: "✨", boss: true },
+  { id: "stk-space-rocket", packId: "pack-space-theme", label: "Rocket", emoji: "✨" },
+  { id: "stk-space-alien", packId: "pack-space-theme", label: "Alien", emoji: "✨" },
+  { id: "stk-space-robot", packId: "pack-space-theme", label: "Robot", emoji: "✨" },
+  { id: "stk-space-comet", packId: "pack-space-theme", label: "Comet", emoji: "✨" },
+  { id: "stk-space-ufo", packId: "pack-space-theme", label: "UFO", emoji: "✨" },
+  { id: "stk-space-asteroid", packId: "pack-space-theme", label: "Asteroid", emoji: "✨" },
+  { id: "stk-space-astro", packId: "pack-space-theme", label: "The astronaut", emoji: "✨", boss: true },
+  { id: "stk-dragons-sky", packId: "pack-dragons-theme", label: "Sky dragon", emoji: "✨" },
+  { id: "stk-dragons-mint", packId: "pack-dragons-theme", label: "Mint dragon", emoji: "✨" },
+  { id: "stk-dragons-blurple", packId: "pack-dragons-theme", label: "Blurple dragon", emoji: "✨" },
+  { id: "stk-dragons-yolk", packId: "pack-dragons-theme", label: "Yolk dragon", emoji: "✨" },
+  { id: "stk-dragons-pink", packId: "pack-dragons-theme", label: "Pink dragon", emoji: "✨" },
+  { id: "stk-dragons-coral", packId: "pack-dragons-theme", label: "Coral dragon", emoji: "✨" },
+  { id: "stk-dragons-gold", packId: "pack-dragons-theme", label: "The gold dragon", emoji: "✨", boss: true },
+  { id: "stk-robots-coral", packId: "pack-robots-theme", label: "Coral robot", emoji: "✨" },
+  { id: "stk-robots-space", packId: "pack-robots-theme", label: "Blurple robot", emoji: "✨" },
+  { id: "stk-robots-mint", packId: "pack-robots-theme", label: "Mint robot", emoji: "✨" },
+  { id: "stk-robots-sky", packId: "pack-robots-theme", label: "Sky robot", emoji: "✨" },
+  { id: "stk-robots-yolk", packId: "pack-robots-theme", label: "Yolk robot", emoji: "✨" },
+  { id: "stk-robots-pink", packId: "pack-robots-theme", label: "Pink robot", emoji: "✨" },
+  { id: "stk-robots-boss", packId: "pack-robots-theme", label: "The pearl robot", emoji: "✨", boss: true },
 ];
 
-/** Store rows for the packs that are for sale — NOT the starter pack, and NOT a theme.
- *  A theme is earned by climbing a ladder and is deliberately absent from the shelf: the
- *  `priceLuna > 0` test already excludes it, and the `!p.theme` beside it is what stops a
- *  future edit putting a price on one and quietly making it buyable. */
+/** Store rows for the packs that are for sale: every priced pack, which since 2026-09-17 is
+ *  the four themes and nothing else. The starter pack is `priceLuna: 0` and auto-granted.
+ *  Buying a theme grants its MEMBERS (`grantPackMembers`); the boss is a ladder's to give. */
 export const packStoreItems = () =>
-  STICKER_PACKS.filter((p) => p.priceLuna > 0 && !p.theme).map((p, i) => ({
+  STICKER_PACKS.filter((p) => p.priceLuna > 0).map((p, i) => ({
     id: `item-${p.id}`, categoryId: "cat-stickers", kind: "pack",
     // A pack's store row IS the pack, so it borrows the pack's title and the
     // pack's translation key rather than owning a second copy of either.

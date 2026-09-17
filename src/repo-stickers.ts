@@ -4,7 +4,7 @@
 // Same conventions as repo.ts — pure functions over getDb(), no HTTP.
 
 import { getDb } from "./db";
-import { STICKER_PACKS } from "./sticker-catalog";
+import { STICKER_PACKS, STICKER_ART_SHIPPED } from "./sticker-catalog";
 
 export type StickerKind = "art" | "photo";
 export type PlacementState = "pending" | "shined" | "retry";
@@ -78,23 +78,32 @@ export function grantSticker(childId: string, stickerId: string): void {
     [childId, stickerId, now()],
   );
 }
-/** Grant every sticker in a pack. Returns the pack's stickers (idempotent). */
+/** Grant every sticker in a pack, boss included. Returns the pack's stickers (idempotent).
+ *  The starter grant and the tests use this; a PURCHASE goes through `grantPackMembers`. */
 export function grantPack(childId: string, packId: string): Sticker[] {
   const stickers = packStickers(packId);
+  for (const s of stickers) grantSticker(childId, s.id);
+  return stickers;
+}
+/** What buying a pack hands over (2026-09-17): its MEMBERS, never its boss. The boss is the
+ *  prize for finishing the set on a ladder, and a set is finished the moment its members are
+ *  all owned, however they were come by, so a kid who bought the five collects the boss on
+ *  the first rung they climb toward that theme (`grantNextThemeSticker`). Returns what is now
+ *  granted, idempotent. A pack with no boss (starter) is granted whole. */
+export function grantPackMembers(childId: string, packId: string): Sticker[] {
+  const stickers = packRungStickers(packId);
   for (const s of stickers) grantSticker(childId, s.id);
   return stickers;
 }
 export function ownsSticker(childId: string, stickerId: string): boolean {
   return !!getDb().query("SELECT 1 FROM kid_stickers WHERE child_id=? AND sticker_id=?").get(childId, stickerId);
 }
-/** True when the kid owns EVERY sticker of a non-empty pack. */
+/** True when the kid owns every MEMBER of a non-empty pack: what the shelf calls owned and
+ *  what refuses a second purchase. The boss is not counted, for the same reason
+ *  `packComplete` leaves it out: a bought set does not include it, and a set that had to
+ *  include its own prize could never be bought or finished. */
 export function packOwned(childId: string, packId: string): boolean {
-  const row = getDb().query(
-    `SELECT COUNT(*) AS total,
-            SUM(EXISTS(SELECT 1 FROM kid_stickers k WHERE k.child_id=? AND k.sticker_id=s.id)) AS owned
-       FROM stickers s WHERE s.pack_id=?`,
-  ).get(childId, packId) as { total: number; owned: number | null };
-  return row.total > 0 && row.owned === row.total;
+  return packComplete(childId, packId);
 }
 /**
  * The kid's USABLE collection, newest grants last (stable picker order).
@@ -160,7 +169,7 @@ export function packBoss(packId: string): Sticker | null {
 }
 
 /** Does the kid own every NON-BOSS sticker of this pack? The boss is excluded on purpose:
- *  a set that included its own prize could never be finished. */
+ *  a set that included its own prize could never be finished. True after a purchase too. */
 export function packComplete(childId: string, packId: string): boolean {
   const row = getDb().query(
     `SELECT COUNT(*) AS total,
@@ -185,24 +194,42 @@ export function packComplete(childId: string, packId: string): boolean {
 export function grantNextThemeSticker(
   childId: string, packId: string,
 ): { sticker?: Sticker; boss?: Sticker; complete: boolean } {
-  if (packComplete(childId, packId)) return { complete: true };
+  const boss = packBoss(packId);
+  if (packComplete(childId, packId)) {
+    // Every member owned already, and if the boss is not, the set was BOUGHT (2026-09-17).
+    // This rung is what finishes it: the boss lands now, and only now, on the ladder.
+    if (boss && !ownsSticker(childId, boss.id)) {
+      grantSticker(childId, boss.id);
+      return { boss, complete: true };
+    }
+    return { complete: true };
+  }
   const next = packRungStickers(packId).find((s) => !ownsSticker(childId, s.id));
   if (!next) return { complete: true };
   grantSticker(childId, next.id);
   if (!packComplete(childId, packId)) return { sticker: next, complete: false };
   // That was the last one. The boss lands with it, and the whole set becomes usable.
-  const boss = packBoss(packId);
   if (boss) grantSticker(childId, boss.id);
   return { sticker: next, boss: boss ?? undefined, complete: true };
+}
+
+/** The set is FINISHED: the boss is owned, which only ever happens on a ladder
+ *  (`grantNextThemeSticker`). A pack with no boss is finished when it is complete. This is
+ *  what the scene wallpaper hangs off, so buying a set does not also hand over its scene. */
+export function packFinished(childId: string, packId: string): boolean {
+  const boss = packBoss(packId);
+  return boss ? ownsSticker(childId, boss.id) : packComplete(childId, packId);
 }
 
 /**
  * The app WALLPAPERS this kid has unlocked: one per theme they have FINISHED.
  *
  * ⚠️ Finishing a set hands over TWO separate things (Andjroo, 2026-08-04) — the boss sticker,
- * and this. Read off `packComplete` rather than stored in `kid_unlocks`, for the reason
+ * and this. Read off `packFinished` rather than stored in `kid_unlocks`, for the reason
  * `rungState` reads its approval: the collection already knows whether the set is done, and a
- * second place to write "finished" is a second place for it to disagree.
+ * second place to write "finished" is a second place for it to disagree. Finished, not
+ * complete: since the same sets are sold on the shelf (2026-09-17) a complete set may simply
+ * have been bought, and the scene is earned with the boss, on a ladder.
  *
  * A pack with no `backgroundIds` in the catalogue simply unlocks nothing, so a theme can ship
  * its stickers before its wallpaper is drawn. A pack may name MORE THAN ONE, in which case
@@ -210,7 +237,7 @@ export function grantNextThemeSticker(
  */
 export function unlockedBackgrounds(childId: string): { id: string; url: string }[] {
   return STICKER_PACKS
-    .filter((p) => p.theme && p.backgroundIds?.length && packComplete(childId, p.id))
+    .filter((p) => p.theme && p.backgroundIds?.length && packFinished(childId, p.id))
     .flatMap((p) => p.backgroundIds!.map((id) => ({ id, url: `/assets/backgrounds/${id}.jpg` })));
 }
 
@@ -238,7 +265,15 @@ export function themeProgress(childId: string, packId: string) {
       ? { id: boss.id, label: boss.label, emoji: boss.emoji, assetUrl: boss.asset_url,
           owned: ownsSticker(childId, boss.id) }
       : null,
+    /** The pack egg's art (2026-09-17): the prize node's face until the boss is owned. */
+    eggUrl: packEggUrl(packId),
   };
+}
+/** `/assets/stickers/<eggId>.png` for a theme with a pack egg, else null. Read from the
+ *  catalogue, not the table: the egg is not a sticker row. */
+export function packEggUrl(packId: string): string | null {
+  const def = STICKER_PACKS.find((p) => p.id === packId);
+  return def?.eggId && STICKER_ART_SHIPPED ? `/assets/stickers/${def.eggId}.png` : null;
 }
 /** Starter pack auto-grant (first chart/inventory read). Idempotent. */
 export function ensureStarterGrant(childId: string): void {

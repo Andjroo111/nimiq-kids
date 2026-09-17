@@ -25,7 +25,7 @@ plenty for the first one. The instance hot wallet is empty and no longer matters
 ## 1. Sign in
 
 Your old parent link was minted 2026-07-20 and answers **401** against the live database. A
-fresh one is in `~/secrets/hatch-parent-link.txt`, minted and verified against the live
+fresh one is in `~/gdkc/secrets/hatch-parent-link.txt`, minted and verified against the live
 box on 2026-08-03. Open it on your phone once and the page keeps the token.
 
 ## 2. Connect your wallet
@@ -106,8 +106,8 @@ Nothing here can lose money. The worst cases are:
 **Full rollback**, if you want the old behaviour back for any reason:
 
 ```bash
-cp ~/secrets/hatch-competition.env.bak-20260803-precustodyflip \
-   ~/secrets/hatch-competition.env
+cp ~/gdkc/secrets/hatch-competition.env.bak-20260803-precustodyflip \
+   ~/gdkc/secrets/hatch-competition.env
 launchctl kickstart -k gui/$(id -u)/com.hatch.competition
 ```
 

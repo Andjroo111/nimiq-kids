@@ -16,8 +16,9 @@ name: privacy gate
 # Actions logs are public on the public repo, so echoing a hit would publish the
 # exact string the gate exists to hide.
 #
-# STRICT on Andjroo111/nimiq-kids (public): a hit fails the run.
-# WARN on the private repo: the working tree legitimately carries these terms
+# STRICT on any PUBLIC repo: a hit fails the run. Keyed on visibility, not a repo name,
+# so a repo that flips public is covered the moment it flips.
+# WARN on a private repo: a private tree legitimately carries these terms
 # until the scrub branch merges, and a permanently red check teaches people to
 # ignore it.
 
@@ -42,7 +43,7 @@ jobs:
           BEFORE: ${{ github.event.before }}
           AFTER: ${{ github.sha }}
           BASE: ${{ github.event.pull_request.base.sha }}
-          STRICT: ${{ github.repository == 'Andjroo111/nimiq-kids' }}
+          STRICT: ${{ github.event.repository.private == false }}
         run: |
           set -u
           zero=0000000000000000000000000000000000000000
@@ -87,7 +88,7 @@ jobs:
         env:
           PATTERNS: ${{ secrets.PRIVACY_PATTERNS }}
           IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
-          STRICT: ${{ github.repository == 'Andjroo111/nimiq-kids' }}
+          STRICT: ${{ github.event.repository.private == false }}
         run: |
           set -u
           if [ -z "${PATTERNS:-}" ]; then

@@ -174,7 +174,9 @@ export const DEMO_KIDS: readonly SeedKid[] = [
   },
   {
     label: "Ava",
-    emoji: "🦄",
+    // A bunny, not the unicorn she was seeded with: the unicorn is not one of the 21 drawn
+    // heroes, so every screen that draws a kid's emoji as art fell back to the OS's emoji.
+    emoji: "🐰",
     chores: [
       { job: "laundry", usd: 1.0, status: "submitted" },
       { job: "plants", usd: 0.5, durationS: 2 * 60 },

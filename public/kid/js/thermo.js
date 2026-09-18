@@ -68,7 +68,9 @@ export function thermometer(savings) {
       ${thermoSvg(pct)}
       <div class="k-th-main">
         <div class="k-th-head">
-          <span class="k-th-emoji">${target.emoji ? esc(target.emoji) : targetIcon()}</span>
+          ${savings.iconUrl
+            ? `<img class="k-th-face" src="${esc(savings.iconUrl)}" alt="" draggable="false" />`
+            : `<span class="k-th-emoji">${target.emoji ? esc(target.emoji) : targetIcon()}</span>`}
           <span class="k-th-title">${esc(target.title)}</span>
         </div>
         <div class="k-th-togo">${

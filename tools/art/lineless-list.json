@@ -1,5 +1,5 @@
 {
- "_readme": "What ships from the lineless Midjourney art (brand-voice-research, branch mj-hunt-0915, lineless/). Files are relative to that lineless/ dir. Run `python3 tools/art/cut-lineless.py <lineless-dir>` after editing. heroes = the 21 egg-hatch characters (the timer's surprise); packs = goal-ladder themes, each with members, one boss and the pack egg; timerIcons = the reminder sheet; backgrounds = 15 square scenes, `earnedBy` names the theme that unlocks it, the rest are free.",
+ "_readme": "What ships from the lineless Midjourney art (brand-voice-research, branch mj-hunt-0915, lineless/). Files are relative to that lineless/ dir. Run `python3 tools/art/cut-lineless.py <lineless-dir>` after editing. heroes = the 21 egg-hatch characters (the timer's surprise); packs = goal-ladder themes, each with members, one boss and the pack egg; timerIcons = the reminder sheet; backgrounds = 15 square scenes, `earnedBy` names the theme that unlocks it, the rest are free. taskIcons = the 42 job-tile icons (src/task-icons.ts ids, picked 2026-09-17), cut to public/assets/icons/<id>.png; `--only taskicons`. faceIcons = the faces that are not job tiles (routine headers, the goal, practice-step and savings defaults), same cut, same folder, never in the picker; `--only faceicons`. storeArt = the five Treasure Box tiles src/store-art.ts names, cut to public/assets/store/<slug>.png at 512; `--only storeart`.",
  "heroes": [
   {
    "id": "frog",
@@ -108,6 +108,64 @@
   }
  ],
  "packs": [
+  {
+   "id": "pack-starter",
+   "title": "Starter stickers",
+   "note": "free, every kid; sticker ids are the catalog id minus stk- (2026-09-18)",
+   "stickers": [
+    {
+     "id": "star",
+     "label": "Star",
+     "file": "packs/starter-0918/star-cd6262a2-2.png"
+    },
+    {
+     "id": "heart",
+     "label": "Heart",
+     "file": "packs/starter-0918/heart-d328b08e-3.png"
+    },
+    {
+     "id": "rainbow",
+     "label": "Rainbow",
+     "file": "packs/starter-0918/rainbow-c75fc7cc-1.png"
+    },
+    {
+     "id": "smiley",
+     "label": "Smiley",
+     "file": "packs/starter-0918/smiley-1b1c819e-1.png"
+    },
+    {
+     "id": "unicorn",
+     "label": "Unicorn",
+     "file": "packs/starter-0918/unicorn-28ac54bf-1.png"
+    },
+    {
+     "id": "dino",
+     "label": "Dino",
+     "file": "frames/trex-20aaa4f9-3.png",
+     "note": "the hatch T-rex as drawn, no job"
+    },
+    {
+     "id": "paw",
+     "label": "Paw",
+     "file": "packs/starter-0918/paw-f1690368-1.png"
+    },
+    {
+     "id": "lightning",
+     "label": "Lightning",
+     "file": "packs/starter-0918/lightning-117fb377-3.png"
+    },
+    {
+     "id": "flower",
+     "label": "Flower",
+     "file": "packs/starter-0918/flower-6d048ae5-3.png"
+    },
+    {
+     "id": "trophy",
+     "label": "Trophy",
+     "file": "packs/starter-0918/trophy-69998549-0.png"
+    }
+   ]
+  },
   {
    "id": "pack-ocean",
    "title": "Ocean",
@@ -313,7 +371,7 @@
   },
   {
    "slug": "hooray",
-   "file": "packs/timer-icons/icon-hooray-1f333715-2.png"
+   "file": "packs/timer-icons/icon-hooray2-24012ff8-0.png"
   },
   {
    "slug": "love",
@@ -341,7 +399,11 @@
   },
   {
    "slug": "teeth",
-   "file": "packs/timer-icons/icon-teeth-96cc8002-3.png"
+   "file": "packs/timer-icons/icon-teeth2-cb5a126b-1.png"
+  },
+  {
+   "slug": "eat",
+   "file": "packs/timer-icons/icon-eat3-fa14bdc5-1.png"
   }
  ],
  "backgrounds": [
@@ -423,6 +485,275 @@
    "id": "playground",
    "label": "Playground",
    "file": "backgrounds-square-2048/playground-sq-f824a15a-2.png"
+  }
+ ],
+ "taskIcons": [
+  {
+   "id": "bed",
+   "file": "packs/task-icons/bed-b430fdc7-1.png",
+   "note": "Bed, blurple"
+  },
+  {
+   "id": "book",
+   "file": "packs/task-icons/book-675bed57-0.png",
+   "note": "Books, pink stack"
+  },
+  {
+   "id": "broom",
+   "file": "packs/task-icons/broom-b1851943-0.png",
+   "note": "serves Vacuum the floor, mint vacuum (row name is broom, see the icon-art brief)"
+  },
+  {
+   "id": "laundry",
+   "file": "packs/task-icons/laundry-2a2f9c8e-0.png",
+   "note": "Laundry, yolk basket"
+  },
+  {
+   "id": "trash",
+   "file": "packs/task-icons/trash-03b08d13-2.png",
+   "note": "Bins, sky"
+  },
+  {
+   "id": "pajamas",
+   "file": "packs/task-icons/pajamas-417793de-2.png",
+   "note": "Pyjamas, blurple moon shirt"
+  },
+  {
+   "id": "backpack",
+   "file": "packs/task-icons/backpack-db0d2a5f-1.png",
+   "note": "School bag, coral"
+  },
+  {
+   "id": "piano",
+   "file": "packs/task-icons/piano-207ea921-0.png",
+   "note": "Piano, blurple"
+  },
+  {
+   "id": "shower",
+   "file": "packs/task-icons/shower-85034db4-3.png",
+   "note": "Shower, sky"
+  },
+  {
+   "id": "clothesstack",
+   "file": "packs/task-icons/clothesstack-3eb006c1-0.png",
+   "note": "Clothes away, pink stack"
+  },
+  {
+   "id": "socks",
+   "file": "packs/task-icons/socks-18e405e0-3.png",
+   "note": "Sort the laundry, yolk pair"
+  },
+  {
+   "id": "washdishes",
+   "file": "packs/task-icons/washdishes-cf6e88b7-3.png",
+   "note": "Wash the dishes, sky sink"
+  },
+  {
+   "id": "groceries",
+   "file": "packs/task-icons/groceries-4f1ef0eb-2.png",
+   "note": "Groceries, coral cart"
+  },
+  {
+   "id": "lunchbox",
+   "file": "packs/task-icons/lunchbox-a8951057-0.png",
+   "note": "Lunch, mint"
+  },
+  {
+   "id": "recycling",
+   "file": "packs/task-icons/recycling-115d24d6-0.png",
+   "note": "Recycling, mint"
+  },
+  {
+   "id": "dustpan",
+   "file": "packs/task-icons/dustpan-41c2b788-3.png",
+   "note": "serves Sweep the floor, sky dustpan and brush"
+  },
+  {
+   "id": "spray",
+   "file": "packs/task-icons/spray-63e67758-2.png",
+   "note": "Bathroom, blurple spray bottle"
+  },
+  {
+   "id": "mirror",
+   "file": "packs/task-icons/mirror-2beb9ec4-2.png",
+   "note": "Mirror, pink hand mirror"
+  },
+  {
+   "id": "duster",
+   "file": "packs/task-icons/duster-a7a2a114-2.png",
+   "note": "Dusting, yolk feather duster"
+  },
+  {
+   "id": "dogfood",
+   "file": "packs/task-icons/dogfood-9fe75b27-1.png",
+   "note": "Feed the dog, coral kibble bowl"
+  },
+  {
+   "id": "collar",
+   "file": "packs/task-icons/collar-98fcf66f-3.png",
+   "note": "Walk the dog, sky collar and leash"
+  },
+  {
+   "id": "catbowl",
+   "file": "packs/task-icons/catbowl-70ac94ed-0.png",
+   "note": "Feed the cat, pink fish bowl"
+  },
+  {
+   "id": "litterbox",
+   "file": "packs/task-icons/litterbox-6305d39d-3.png",
+   "note": "Litter box, mint tray and scoop"
+  },
+  {
+   "id": "waterbowl",
+   "file": "packs/task-icons/waterbowl-2ac33f46-1.png",
+   "note": "Water bowl, sky"
+  },
+  {
+   "id": "wateringcan",
+   "file": "packs/task-icons/wateringcan-912c15df-2.png",
+   "note": "Water the plants, mint"
+  },
+  {
+   "id": "rake",
+   "file": "packs/task-icons/rake-b23412d4-1.png",
+   "note": "Rake the leaves, coral"
+  },
+  {
+   "id": "carwash",
+   "file": "packs/task-icons/carwash-ca77404a-1.png",
+   "note": "Wash the car, sky"
+  },
+  {
+   "id": "pencilpaper",
+   "file": "packs/task-icons/pencilpaper-ba5022e6-0.png",
+   "note": "Homework, yolk"
+  },
+  {
+   "id": "blocks",
+   "file": "packs/task-icons/blocks-d237807b-0.png",
+   "note": "Spelling, coral cubes"
+  },
+  {
+   "id": "calculator",
+   "file": "packs/task-icons/calculator-2e01b90c-0.png",
+   "note": "Maths, blurple"
+  },
+  {
+   "id": "laptop",
+   "file": "packs/task-icons/laptop-4cf044fc-3.png",
+   "note": "Coding, sky"
+  },
+  {
+   "id": "sponge",
+   "file": "packs/task-icons/sponge-b5e8e86f-3.png",
+   "note": "serves Empty the dishwasher, sky dishwasher (rerun; the literal sponge d38ba5bd was job-blind)"
+  },
+  {
+   "id": "cutlery",
+   "file": "packs/task-icons/cutlery-cb041d8e-0.png",
+   "note": "serves Clear the table, coral stacked plates with fork and knife (rerun of the crossed cutlery b72c8855)"
+  },
+  {
+   "id": "hairbrush",
+   "file": "packs/task-icons/hairbrush-98fdac98-3.png",
+   "note": "Hair, pink brush and comb (rerun of the lone paddle brush c7576d11)"
+  },
+  {
+   "id": "mailbox",
+   "file": "packs/task-icons/mailbox-e54a45a4-0.png",
+   "note": "Get the mail, blurple, flag DOWN and door open with an envelope (rerun of 5ac5a69c whose flag was up, which means outgoing mail)"
+  },
+  {
+   "id": "toothbrush",
+   "file": "packs/task-icons/toothbrush-cb5a126b-1.png",
+   "note": "Teeth, the timer cup of two brushes"
+  },
+  {
+   "id": "shirt",
+   "file": "packs/task-icons/shirt-48f9ffd6-2.png",
+   "note": "Clothes, the timer t-shirt"
+  },
+  {
+   "id": "shoes",
+   "file": "packs/task-icons/shoes-565a0d95-0.png",
+   "note": "Shoes, the timer sneaker"
+  },
+  {
+   "id": "teddy",
+   "file": "packs/task-icons/teddy-7b7c1d46-1.png",
+   "note": "Toys / Tidy your room, the timer toy box"
+  },
+  {
+   "id": "plate",
+   "file": "packs/task-icons/plate-fa14bdc5-1.png",
+   "note": "Dishes / Set the table, the timer plate"
+  },
+  {
+   "id": "pawbowl",
+   "file": "packs/task-icons/pawbowl-4aa93841-3.png",
+   "note": "Feed the pet, generic: mint gecko perched on the bowl rim (Andjroo: not dog-shaped; paw bowl 3efdab13, food bag 18d05114 and the snake b2df0974 all out)"
+  },
+  {
+   "id": "tree",
+   "file": "packs/task-icons/tree-86b76026-1.png",
+   "note": "serves Tidy the yard: mint lawn mower (round tree e8211046, garden bag 13430737 and the wheelbarrow 64aae351 out)"
+  }
+ ],
+ "faceIcons": [
+  {
+   "id": "sunrise",
+   "file": "packs/app-icons-0918/sunrise-096a43e6-0.png",
+   "note": "morning routine header (the 🌅 emoji)"
+  },
+  {
+   "id": "sun",
+   "file": "packs/app-icons-0918/sun-3517c6ce-0.png",
+   "note": "afternoon routine header (☀️)"
+  },
+  {
+   "id": "bedtime",
+   "file": "packs/timer-icons/icon-bed-fca52d7d-0.png",
+   "note": "bedtime routine header (🌙), the timer bed moon reused"
+  },
+  {
+   "id": "ladder",
+   "file": "packs/app-icons-0918/ladder-4d15c9bc-2.png",
+   "note": "goal default face (🪜)"
+  },
+  {
+   "id": "note",
+   "file": "packs/app-icons-0918/note-6fcf25cb-3.png",
+   "note": "practice step default face (🎵)"
+  },
+  {
+   "id": "target",
+   "file": "packs/app-icons-0918/target-c04bf232-3.png",
+   "note": "savings target default face (🎯)"
+  }
+ ],
+ "storeArt": [
+  {
+   "slug": "screen-15",
+   "file": "packs/app-icons-0918/screen-c3c08369-2.png"
+  },
+  {
+   "slug": "screen-30",
+   "file": "packs/app-icons-0918/screen-c3c08369-2.png"
+  },
+  {
+   "slug": "screen-60",
+   "file": "packs/app-icons-0918/screen-c3c08369-2.png",
+   "note": "one tablet serves all three minute tiles; the label carries the minutes"
+  },
+  {
+   "slug": "dinner",
+   "file": "packs/timer-icons/icon-eat3-fa14bdc5-1.png",
+   "note": "pick what is for dinner, the timer eat plate reused"
+  },
+  {
+   "slug": "moon",
+   "file": "packs/app-icons-0918/moon-b0737fa5-0.png",
+   "note": "stay up late, blurple crescent with no zzz"
   }
  ]
 }

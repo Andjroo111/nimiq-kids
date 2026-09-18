@@ -86,7 +86,7 @@
 .k-stake-banner {
   display: flex; align-items: center; gap: 18px; width: 100%; text-align: left;
   margin-top: 20px; padding: 18px 22px; border-radius: var(--r-card);
-  background-image: radial-gradient(100% 100% at bottom right, #41A38E, #21BCA5);
+  background-color: var(--paint-grass); background-image: none;
   color: #fff; box-shadow: var(--sh-cta);
 }
 .k-stake-ring {
@@ -117,7 +117,7 @@
 /* stake/unstake/reward rows: the staking plant in a green tile instead of a peer identicon */
 .k-stake-tile {
   width: 8rem; height: 8rem; flex-shrink: 0; border-radius: 50%;
-  background: rgba(33, 188, 165, 0.12); color: var(--green);
+  background: rgba(27, 152, 94, 0.12); color: var(--green);
   display: flex; align-items: center; justify-content: center;
 }
 .k-stake-tile .k-icon { font-size: var(--ic-m); }
@@ -125,14 +125,14 @@
 /* a transfer with no counterparty address left to draw: arrows */
 .k-arrow-tile {
   width: 8rem; height: 8rem; flex-shrink: 0; border-radius: 50%;
-  background: rgba(31, 35, 72, 0.06); color: var(--navy, #1F2348);
+  background: rgba(28, 27, 19, 0.06); color: var(--navy, var(--paint-line));
   display: flex; align-items: center; justify-content: center;
 }
 .k-arrow-tile .k-icon { font-size: var(--ic-m); }
 
 .k-feed-empty { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 44px 20px 40px; }
 /* The empty feed wears the hexagon at the spot step (icons.css .k-spot), like the board's high-five. */
-.k-feed-empty p { font-size: 26px; font-weight: 700; color: rgba(31, 35, 72, 0.5); text-align: center; }
+.k-feed-empty p { font-size: 26px; font-weight: 700; color: rgba(28, 27, 19, 0.5); text-align: center; }
 
 /* ---------- HOME: bottom action bar (Receive | Send | scan) ----------
    Matched to the real wallet's bar (Andjroo's own screenshot, 2026-07-30):
@@ -146,7 +146,7 @@ body:has(#kid-app.money-screen) { --kid-dock-h: 92px; }
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
   display: flex; align-items: center; gap: 16px;
   padding: 14px 24px calc(14px + env(safe-area-inset-bottom));
-  background: #fff; box-shadow: 0 -6px 30px rgba(31, 35, 72, 0.12);
+  background: #fff; box-shadow: 0 -6px 30px rgba(28, 27, 19, 0.12);
 }
 .k-dock-btn {
   flex: 1 1 0; min-width: 0;
@@ -158,7 +158,7 @@ body:has(#kid-app.money-screen) { --kid-dock-h: 92px; }
 .k-dock-btn .k-icon { font-size: var(--ic-m); }
 .k-dock-primary {
   background: none;
-  background-image: radial-gradient(100% 100% at bottom right, #265DD7, #0582CA);
+  background-color: var(--paint-blurple); background-image: none;
   color: #fff; box-shadow: var(--sh-cta);
 }
 
@@ -171,7 +171,7 @@ body:has(#kid-app.money-screen) { --kid-dock-h: 92px; }
 /* the +NIM reward pill (transaction-list's incoming pill, reused as the reward tag) */
 .k-nim-pill {
   display: inline-flex; align-items: center; align-self: flex-start;
-  color: var(--green-2); background: rgba(33, 188, 165, 0.1);
+  color: var(--green-2); background: rgba(27, 152, 94, 0.1);
   border-radius: var(--r-pill); padding: 4px 12px;
   font-size: 22px; font-weight: 700; white-space: nowrap;
 }
@@ -219,7 +219,7 @@ body:has(#kid-app.money-screen) { --kid-dock-h: 92px; }
   height: 100%; max-height: 100%; overflow: hidden;
 }
 /* Rule 11: modal scrims are navy, never black. */
-.k-sheet-scrim { position: absolute; inset: 0; background: rgba(31, 35, 72, 0.6); }
+.k-sheet-scrim { position: absolute; inset: 0; background: rgba(28, 27, 19, 0.6); }
 .k-sheet-screen .k-sheet {
   position: relative; margin: 0; width: 100%; max-width: none;
   height: auto;
@@ -277,7 +277,7 @@ body:has(#kid-app.money-screen) { --kid-dock-h: 92px; }
    line drifted further off-centre the wider the sheet got (23px at 430). */
 .k-sheet-sub {
   margin: 10px auto 0; font-size: 26px; font-weight: 600;
-  color: rgba(31, 35, 72, 0.5); text-align: center;
+  color: rgba(28, 27, 19, 0.5); text-align: center;
 }
 
 /* Tap-to-copy: `copyable` goes ON the address-display, not around it. The
@@ -308,7 +308,7 @@ body:has(#kid-app.money-screen) { --kid-dock-h: 92px; }
    the better thing to show. */
 .k-qr-address {
   margin: 0; font-family: 'Fira Mono', monospace; font-size: 24px;
-  color: rgba(31, 35, 72, 0.5); text-align: center; letter-spacing: 0.02em;
+  color: rgba(28, 27, 19, 0.5); text-align: center; letter-spacing: 0.02em;
   white-space: nowrap; max-width: 100%;
 }
 /* The one saturated element on the sheet, which is where the wallet puts its
@@ -316,12 +316,12 @@ body:has(#kid-app.money-screen) { --kid-dock-h: 92px; }
    on navy, not on a white sheet). */
 .k-qr-hint {
   margin: 0 auto; max-width: 340px; text-align: center; text-wrap: balance;
-  font-size: 26px; font-weight: 600; color: var(--nimiq-light-blue);
+  font-size: 26px; font-weight: 600; color: var(--paint-blurple);
 }
 /* the quiet line above a secondary action, the wallet's "Address unavailable?" */
 .k-sheet-prompt {
   margin: 0 0 16px; font-size: 24px; font-weight: 600;
-  color: rgba(31, 35, 72, 0.5); text-align: center;
+  color: rgba(28, 27, 19, 0.5); text-align: center;
 }
 .k-sheet-screen .page-body {
   display: flex; flex-direction: column; align-items: center; gap: 22px;
@@ -346,7 +346,7 @@ body:has(#kid-app.money-screen) { --kid-dock-h: 92px; }
    formatting lives in send.js; this is only its label and placement. */
 .k-enter-label {
   margin: 6px 0 0; font-size: 22px; font-weight: 600; letter-spacing: 0.08em;
-  text-transform: uppercase; color: rgba(31, 35, 72, 0.4); text-align: center;
+  text-transform: uppercase; color: rgba(28, 27, 19, 0.4); text-align: center;
 }
 .k-address-input { margin-top: -6px; }
 
@@ -358,7 +358,7 @@ body:has(#kid-app.money-screen) { --kid-dock-h: 92px; }
 /* the footer's own action, the wallet's "Create request link" slot */
 .k-sheet-action {
   padding: 18px 34px; border-radius: var(--r-pill);
-  background: rgba(31, 35, 72, 0.07); color: var(--navy);
+  background: rgba(28, 27, 19, 0.07); color: var(--navy);
   font-size: 26px; font-weight: 700;
 }
 
@@ -434,7 +434,7 @@ body:has(#kid-app.money-screen) { --kid-dock-h: 92px; }
    below make the row taller than the icons and would drag it down. */
 .k-route-link {
   width: 34px; height: 2px; border-radius: 1px; margin-top: 37px;
-  background: rgba(31, 35, 72, 0.2);
+  background: rgba(28, 27, 19, 0.2);
 }
 
 /* The registry's amount-input. The value's size is set on the COMPONENT ROOT,
@@ -446,8 +446,8 @@ body:has(#kid-app.money-screen) { --kid-dock-h: 92px; }
    drifting the moment the value scales. */
 .k-amount-input { margin: 22px 0 4px; font-size: 8rem; }
 .k-amount-input .nim { font-size: 0.5em; line-height: 1.1; }
-.k-amount-fiat { font-size: 30px; font-weight: 600; color: rgba(31, 35, 72, 0.5); text-align: center; }
-.k-amount-avail { font-size: 24px; font-weight: 700; color: rgba(31, 35, 72, 0.4); margin-top: 6px; text-align: center; }
+.k-amount-fiat { font-size: 30px; font-weight: 600; color: rgba(28, 27, 19, 0.5); text-align: center; }
+.k-amount-avail { font-size: 24px; font-weight: 700; color: rgba(28, 27, 19, 0.4); margin-top: 6px; text-align: center; }
 /* In the footer now, so it needs a gap from the balance line above rather than
    from the fiat, and one under itself before the action. */
 .k-pad-grid { margin: 4px 0 18px; position: relative; }
@@ -570,7 +570,7 @@ body:has(#kid-app.money-screen) { --kid-dock-h: 92px; }
 /* ---------- GROW (staking) — the ONE calculated break: the green hero ---------- */
 .k-grow-hero {
   width: min(92vw, 560px); border-radius: var(--r-card); margin-top: 20px; position: relative;
-  background-image: radial-gradient(100% 100% at bottom right, #41A38E, #21BCA5);
+  background-color: var(--paint-grass); background-image: none;
   color: #fff; display: flex; flex-direction: column; align-items: center; gap: 8px;
   padding: 40px 30px 34px; box-shadow: var(--sh-cta);
 }
@@ -585,11 +585,11 @@ body:has(#kid-app.money-screen) { --kid-dock-h: 92px; }
 }
 .k-grow-pending .k-icon { font-size: var(--ic-m); color: var(--orange); }
 .k-grow-pending b { color: var(--orange); }
-.k-grow-hint { font-size: 26px; font-weight: 600; color: rgba(31, 35, 72, 0.55); text-align: center; max-width: 520px; margin-top: 24px; position: relative; }
+.k-grow-hint { font-size: 26px; font-weight: 600; color: rgba(28, 27, 19, 0.55); text-align: center; max-width: 520px; margin-top: 24px; position: relative; }
 .k-grow-actions { display: flex; flex-direction: column; align-items: center; gap: 18px; margin-top: 28px; position: relative; }
 .k-grow-take {
   font-size: 24px; font-weight: 700; color: var(--navy);
-  background: rgba(31, 35, 72, 0.07); border-radius: var(--r-pill); padding: 16px 32px; min-height: 64px;
+  background: rgba(28, 27, 19, 0.07); border-radius: var(--r-pill); padding: 16px 32px; min-height: 64px;
 }
 
 /* ---------- status screens (send result) ---------- */
@@ -605,7 +605,7 @@ body:has(#kid-app.money-screen) { --kid-dock-h: 92px; }
 /* ---------- waiting / PIN / celebration (v2 NIM styling) ---------- */
 .w-party-icon { font-size: 120px; color: var(--gold); }
 .w-nim { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; }
-.w-nim-sub { font-size: 28px; font-weight: 700; color: rgba(31, 35, 72, 0.55); }
+.w-nim-sub { font-size: 28px; font-weight: 700; color: rgba(28, 27, 19, 0.55); }
 .w-hour { font-size: 34px; }
 .pin-lock-icon { font-size: var(--ic-xl); color: var(--navy); }
 .w-photo span { color: var(--green-2); }
@@ -635,7 +635,7 @@ body:has(#kid-app.money-screen) { --kid-dock-h: 92px; }
 .k-rate {
   margin-top: 16px; padding-top: 14px;
   /* the corner control's divider, same value */
-  border-top: 1px solid rgba(31, 35, 72, 0.08);
+  border-top: 1px solid rgba(28, 27, 19, 0.08);
   font-size: var(--fs-micro); font-weight: var(--fw-body); color: var(--ink-50);
   font-variant-numeric: tabular-nums;
 }
@@ -657,7 +657,7 @@ body:has(#kid-app.money-screen) { --kid-dock-h: 92px; }
 /* ---------- SCAN ----------
    The kid's scene stays (Andjroo, 2026-07-31) -- the wallet's full-screen dark
    room lost the background the kid chose, and they own that on every screen.
-   The stage itself is OPAQUE: at rgba(31,35,72,0.9) the candy artwork read
+   The stage itself is OPAQUE: at rgba(28, 27, 19, 0.9) the candy artwork read
    through the camera area, which is what made this screen unreadable. Aiming
    marks are the wallet's corner brackets, from shots/wallet-ref/scanner.png. */
 .k-scan {
@@ -667,8 +667,8 @@ body:has(#kid-app.money-screen) { --kid-dock-h: 92px; }
 .k-scan-stage {
   position: relative; margin-top: 20px; width: min(86vw, 520px); aspect-ratio: 1;
   border-radius: var(--r-card); overflow: hidden;
-  background-color: var(--nimiq-blue);
-  background-image: var(--nimiq-blue-bg);
+  background-color: var(--paint-line);
+  background-image: none;
   box-shadow: var(--sh-card);
 }
 .k-scan-stage video { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -712,9 +712,9 @@ body:has(#kid-app.money-screen) { --kid-dock-h: 92px; }
    deliberately slow — a fast spinner next to a child's money reads as alarm. */
 .mega-btn.is-working { opacity: .82; animation: k-working 1.6s ease-in-out infinite; }
 @keyframes k-working { 0%, 100% { opacity: .82; } 50% { opacity: 1; } }
-.k-amount-hint { margin-top: .5rem; font-size: 1.5rem; color: var(--nimiq-blue, #1F2348); opacity: .65; text-align: center; }
+.k-amount-hint { margin-top: .5rem; font-size: 1.5rem; color: var(--paint-line); opacity: .65; text-align: center; }
 
 /* A feed row that links to its own record on the block explorer. Same row as any other:
    the only signal is that it presses, since the amount is what the row is there to say. */
 .k-feed .transaction.k-receipt { cursor: pointer; }
-.k-feed .transaction.k-receipt:active { background: rgba(31, 35, 72, 0.06); }
+.k-feed .transaction.k-receipt:active { background: rgba(28, 27, 19, 0.06); }

@@ -1,7 +1,7 @@
 
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   :root{
-    --navy:#1F2348; --teal:#21BCA5; --red:#F2554B; --amber:#E9B213;
+    --navy:var(--paint-line); --teal:var(--paint-grass); --red:var(--paint-coral); --amber:var(--paint-yolk);
     --sky:#2BC4DE;                 /* the light blue the running controls are */
     --ink:#4A4F63;                 /* the countdown digits: softer than the outline */
     --grey:#D8DCE4;
@@ -67,7 +67,7 @@
   #eg-rig{width:100%;height:100%;border:0;display:block;background:transparent}
   /* the badge's own edge, drawn over the clip so the disc has a rim like the ref */
   #eg-badgeRim{position:absolute;z-index:2;border-radius:50%;pointer-events:none;
-            box-shadow:0 10px 30px rgba(31,35,72,.18);opacity:0;transition:opacity .4s}
+            box-shadow:0 10px 30px rgba(28, 27, 19, .18);opacity:0;transition:opacity .4s}
   body.run #eg-badgeRim,body.hatch #eg-badgeRim{opacity:1}
 
   /* ---------- screens: a crossfade, never a slide ----------
@@ -103,8 +103,8 @@
      like the darker color solid and then a faded version for the number below it."
      The selection is a soft band behind the row, and min/sec are told apart by the
      colon sitting in it rather than by two underlines. */
-  #eg-band{position:absolute;left:0;right:0;border-radius:14px;background:rgba(33,188,165,.22);
-        box-shadow:inset 0 0 0 2px rgba(33,188,165,.30);pointer-events:none;z-index:-1}
+  #eg-band{position:absolute;left:0;right:0;border-radius:14px;background:rgba(27, 152, 94, .22);
+        box-shadow:inset 0 0 0 2px rgba(27, 152, 94, .30);pointer-events:none;z-index:-1}
   #eg-colon{position:absolute;left:50%;transform:translate(-50%,-50%);font-weight:800;
          color:var(--navy);pointer-events:none}
 
@@ -116,7 +116,7 @@
      arc and two lines, and the stroke runs round the whole of it without a join to
      get wrong. */
   #eg-plus{position:absolute;z-index:5;background:none;border:0;padding:0;cursor:pointer;
-        filter:drop-shadow(0 4px 10px rgba(31,35,72,.26))}
+        filter:drop-shadow(0 4px 10px rgba(28, 27, 19, .26))}
   #eg-plus svg{display:block;width:100%;height:100%;overflow:visible}
   /* Andjroo, 2026-07-31: setting a reminder must not recolour the bubble, it must
      put the reminder IN it. So the bubble goes white and becomes the same little
@@ -130,12 +130,12 @@
   /* Start is the SAME teal as the selection band, the chosen tiles and the bubble.
      Andjroo, 2026-07-31 — the reference's green was a second accent doing nothing
      the teal was not already doing. One accent, used everywhere. */
-  #eg-start{background:var(--teal);box-shadow:0 0 0 6px #fff,0 8px 18px rgba(31,35,72,.20)}
+  #eg-start{background:var(--teal);box-shadow:0 0 0 6px #fff,0 8px 18px rgba(28, 27, 19, .20)}
   #eg-start:active{transform:translateY(2px)}
 
   #eg-tray{position:absolute;left:0;right:0;display:flex;justify-content:center;z-index:4}
   .eg-trayb{background:#fff;border:0;border-radius:50%;display:grid;place-items:center;
-         cursor:pointer;box-shadow:0 3px 10px rgba(31,35,72,.22);padding:0;position:relative}
+         cursor:pointer;box-shadow:0 3px 10px rgba(28, 27, 19, .22);padding:0;position:relative}
   .eg-trayb .eg-dot{position:absolute;right:2px;bottom:2px;width:14px;height:14px;border-radius:50%;
               background:var(--teal);border:2.5px solid #fff}
 
@@ -157,9 +157,9 @@
      LEDGE, not a blur — a grey slab sitting a little proud of the button on every
      side, the way the reference's buttons sit on the page. Pressing shortens it
      rather than removing it, so the button travels down onto its own shadow. */
-  .eg-ctl,#eg-done{box-shadow:0 9px 0 2px #D6DBE4, 0 15px 20px rgba(31,35,72,.14)}
+  .eg-ctl,#eg-done{box-shadow:0 9px 0 2px rgba(28, 27, 19, 0.16), 0 15px 20px rgba(28, 27, 19, .14)}
   .eg-ctl:active,#eg-done:active{transform:translateY(5px);
-       box-shadow:0 4px 0 2px #D6DBE4, 0 8px 12px rgba(31,35,72,.12)}
+       box-shadow:0 4px 0 2px rgba(28, 27, 19, 0.16), 0 8px 12px rgba(28, 27, 19, .12)}
   .eg-ctl{background:var(--sky);border:0;border-radius:20px;cursor:pointer;display:grid;
        place-items:center;padding:0}
   #eg-done{background:var(--red)}
@@ -171,7 +171,7 @@
      the leading digit. Beside means IN the row — so the pie is re-parented into it
      and flexbox does the spacing, rather than three numbers being kept in sync. */
   #eg-pie{z-index:5;cursor:grab;touch-action:none;flex:none;
-       filter:drop-shadow(0 3px 8px rgba(31,35,72,.22))}
+       filter:drop-shadow(0 3px 8px rgba(28, 27, 19, .22))}
   #eg-pie.free{position:absolute}
   #eg-pie.dragging{cursor:grabbing}
   #eg-pieHost{position:absolute;inset:0;z-index:5;pointer-events:none}
@@ -187,14 +187,14 @@
   #eg-conf{position:absolute;inset:0;z-index:5;pointer-events:none}
 
   /* ---------- sheets: these are the things that come up from the bottom ---------- */
-  #eg-scrim{position:absolute;inset:0;z-index:8;background:rgba(31,35,72,.34);opacity:0;
+  #eg-scrim{position:absolute;inset:0;z-index:8;background:rgba(28, 27, 19, .34);opacity:0;
          pointer-events:none;transition:opacity .3s}
   #eg-scrim.on{opacity:1;pointer-events:auto}
   /* ⚠️ min-height, not just content. Andjroo, 2026-07-31, on the backgrounds sheet:
      "the card should slide up a little bit more." A one-row sheet is 250px tall and
      stops well short of the ones beside it, so the same gesture lands in a different
      place depending on which button opened it. The floor is what makes them agree. */
-  .eg-sheet{position:absolute;left:0;right:0;bottom:0;z-index:9;background:#F3F5F8;
+  .eg-sheet{position:absolute;left:0;right:0;bottom:0;z-index:9;background:rgba(28, 27, 19, 0.04);
          border-radius:22px 22px 0 0;transform:translateY(100%);
          transition:transform .38s cubic-bezier(.32,.72,0,1);
          min-height:46%;max-height:88%;display:flex;flex-direction:column;
@@ -223,7 +223,7 @@
           display:grid;place-items:center}
   .eg-sclose svg{display:block;opacity:.2;transition:opacity .3s cubic-bezier(.25,0,0,1)}
   .eg-sclose:hover svg,.eg-sclose:active svg{opacity:.4}
-  .eg-ssub{padding:2px 22px 12px;font-size:16px;color:#8C93A3;font-weight:600;
+  .eg-ssub{padding:2px 22px 12px;font-size:16px;color:rgba(28, 27, 19, 0.45);font-weight:600;
         line-height:1.3;text-align:center;text-wrap:balance}
   .eg-sbody{overflow-y:auto;padding:4px 16px 16px;-webkit-overflow-scrolling:touch}
   .eg-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
@@ -246,21 +246,21 @@
      to the TOP right — clear of the label underneath, and the corner nimiq-ui puts
      a marker in. Not a ✓ glyph either: drawn, for the same reason as the ✕. */
   .eg-cell{position:relative}
-  .eg-pick{width:100%;aspect-ratio:1;border-radius:50%;background:#fff;border:5px solid #E3E7EE;
+  .eg-pick{width:100%;aspect-ratio:1;border-radius:50%;background:#fff;border:5px solid rgba(28, 27, 19, 0.10);
         cursor:pointer;display:grid;place-items:center;position:relative;padding:0;overflow:hidden}
   .eg-pick.on{border-color:var(--teal)}
   .eg-tick{position:absolute;top:-5px;right:-5px;width:32px;height:32px;border-radius:50%;
-        background:var(--teal);border:3px solid #F3F5F8;z-index:2;pointer-events:none;
+        background:var(--teal);border:3px solid rgba(28, 27, 19, 0.04);z-index:2;pointer-events:none;
         display:none;place-items:center}
   .eg-cell.on .eg-tick{display:grid}
   .eg-grid4 .eg-tick{width:27px;height:27px;top:-4px;right:-4px;border-width:2.5px}
   .eg-pick img{width:82%;height:82%;object-fit:contain}
   .eg-artgrid .eg-pick img{width:88%;height:88%}
   .eg-photopick img{width:100%;height:100%;object-fit:cover}
-  .eg-pick .eg-off{font-size:19px;font-weight:800;color:#8C93A3}
-  .eg-plabel{text-align:center;font-size:11.5px;font-weight:700;color:#8C93A3;margin-top:4px;
+  .eg-pick .eg-off{font-size:19px;font-weight:800;color:rgba(28, 27, 19, 0.45)}
+  .eg-plabel{text-align:center;font-size:11.5px;font-weight:700;color:rgba(28, 27, 19, 0.45);margin-top:4px;
           text-transform:capitalize}
-  .eg-bgpick{aspect-ratio:1;border-radius:18px;overflow:hidden;border:4px solid #E3E7EE;padding:0;
+  .eg-bgpick{aspect-ratio:1;border-radius:18px;overflow:hidden;border:4px solid rgba(28, 27, 19, 0.10);padding:0;
           cursor:pointer;display:block;width:100%}
   .eg-bgpick.on{border-color:var(--teal)}
   .eg-bgpick img{width:100%;height:100%;object-fit:cover;display:block}
@@ -272,7 +272,7 @@
   /* the same short grey uppercase section label nimiq.com and the wallet both use
      ("ENTER ADDRESS", "TOTAL BALANCE") — and they centre it, so this centres too */
   .eg-lane h3{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
-           color:#8C93A3;margin-bottom:9px;text-align:center}
+           color:rgba(28, 27, 19, 0.45);margin-bottom:9px;text-align:center}
   /* ⚠️ A GRID, NOT WRAPPED FLEX. Andjroo, 2026-07-31: "reorganize the sound one so
      they're uniform." Every pill was its own width — "Bell" against "Kids cheer" —
      and a centred wrap then re-centred each ragged row, so no two rows started or
@@ -299,16 +299,16 @@
   #eg-toast{position:absolute;left:50%;z-index:11;max-width:calc(100% - 36px);
          transform:translate(-50%,14px);opacity:0;pointer-events:none;
          background-color:var(--navy);
-         background-image:radial-gradient(100% 100% at bottom right,#260133,#1F2348);
+         background-color: var(--paint-line); background-image: none;
          color:#fff;font-weight:800;font-size:15px;letter-spacing:-.1px;
          padding:13px 22px;border-radius:500px;white-space:nowrap;
-         box-shadow:0 10px 26px rgba(31,35,72,.30);
+         box-shadow:0 10px 26px rgba(28, 27, 19, .30);
          transition:opacity .26s cubic-bezier(.25,0,0,1),
                     transform .26s cubic-bezier(.25,0,0,1)}
   #eg-toast.on{opacity:1;transform:translate(-50%,0)}
 
   /* ---------- the review strip. ?clean=1 removes it for captures. ---------- */
-  #eg-dev{position:absolute;left:0;right:0;bottom:0;z-index:12;background:rgba(31,35,72,.90);
+  #eg-dev{position:absolute;left:0;right:0;bottom:0;z-index:12;background:rgba(28, 27, 19, .90);
        color:#fff;display:flex;align-items:center;gap:6px;padding:6px 8px;overflow-x:auto;
        font-size:11px;font-weight:800}
   #eg-dev.eg-off{display:none}
@@ -326,12 +326,31 @@
 .eggtimer-screen { position: fixed; inset: 0; background: #fff; }
 #eggtimer-frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
 /* Back sits ON the frame, in the corner the timer keeps clear (the gear used to be
-   there and Andjroo removed it, which is exactly what makes the corner available). */
+   there and Andjroo removed it, which is exactly what makes the corner available).
+   ⚠️ IT IS ON THE APP'S CORNER ROW, AND IN THE TIMER'S CLOTHES. Andjroo, 2026-09-18: "the
+   back button on both tablet and phone just need to be looked at again." It was a 44px
+   disc with a soft navy shadow, 16px in, on every device, beside a battery pill that is
+   72px tall on the tablet. It is --kid-corner-h square now, at --kid-corner-top and
+   --kid-chrome-gutter like the battery, and it wears what every surface in the timer
+   wears: white, the line at 30% as a 2px rim and a 5px side, one 3px pen. The timer lays
+   its own capsule on the same row from the same numbers (js/eggtimer.js chromeQuery). */
 .eggtimer-back {
-  position: absolute; z-index: 2; left: 16px; width: 44px; height: 44px;
-  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  position: absolute; z-index: 2;
+  left: var(--kid-chrome-gutter); width: var(--kid-corner-h); height: var(--kid-corner-h);
+  top: calc(env(safe-area-inset-top, 0px) + var(--kid-corner-top));
   display: grid; place-items: center; padding: 0; cursor: pointer;
-  background: #fff; border: 0; border-radius: 50%;
-  box-shadow: 0 3px 10px rgba(31, 35, 72, .22);
+  background: #fff; border: 0; border-radius: 50%; color: #1C1B13;
+  box-shadow: 0 0 0 2px rgba(28, 27, 19, .30), 0 5px 0 0 rgba(28, 27, 19, .30), 0 10px 14px rgba(28, 27, 19, .12);
+  transition: transform .14s ease-out, box-shadow .14s ease-out;
 }
-.eggtimer-back svg { width: 22px; height: 22px; }
+.eggtimer-back:active {
+  transform: translateY(5px);
+  box-shadow: 0 0 0 2px rgba(28, 27, 19, .30), 0 0 0 0 rgba(28, 27, 19, .30), 0 6px 8px rgba(28, 27, 19, .12);
+  transition-duration: .05s;
+}
+/* ⚠️ THE GLYPH IS A 1em SPAN, NOT THE SVG. arrowIcon() wraps its svg in `.k-icon`, which is
+   1em square with the svg filling it, so sizing the svg did nothing and the arrow stayed at
+   the button's 16px font: 16 inside a 72 disc (Andjroo, 2026-09-18: "the back arrow inside
+   of that area is still really small. It doesn't match the scale of the other icons"). The
+   size is the em, .6 of the disc, and the stroke is the timer's 3px pen. */
+.eggtimer-back { font-size: calc(var(--kid-corner-h) * .6); --icon-stroke: 3px; }

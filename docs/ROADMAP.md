@@ -1,10 +1,13 @@
 # nimiq.kids Roadmap
 
 What is live today, what my own family tests next, and what only becomes a promise after it
-survives our kitchen table. Written 2026-07-31. This mirrors the roadmap on the homepage; if the
-two ever disagree, the homepage is the one people read.
+survives our kitchen table. Written 2026-07-31, updated 2026-09-18. This mirrors the roadmap on
+the homepage (`public/site/index.html`); if the two ever disagree, the homepage is the one people
+read.
 
-## Live now: a working family ecosystem
+## Live now
+
+### A chore app built on Nimiq
 
 Not an allowance app. Kids do chores, routines and activities, and the parent rewards them for
 finishing.
@@ -24,8 +27,8 @@ The loop that makes it work:
    screen time, a new toy, a trip to the pool.
 5. That spend returns to the family wallet, which funds the next round.
 
-Nobody in the family loses a dollar, and along the way the kid is learning to be their own bank:
-checking a balance, saving toward something, deciding when to spend.
+Nobody in the family loses a dollar, and your family runs its own mini economy: checking a
+balance, saving toward something, deciding when to spend.
 
 Also shipped: multi-household isolation (test-proven), a per-family payout budget on the shared
 hot wallet, a 6-digit pairing code for tablets or any device a magic link cannot reach, a weekly
@@ -35,71 +38,89 @@ sticker chart, and self-serve onboarding in a few taps. MIT licensed.
 defaults to 1 NIM and `STREAK_MILESTONE_EVERY` to 7, so every seventh claimed payout mints one
 extra bonus link without a fresh parent tap. It is capped by the same family budget, it is
 best-effort so a failed bonus never breaks a claim, and setting `STREAK_BONUS_LUNA=0` switches it
-off. This is why the copy says the parent "approves every chore before it pays" rather than
+off. This is why the copy says the parent "says yes before any job pays" rather than
 "approves every transaction".
 
-## August: testing it with my own kids
+## How to try it
 
-My two kids, seven and four, run their real chore routines on it for a full month, on their own
-tablets. A community feedback button goes into the parent account at the same time.
+### Six steps for you, three picks for your kid
 
-The point is to troubleshoot what breaks and hear what they liked and what they did not, which is
-what shows me what to build, what to remove, what to simplify, and what needs to be more
-engaging. Nothing further down this document is allowed to jump ahead of what that month turns up.
+Both apps open on the same climb the goal ladders already use: hexagon steps, one ask per
+screen, a prize at the top. Two separate things ride in it, and they stay apart: chores are the
+everyday loop (jobs on the board, done today, approved, paid), and a goal is its own ladder of
+steps to manage with the prize at the top.
 
-### A Rive animator to gamify the app
+The parent's path, on the phone, ends by setting the kid's first goal:
 
-A **Nimiq Community Council proposal** asks **$4,500** to hire a professional Rive animator for the
-kid-facing side. To be unambiguous, that figure is the size of the grant request to the Community
-Council; it is not a prize amount and it is not money from the competition.
+1. Welcome. Get started, or I have a code.
+2. Your name, what the kids call you.
+3. Kid's name. One field; more kids later.
+4. Wallet. Server custody lets you skip it; parent custody requires it.
+5. First goal. Three everyday jobs go on the board on their own; here the parent picks a prize
+   and a goal template (ride the bike, tie your shoes), a skill in steps, never the chores.
+6. Notifications. Allow, or later.
+7. Family ready. The egg hatches, then the pairing code for the tablet.
 
-**The figure used to read "5 to 10 thousand" and that was wrong.** Research into every proposal the
-Council has decided since it was elected in March 2026 (`docs/funding/COUNCIL-RESEARCH.md`) found
-that **$4,500 is the largest sum it has ever approved**, and that every request above that has been
-rejected, several explicitly on budget. An $11,000 ask came back approved at $2,900 once it was
-narrowed to a single deliverable.
+Screens 2 to 6 still collect into the one `POST` in `routes/onboard.ts`; the rate brake and the
+custody read stay. Under 90 seconds.
 
-Most of that budget goes to the characters rather than to the egg. A shared rig with swapped
-artwork would make every character move identically, which is the opposite of what makes the moment
-worth watching, so each starter character gets its own performance. The full request is drafted at
-`docs/funding/RIVE-PROPOSAL.md`.
+The kid's path, on the tablet, lands on that goal:
 
-**It cannot be submitted yet.** The Council ruled on 15 July 2026 that it does not fund mini apps
-while they are active participants in the Mini Apps Competition. Cycle III closes 11 October 2026.
+1. Hi, Sam. One button.
+2. A face for their wallet: nine identicons, one tap, one way. It is the wallet address and the
+   kid sees it.
+3. Their character: 21 heroes on hex tiles, re-pickable later.
+4. Their place: the 15 timer backgrounds, skippable.
+5. The goal path the parent set, the template's first step saying START, the prize in view;
+   the three everyday jobs wait on the board behind it.
 
-I am already part of the Rive community and will take quotes from two or three animators.
-Duolingo is the reference for playfulness, Fortnite for customization depth. Everything the
-funding pays for ships open source in this repo, so the ecosystem inherits the work.
+Two more things ride with it. The whole app is on its own paint set: blurple is the action,
+grass is done, yolk is the prize, coral is the alert, the line is every letter, paper is the
+ground. Nimiq navy and gold stay on the Nimiq hex logo only; the characters keep their own
+colours. And the characters animate through both climbs as their animations land: the opener on
+both apps is the wordmark plus whale, tiger and frog, and the kid's hero reacts on tap, celebrates
+on confirm, and waits beside the START node.
 
-### Recurring allowance and steady releases
+## Next
 
-A month of real use is how I find the next features. The main one I am building now is an
-allowance the parent sets and controls, that repeats, plus bonuses. Under the hood that may use
-scheduled transactions or a small escrow design; both are under evaluation and whichever ships
-will be documented here.
+What my own family tests first.
 
-## September: a grassroots push to get families on it
+### Our own mini economy, for real
 
-A lot of crypto asks people to invest first. That is backwards: solve a real problem, then give
-people a reason to use it.
+My kids have been running this app on their own tablets while I built on it and fixed what
+broke. Next month is the first month our family runs its own mini economy on it, start to
+finish. The feedback button is live in both apps, in the corner menu.
 
-I have two kids, seven and four, so I am around parents constantly, through their activities, my
-small business, and my own friends with kids. I hand them a cashlink and ask them to try it with
-their own kids. This phase is about real families using it, getting listed on the App Store, and
-starting real marketing once there is something to point at.
+The point is to see what breaks and hear what they liked and what they did not. Nothing further
+down this document is allowed to jump ahead of what that month turns up.
 
-## Future goals
+### Recurring allowance and bonuses
 
-### Scheduled drops, the way Fortnite does it
+An allowance the parent sets and controls, that repeats, plus bonuses. Under the hood that may
+use scheduled transactions or a small escrow design; whichever ships will be documented here.
 
-New sticker packs, backgrounds and characters arriving on a schedule rather than all at once,
-drawn by Rive animators I bring in. Parents decide whether their kid can buy at all. Opening it
-up so outside creators can submit and get paid is a maybe, not a promise.
+## Then
 
-### Paying kids for learning, not just chores (research phase)
+### A grassroots push to get families on it
 
-Connecting to apps that teach: reading, math, music, coding. Ello, Khan Academy Kids and
-Yousician are the kind of thing I mean. I will be selective, nothing that is only a game.
+Most crypto asks people to invest first. This solves a problem first.
+
+I have young kids, so I am around parents constantly, through their activities, my small business,
+and my own friends with kids. I hand them a cashlink and ask them to try it at home. Real families
+first, then an App Store listing, then marketing once there is something to point at.
+
+## Later
+
+### Creator drops, the way Fortnite does it
+
+Sticker packs, backgrounds and characters, released in seasons. Outside creators can submit a
+pack. I approve it into the app, then each parent decides whether their own kid can buy it. Two
+gates before anything reaches a kid.
+
+### Paying kids for learning too (research phase)
+
+Apps that teach reading, math, music and coding: Ello, Khan Academy Kids, Yousician. Nothing that
+is only a game.
 
 The goal is to use **HTLCs** (hash time locked contracts) so the reward releases once the criteria
 are met, rather than requiring a parent tap for every lesson.
@@ -111,7 +132,7 @@ is committed.
 ## The rules that never change
 
 - No ads, no tracking, nothing predatory.
-- The parent funds everything and approves every chore before it pays.
+- The parent funds everything and says yes before any job pays.
 - It stays open source under MIT.
 
 ## Guardrails

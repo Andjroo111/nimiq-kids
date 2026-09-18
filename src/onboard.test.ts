@@ -11,7 +11,8 @@ import * as lockRepo from "./repo-lock";
 import * as referrals from "./repo-referrals";
 import { OTHER_STORE_ITEMS, STICKER_PACKS } from "./sticker-catalog";
 import { newToken, sha256Hex } from "./auth";
-import { onboardRoutes, resetRateLimits, PAIR_CODE_TTL_MS, ONBOARD_MAX_PER_DAY } from "./routes/onboard";
+import { onboardRoutes, resetRateLimits, PAIR_CODE_TTL_MS, ONBOARD_MAX_PER_DAY, ONBOARD_GOAL_TITLE_KEY } from "./routes/onboard";
+import { goalsRoutes } from "./routes/goals";
 import { allow } from "./rate-limit";
 import { lockRoutes } from "./routes/lock";
 import { peerEnv } from "./client-ip";
@@ -24,7 +25,8 @@ const app = new Hono()
   .route("/api", parentRoutes)
   .route("/api", children)
   .route("/api", families)
-  .route("/api", lockRoutes); // the second route that redeems a pair code
+  .route("/api", lockRoutes) // the second route that redeems a pair code
+  .route("/api", goalsRoutes);
 
 beforeEach(() => {
   initTestDb();
@@ -82,6 +84,65 @@ test("one POST creates a family-mode household with kid, sample chores, and a wo
   expect(overview.children.map((k: { id: string }) => k.id)).toEqual([body.child.id]);
 });
 
+// ---- the first goal (the parent climb, WP2, corrected 2026-09-18) ----
+// Two separate things: the everyday loop (the three sample chores on the board) and a GOAL, a
+// ladder of a template's steps with a prize on top. A goal never replaces the chores and its
+// rungs are never chores.
+
+const DRAGONS = "pack-dragons-theme";
+
+test("with a goal the same POST creates the three everyday chores AND a template ladder", async () => {
+  const res = await post("/api/onboard", { parentLabel: "Mom", kidLabel: "Sam", goal: { packId: DRAGONS, template: "shoes" } });
+  expect(res.status).toBe(201);
+  const body = await res.json();
+  // the board is the same board a family without a goal gets
+  expect(body.chores.map((ch: { titleKey: string }) => ch.titleKey)).toEqual(["cat.job.bed", "cat.job.dogfeed", "cat.job.room"]);
+  // and the ladder is the template, not the chores
+  expect(body.goal.template).toBe("shoes");
+  expect(body.goal.titleKey).toBe("cat.goal.shoes");
+  expect(body.goal.title).toBe("Tie your shoes");
+  expect(body.goal.packId).toBe(DRAGONS);
+  expect(body.goal.rungs.map((r: { titleKey: string }) => r.titleKey)).toEqual(["cat.goal.shoes.1", "cat.goal.shoes.2", "cat.goal.shoes.3"]);
+  for (const r of body.goal.rungs) expect(r.rewardLuna).toBeGreaterThan(0);
+  const chores = new Set(body.chores.map((ch: { titleKey: string }) => ch.titleKey));
+  for (const r of body.goal.rungs) expect(chores.has(r.titleKey)).toBe(false);
+  // Rung one is open to the kid, the rest wait their turn: one ladder, in order.
+  const goals = await (await authed(body.token, "GET", `/api/goals?childId=${body.child.id}`)).json();
+  expect(goals.goals).toHaveLength(1);
+  expect(goals.goals[0].ordered).toBe(true);
+  expect(goals.goals[0].rungs.map((r: { state: string }) => r.state)).toEqual(["open", "locked", "locked"]);
+});
+
+test("every template builds, with the English title and one rung per step", async () => {
+  const { GOAL_TEMPLATES } = await import("./goal-templates");
+  let n = 0;
+  for (const t of GOAL_TEMPLATES) {
+    const body = await (await post("/api/onboard", { parentLabel: "Mom", kidLabel: "Sam", goal: { template: t.id } }, {}, peerEnv(`10.0.0.${++n}`))).json();
+    expect(body.goal.packId).toBeNull();
+    expect(body.goal.rungs).toHaveLength(t.steps);
+    expect(body.goal.title).not.toBe(t.id);
+    expect(body.chores).toHaveLength(3);
+  }
+});
+
+test("a goal the server cannot build is refused before anything is created", async () => {
+  const bad = [
+    { packId: "pack-nope", template: "shoes" },  // unknown theme
+    { template: "bike" },                        // the demo's own ladder, not a template: no drawn icon yet
+    { template: "not-a-template" },              // no such template
+    { packId: DRAGONS },                         // no template at all
+    { jobs: ["bed", "dogfeed", "room"] },        // the old shape: chores are not rungs
+    "dragons",                                   // not an object
+  ];
+  for (const goal of bad) {
+    const res = await post("/api/onboard", { parentLabel: "Mom", kidLabel: "Sam", goal });
+    expect({ goal, status: res.status }).toEqual({ goal, status: 400 });
+  }
+  expect(getDb().query("SELECT COUNT(*) AS n FROM families").get()).toEqual({ n: 0 });
+  // and none of those spent the brake
+  expect(allow("onboard:all", ONBOARD_MAX_PER_DAY, 1)).toBe(true);
+});
+
 test("onboarding a second family never disturbs the first household", async () => {
   const first = repo.createFamily("Andjroo", "NQ07 0000 0000 0000 0000 0000 0000 0000 0000");
   repo.updateFamilySettings(first.id, { mode: "family" });
@@ -129,15 +190,20 @@ test("labels are required, trimmed, and capped; the kid row carries zero PII col
   //
   // `play_min` / `rest_min` are the sittings rule ("play 30, rest 30"): the same kind of
   // house rule as `daily_screen_min`, weighed the same way. Nothing about who the child is.
+  //
+  // `hero` (the onboarding climb, 2026-09-18) is the same kind of thing as `emoji`, which
+  // this list has always carried: one of twenty-one cartoon animals the kid tapped on a
+  // tablet. A cartoon frog is not a fact about a child. NULL until they tap one.
   expect(Object.keys(cols).sort()).toEqual([
     "account_index", "address", "address_proof_kind", "address_proof_message",
     "address_proof_pubkey", "address_proof_sig", "address_registered_at", "address_source",
     "balance_luna", "created_at", "daily_screen_min", "derived_address", "emoji", "family_id",
-    "hd_family_index", "id", "label", "lang", "max_earned_min", "play_min", "rest_min",
+    "hd_family_index", "hero", "id", "label", "lang", "max_earned_min", "play_min", "rest_min",
     "star_balance", "streak_count",
   ]);
   // And it starts null, which is the whole basis of the paragraph above.
   expect(cols.lang).toBeNull();
+  expect(cols.hero).toBeNull();
 });
 
 test("a supplied address is validated; under server custody the family still uses the hot wallet", async () => {

@@ -24,6 +24,7 @@ import type { Context, Next } from "hono";
 const HUB = "https://hub.nimiq.com";        // Nimiq Hub: wallet connect, checkout, signing
 const BOT = "https://bot.nimiq.tech";       // "Report a bug" posts straight from the browser
 const YOUTUBE = "https://www.youtube-nocookie.com"; // the marketing page's one embed
+const RIV = "https://riv.nimiq.kids";       // the characters' .riv files the marketing page plays
 
 /**
  * Google Fonts used to be here, and is not any more.
@@ -81,17 +82,37 @@ const YOUTUBE = "https://www.youtube-nocookie.com"; // the marketing page's one 
  * `'unsafe-inline'` in style-src is not going anywhere: `style="…"` attributes are how both
  * apps position things, and inline styles are not a script-execution primitive.
  */
+/**
+ * `'wasm-unsafe-eval'`, and why it is not a loosening of `'unsafe-eval'`.
+ *
+ * 🔴 WITHOUT IT THE EGG TIMER HAS NO EGG INSIDE THE APP. The timer's frame and its egg are
+ * Rive (`public/kid/timer/rive-kit/*.riv`) and the Rive runtime is WebAssembly, which browsers
+ * refuse to instantiate under a `script-src` naming neither `'wasm-unsafe-eval'` nor
+ * `'unsafe-eval'`. It fails exactly where nobody looks: the page loads, the chrome and the card
+ * draw, the console says the module "violates the following Content Security policy directive",
+ * and the hexagon plate and the egg are simply absent. Standalone copies of the same file
+ * (riv.nimiq.kids) carry no CSP and looked perfect throughout, which is how it shipped
+ * (2026-09-17).
+ *
+ * `'wasm-unsafe-eval'` permits compiling and instantiating WebAssembly and NOTHING else: it does
+ * not restore `eval`, `new Function`, or string-to-code of any kind for JavaScript. It is the
+ * directive that exists precisely so an app can run wasm without reopening that door.
+ *
+ * ⚠️ The runtime's own fallback is a jsdelivr URL and `connect-src` correctly refuses it. That
+ * refusal is the SECOND error in the console and it is working as intended; the fix is to let the
+ * LOCAL wasm compile, never to open connect-src to a CDN.
+ */
 export function contentSecurityPolicy(): string {
   return [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline'",
+    "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
     "style-src 'self' 'unsafe-inline'",
     // data: for the generated identicons and inlined SVG; blob: for a camera capture the kid
     // app previews before it has uploaded anything.
     "img-src 'self' data: blob:",
     "font-src 'self'",
     "media-src 'self'",
-    `connect-src 'self' ${HUB} ${BOT}`,
+    `connect-src 'self' ${HUB} ${BOT} ${RIV}`,
     `frame-src 'self' ${HUB} ${YOUTUBE}`,
     // The clickjacking fix. 'self' rather than 'none' because the Hub flow and the kiosk
     // wrapper both frame our own pages.

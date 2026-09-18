@@ -20,15 +20,21 @@ import { nimUsd, usdToWholeNimLuna } from "../rates";
 import { familyForSubject, PAIRING_REQUIRED, requestFamily } from "./families";
 import { resolveJob, jobKey, JOB_CATALOG, JOB_GROUPS } from "../title-catalog";
 import { normalizeTitle, TITLE_MAX } from "../title-limits";
-import { TASK_ICONS, taskIconUrl } from "../task-icons";
+import { TASK_ICONS, FACE_ICONS, taskIconUrl, iconUrlForEmoji } from "../task-icons";
 import { INVALID_EMOJI, readEmoji } from "../emoji-field";
 import { refuseBoardWrite } from "./members";
 
 export const chores = new Hono();
 
 /** The drawn icons a kid can choose from when they add a job of their own. */
-chores.get("/task-icons", (c) =>
-  c.json({ icons: TASK_ICONS.map((i) => ({ ...i, url: taskIconUrl(i.id) })) }));
+// `icons` is what the add-a-job strip offers; `faces` is everything a card may wear, which is
+// the picker's list plus the routine headers and the three defaults (FACE_ICONS). The parent
+// board maps emoji to a face from `faces`, so a routine header draws the same art on both apps.
+chores.get("/task-icons", (c) => {
+  const icons = TASK_ICONS.map((i) => ({ ...i, url: taskIconUrl(i.id) }));
+  const faces = [...icons, ...FACE_ICONS.map((i) => ({ ...i, url: taskIconUrl(i.id) }))];
+  return c.json({ icons, faces });
+});
 
 chores.get("/chores", async (c) => {
   const childId = c.req.query("childId");
@@ -512,6 +518,8 @@ chores.get("/catalog/jobs", (c) =>
       id: g,
       labelKey: `cat.group.${g}`,
       jobs: JOB_CATALOG.filter((j) => j.group === g)
-        .map((j) => ({ id: j.id, key: jobKey(j.id), emoji: j.emoji, en: j.en })),
+        // `iconUrl` rides with the tile so the picker draws the drawn face rather than the
+        // emoji; the emoji still travels because it is what a picked job STORES.
+        .map((j) => ({ id: j.id, key: jobKey(j.id), emoji: j.emoji, en: j.en, iconUrl: iconUrlForEmoji(j.emoji) })),
     })),
   }));

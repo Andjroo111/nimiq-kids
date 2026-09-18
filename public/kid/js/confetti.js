@@ -44,7 +44,7 @@ export function makeDefaults() {
     speed: 120, speedJitter: 0.06, spin: 0, gravity: 0, drag: 1.5, life: 1.1,
     tickLength: 6, tickThickness: 3.5, squareRatio: 0.12, strays: 6,
     burstInterval: 660, burstPops: 2,
-    radial: true, colors: ["#FC8702", "#21BCA5", "#E9B213"], seed: 7,
+    radial: true, colors: ["#DD675D", "#1B985E", "#FED56C"], seed: 7,
   };
 }
 
@@ -85,7 +85,7 @@ function makeParticle(rng, ox, oy, angle, speed, color, p) {
 
 function colorsOf(p) {
   const cs = (p.colors || []).filter(Boolean);
-  return cs.length ? cs : ["#21BCA5"];
+  return cs.length ? cs : ["#1B985E"];
 }
 
 // ONE pop at (ox,oy): `rings` concentric ring outlines (one color per ring) + strays.

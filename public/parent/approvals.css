@@ -16,7 +16,7 @@
 .ap-right { margin-left: auto; min-width: 0; max-width: 62%; text-align: right; }
 .ap-title { font-weight: 700; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ap-reward { text-align: right; }
-.ap-reward .amount { font-weight: 700; color: #21BCA5; white-space: nowrap; }
+.ap-reward .amount { font-weight: 700; color: var(--paint-grass); white-space: nowrap; }
 .ap-reward .fiat-amount { display: block; font-size: 12px; font-weight: 600; color: var(--ink-50); }
 .ap-what { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
 .ap-what svg { width: 22px; height: 22px; flex-shrink: 0; color: var(--navy); }
@@ -26,7 +26,7 @@
 .ap-task .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ap-task .el { color: var(--ink-40); font-size: 12px; }
 .ap-task svg { width: 13px; height: 13px; flex-shrink: 0; }
-.ap-task .ok { color: #21BCA5; display: inline-flex; }
+.ap-task .ok { color: var(--paint-grass); display: inline-flex; }
 .ap-task .skip { color: var(--ink-40); display: inline-flex; font-size: 11px; font-weight: 700; }
 /* A side quest the kid left alone (#341). Neutral, not a failure mark: the plus says what it
    was (extra on top) and the muted ink says it did not happen. */
@@ -38,6 +38,6 @@
 .ap-photo img { width: 100%; max-height: 220px; object-fit: cover; display: block; }
 .ap-actions { display: flex; gap: 10px; }
 .ap-actions .pill-btn { flex: 1; }
-.pill-btn.green { color: #fff; background-image: radial-gradient(100% 100% at bottom right, #41A38E, #21BCA5); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
-.hl { outline: 2px solid #0582CA; outline-offset: 3px; }
+.pill-btn.green { color: #fff; background-color: var(--paint-grass); background-image: none; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+.hl { outline: 2px solid var(--paint-blurple); outline-offset: 3px; }
 

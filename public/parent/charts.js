@@ -27,9 +27,12 @@ export const SERIES = {
   red: "#D94432",
 };
 
-const INK = "#1F2348";
-const MUTED = "rgba(31, 35, 72, 0.5)";
-const GRID = "rgba(31, 35, 72, 0.10)";
+// Text and grid wear the LINE (the paint set, 2026-09-18). The four series stay as validated:
+// the paint set run through the dataviz validator as a categorical palette fails CVD
+// separation (coral against grass, protan ΔE 5.6), so a chart keeps its own stepped hues.
+const INK = "#1C1B13";
+const MUTED = "rgba(28, 27, 19, 0.5)";
+const GRID = "rgba(28, 27, 19, 0.10)";
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));

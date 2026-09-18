@@ -21,6 +21,17 @@
   <link rel="stylesheet" href="/vendor/nqp/amount/amount.css" />
   <link rel="stylesheet" href="/vendor/nqp/toast-notification/toast-notification.css" />
   <link rel="stylesheet" href="/parent/parent.css?v=3" />
+  <!-- The paint set as the --duo-* map (WP1). Own sheet: parent.css sits on the 800-line guard. -->
+  <link rel="stylesheet" href="/parent/paint.css?v=1" />
+  <!-- The Duolingo mechanics (lip button, hexagon node, climbed path) on the paint-set map:
+       the kid app's vendored nq registry copy, read here too rather than vendored twice.
+       Dependency order: the button declares the --duo-* contract, the node builds on it, the
+       path composes the nodes. The first-run climb (views-onboard.js) is their first surface. -->
+  <link rel="stylesheet" href="/kid/vendor/duo/duo-button/duo-button.css" />
+  <link rel="stylesheet" href="/kid/vendor/duo/duo-node/duo-node.css" />
+  <link rel="stylesheet" href="/kid/vendor/duo/duo-path/duo-path.css" />
+  <!-- The climb itself (WP2). After the duo sheets, whose tokens it reads. -->
+  <link rel="stylesheet" href="/parent/onboard.css?v=1" />
   <!-- The board (views-board.js + views-board-goals.js), split out of parent.css at the
        800-line guard. AFTER parent.css: it relies on its tokens and wins at equal specificity. -->
   <link rel="stylesheet" href="/parent/board.css?v=1" />
@@ -43,10 +54,10 @@
         <!-- The shipped NIMIQ.kids lockup (public/assets/brand/README.md). The header used to
              pair a BARE Nimiq hexagon with the wordmark retyped as live text, which the brand
              rules forbid twice over: the mark is the hexagon holding the solid hand, and
-             `NIMIQ` is a verbatim logotype path that must never be typeset. Dark variant because
-             .phdr is the navy radial. -->
+             `NIMIQ` is a verbatim logotype path that must never be typeset. Light variant since
+             the paint set (2026-09-18): .phdr is white on paper now. -->
         <div class="hdr-brand">
-          <img class="hdr-lockup" src="/assets/brand/nimiq-kids-lockup-dark.svg" alt="NIMIQ.kids" />
+          <img class="hdr-lockup" src="/assets/brand/nimiq-kids-lockup-light.svg" alt="NIMIQ.kids" />
           <img class="hdr-mark" src="/assets/brand/nimiq-kids-mark.svg" alt="NIMIQ.kids" />
         </div>
         <!-- fleet chrome: the one-button corner control (wallet + language, nimiq-app-shell) -->

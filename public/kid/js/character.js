@@ -1,4 +1,5 @@
-// "Which one is you?" — the screen where a kid chooses their own character (#381).
+// "Your money has a face" — the screen where a kid chooses their own identicon (#381,
+// reworded and put on hexagon tiles for the climb, 2026-09-18).
 //
 // A Nimiq identicon is drawn from an address, and a server-custodied kid's address comes from
 // one small integer. So these nine pictures are nine real accounts, and tapping one is what
@@ -11,23 +12,24 @@
 // Which is also why the shuffle lives here and not after: changing your mind is free right up
 // until it isn't, and the moment it stops being free is the tap.
 //
-// The reader is four. No address is shown, no index, no word about accounts. Nine pictures, a
-// button that says try different ones, and their name at the top.
+// The reader is four. The copy says what it is in their words ("this is your wallet address,
+// it stays yours") and nothing more: no index, no key. Andjroo rewrites the lines; the draft is
+// in src/locales/en.ts. Nine pictures, three by three, and a button that says show me more.
 
 import { api } from "./api.js";
-import { $, esc, t, setScreen, identiconImg, paintIdenticons } from "./util.js";
+import { $, esc, t, identiconImg, paintIdenticons } from "./util.js";
 import { armSceneCoach } from "./coach.js";
+import { climbScreen, hexTile, lipButton } from "./climb-shell.js";
 
 /** Rendered state for one visit to this screen. Never outlives it. */
 let offer = null;
 let busy = false;
 
 function grid() {
-  return offer.choices.map((c, i) => `
-    <button class="k-char-tile" type="button" data-index="${esc(String(c.index))}"
-            aria-label="${esc(t("app.charPickOne", { n: String(i + 1) }))}">
-      ${identiconImg(c.address, "k-char-iqon")}
-    </button>`).join("");
+  return offer.choices.map((c, i) => hexTile(identiconImg(c.address, "ob-iqon"), {
+    attrs: `data-index="${esc(String(c.index))}"`,
+    label: t("app.obFacePick", { n: String(i + 1) }),
+  })).join("");
 }
 
 /**
@@ -50,38 +52,37 @@ async function loadOffer(child) {
 async function draw(child, done, message = "") {
   offer = await loadOffer(child);
   // No offer means the question is already answered — the kid has an account, or this instance
-  // does not derive them. Either way there is nothing to choose and the app carries on rather
+  // does not derive them. Either way there is nothing to choose and the climb carries on rather
   // than parking a child in front of an empty grid.
   if (!offer) return done();
 
-  setScreen(`
-    <div class="k-connect k-charpick">
-      <div class="small-page nq-card k-connect-card">
-        <div class="page-header nq-card-header">
-          <h1 class="nq-h1">${esc(t("app.charTitle", { name: child.label }))}</h1>
-          <p class="nq-notice">${esc(t("app.charSub"))}</p>
-        </div>
-        <div class="page-body nq-card-body">
-          <div class="k-char-grid">${grid()}</div>
-          ${message ? `<p class="k-char-message">${esc(message)}</p>` : ""}
-          ${offer.shufflesLeft > 0
-            ? `<button class="nq-button-s k-char-shuffle" type="button">${esc(t("app.charShuffle"))}</button>`
-            : `<p class="k-char-message">${esc(t("app.charNoMore"))}</p>`}
-        </div>
-      </div>
-    </div>`, "k-screen k-connect-screen");
+  climbScreen({
+    cls: "ob-face",
+    title: t("app.obFaceTitle"),
+    sub: t("app.obFaceSub"),
+    body: `
+      <div class="ob-grid ob-grid-9">${grid()}</div>
+      ${message ? `<p class="ob-note">${esc(message)}</p>` : ""}
+      ${offer.shufflesLeft > 0 ? "" : `<p class="ob-note">${esc(t("app.obFaceNoMore"))}</p>`}`,
+    // The shuffle is the second thing offered, so it is the paper button, never the action one:
+    // a blue button under nine faces would make choosing feel like a decision about the button.
+    foot: offer.shufflesLeft > 0 ? lipButton("ob-more", t("app.obFaceMore"), { tone: "secondary" }) : "",
+  });
   paintIdenticons();
 
-  document.querySelectorAll(".k-char-tile").forEach((tile) => {
-    tile.onclick = () => pick(child, done, Number(tile.dataset.index));
+  document.querySelectorAll(".ob-tile").forEach((tile) => {
+    tile.querySelector(".duo-node-face").onclick = () => pick(child, done, Number(tile.dataset.index), tile);
   });
-  const shuffle = $(".k-char-shuffle");
-  if (shuffle) shuffle.onclick = () => { if (!busy) draw(child, done); };
+  const more = $("ob-more");
+  if (more) more.onclick = () => { if (!busy) draw(child, done); };
 }
 
-async function pick(child, done, index) {
+async function pick(child, done, index, tile) {
   if (busy) return;
   busy = true;
+  // The tile stays pressed while the server answers: the lip is the tap landing, and the
+  // animation slot after it (the picked face rides to the corner) is Andjroo's.
+  tile.classList.add("is-picked");
   const res = await api.chooseCharacter(child.id, { setId: offer.setId, index }).catch((e) => e);
   busy = false;
 
@@ -99,5 +100,5 @@ async function pick(child, done, index) {
   // Every refusal lands the same way on this screen, because a four-year-old cannot act on the
   // difference between "a sibling took that one" and "that offer got old". They can act on
   // "here are some more", which is what a redraw is.
-  await draw(child, done, t("app.charTryAgain"));
+  await draw(child, done, t("app.obFaceTryAgain"));
 }

@@ -109,7 +109,7 @@
 }
 .ch-money-nim i { font-style: normal; font-size: 16px; opacity: 0.5; margin-left: 4px; }
 .ch-money-fiat { display: block; font-size: 15px; font-weight: 800; color: var(--ink-70); }
-.ch-money .caret { font-size: var(--ic-s); flex: none; margin-left: auto; color: rgba(31, 35, 72, 0.35); }
+.ch-money .caret { font-size: var(--ic-s); flex: none; margin-left: auto; color: rgba(28, 27, 19, 0.35); }
 
 /* ---------- THE CALENDAR ----------
    Moved to public/kid/css/calendar.css at the 800-line guard. The sticker a date
@@ -161,7 +161,7 @@
   display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: contain;
   padding: 10%;
   background: #fff; border: 2px solid #fff; box-sizing: border-box;
-  box-shadow: 0 1px 4px rgba(31, 35, 72, 0.3);
+  box-shadow: 0 1px 4px rgba(28, 27, 19, 0.3);
 }
 /* A photograph is the exception: it has no silhouette, so filling the circle is what
    makes it read as a sticker at all. */
@@ -175,7 +175,7 @@
   display: grid; place-items: center; width: 100%; height: 100%;
   border-radius: 50%; background: #F4F5F9; color: var(--ink-50, #7d7f96);
   border: 2px solid #fff; box-sizing: border-box;
-  box-shadow: 0 1px 4px rgba(31, 35, 72, 0.3);
+  box-shadow: 0 1px 4px rgba(28, 27, 19, 0.3);
 }
 .stk .stk-away svg { width: 58%; height: 58%; display: block; }
 /* An emoji sticker: the glyph is the art, on the same white die-cut disc the
@@ -185,7 +185,7 @@
   display: grid; place-items: center; width: 100%; height: 100%;
   border-radius: 50%; background: #fff;
   border: 2px solid #fff; box-sizing: border-box;
-  box-shadow: 0 1px 4px rgba(31, 35, 72, 0.3);
+  box-shadow: 0 1px 4px rgba(28, 27, 19, 0.3);
   line-height: 1;
   -webkit-user-select: none; user-select: none;
 }
@@ -224,7 +224,7 @@
    plus an 8px gold glow reads as a highlight; at this size the same treatment is a
    fat gold donut with a small drawing lost in the hole. One crisp ring, no glow. */
 .cal-dates .stk-shined img, .cal-dates .stk-shined .stk-fallback, .cal-dates .stk-shined .stk-emoji {
-  box-shadow: 0 0 0 1.5px rgba(233, 178, 19, 0.85);
+  box-shadow: 0 0 0 1.5px rgba(254, 213, 108, 0.85);
 }
 /* The tilt is capped where the node is built (calendar.js): a rotated square's
    bounding box grows by (cos+sin), so a 20 degree lean makes a 34px sticker
@@ -236,7 +236,7 @@
 /* golden shine: parent approved — a subtle metallic sweep + gold ring */
 .stk-shined img, .stk-shined .stk-fallback, .stk-shined .stk-emoji {
   border-color: var(--gold);
-  box-shadow: 0 0 0 2px rgba(233, 178, 19, 0.5), 0 2px 8px rgba(233, 178, 19, 0.45);
+  box-shadow: 0 0 0 2px rgba(254, 213, 108, 0.5), 0 2px 8px rgba(254, 213, 108, 0.45);
 }
 .stk-shined .stk-shine {
   display: block; position: absolute; inset: 2px; border-radius: 50%;
@@ -367,11 +367,11 @@
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .ch-task-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.ch-timer { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; color: rgba(31, 35, 72, 0.5); }
+.ch-timer { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; color: rgba(28, 27, 19, 0.5); }
 .ch-timer-egg { font-size: 14px; color: var(--ink-50); }
 
 .ch-slot { position: relative; width: 56px; height: 56px; flex: none; display: block; }
-.ch-slot-empty { position: absolute; inset: 4px; border: 2.5px dashed rgba(31, 35, 72, 0.28); border-radius: 50%; }
+.ch-slot-empty { position: absolute; inset: 4px; border: 2.5px dashed rgba(28, 27, 19, 0.28); border-radius: 50%; }
 
 /* ---------- the ring's four looks (chart.js cardState) ----------
    The ring is the only thing on a card that says where a job stands, so the four
@@ -395,7 +395,7 @@
 .ch-slot.is-open .ch-slot-empty { background: var(--fill-5); }
 .ch-slot.is-retry .ch-slot-empty { background: var(--fill-5); }
 .ch-slot.is-waiting .ch-slot-empty {
-  border-style: solid; border-color: rgba(31, 35, 72, 0.12); background: var(--fill-5);
+  border-style: solid; border-color: rgba(28, 27, 19, 0.12); background: var(--fill-5);
 }
 .ch-slot-wait {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
@@ -416,7 +416,7 @@
 .slot-target { z-index: 76; }
 .slot-target::after {
   content: ""; position: absolute; inset: -5px; border-radius: 50%;
-  border: 3px solid var(--blue); box-shadow: 0 0 0 4px rgba(5, 130, 202, 0.18);
+  border: 3px solid var(--blue); box-shadow: 0 0 0 4px rgba(84, 101, 238, 0.18);
 }
 
 .ch-empty {
@@ -424,7 +424,7 @@
   display: flex; flex-direction: column; align-items: center; gap: 8px;
 }
 /* .ch-empty-ic is a spot glyph: icons.css .k-spot sizes and tints it. */
-.ch-empty p { font-size: 16px; font-weight: 700; color: rgba(31, 35, 72, 0.6); text-align: center; }
+.ch-empty p { font-size: 16px; font-weight: 700; color: rgba(28, 27, 19, 0.6); text-align: center; }
 
 /* ---------- dock: Box | Calendar | Timer | Games | Money ---------- */
 /* Screens with a dock publish its height so the toast clears it (the toast is
@@ -507,7 +507,7 @@ body:has(#kid-app.chart-screen), body:has(#kid-app.box-screen) { --kid-dock-h: 8
 .tm-opt {
   width: 84px; height: 84px; border-radius: 50%; flex: none;
   display: grid; place-items: center; border: none;
-  background: rgba(31, 35, 72, 0.06); color: var(--navy); box-shadow: var(--sh-card);
+  background: rgba(28, 27, 19, 0.06); color: var(--navy); box-shadow: var(--sh-card);
  
 }
 .tm-opt-ic { font-size: 42px; }
@@ -515,17 +515,17 @@ body:has(#kid-app.chart-screen), body:has(#kid-app.box-screen) { --kid-dock-h: 8
 .stkp-hd { margin-bottom: var(--s1); }
 .stkp-grid { display: flex; flex-wrap: wrap; gap: 10px; }
 .stkp-tile {
-  width: 64px; height: 64px; border-radius: var(--r-tile); background: rgba(31, 35, 72, 0.05);
+  width: 64px; height: 64px; border-radius: var(--r-tile); background: rgba(28, 27, 19, 0.05);
   display: grid; place-items: center;
 }
 .stkp-tile .stk-flat { width: 52px; height: 52px; }
 .stkp-camera {
-  border: 2.5px dashed rgba(31, 35, 72, 0.3); background: transparent;
+  border: 2.5px dashed rgba(28, 27, 19, 0.3); background: transparent;
   color: var(--muted); font-size: 22px; cursor: pointer;
 }
 
 /* ---------- placement layer (the sticker follows the finger) ---------- */
-.place-layer { position: fixed; inset: 0; z-index: 75; touch-action: none; background: rgba(31, 35, 72, 0.1); }
+.place-layer { position: fixed; inset: 0; z-index: 75; touch-action: none; background: rgba(28, 27, 19, 0.1); }
 .place-hint {
   position: absolute; top: calc(12px + env(safe-area-inset-top)); left: 50%;
   transform: translateX(-50%); max-width: 78vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -541,7 +541,7 @@ body:has(#kid-app.chart-screen), body:has(#kid-app.box-screen) { --kid-dock-h: 8
 }
 .stk-ghost {
   position: fixed; width: 64px; height: 64px; z-index: 80; pointer-events: none;
-  filter: drop-shadow(0 10px 16px rgba(31, 35, 72, 0.35));
+  filter: drop-shadow(0 10px 16px rgba(28, 27, 19, 0.35));
 }
 
 /* ---------- money screen: the v2 home under a back button ---------- */
@@ -653,7 +653,7 @@ body:has(#kid-app.chart-screen), body:has(#kid-app.box-screen) { --kid-dock-h: 8
    real ones. */
 .ch-add {
   width: 100%; flex: none; padding: var(--s3); border-radius: var(--r-card);
-  border: 2.5px dashed rgba(31, 35, 72, 0.22);
+  border: 2.5px dashed rgba(28, 27, 19, 0.22);
   background: rgba(255, 255, 255, 0.72);
   font-size: var(--fs-body); font-weight: var(--fw-title); color: var(--ink-50);
 }
@@ -667,7 +667,7 @@ body:has(#kid-app.chart-screen), body:has(#kid-app.box-screen) { --kid-dock-h: 8
 .aj-icon { aspect-ratio: 1; border-radius: var(--r-tile); background: var(--fill-5); display: grid; place-items: center; padding: 6px; }
 .aj-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .aj-icon-emoji { font-size: 28px; line-height: 1; } /* stands in while no icon art ships (src/task-icons.ts) */
-.aj-icon.is-on { background: rgba(5, 130, 202, 0.12); box-shadow: inset 0 0 0 2.5px var(--blue); }
+.aj-icon.is-on { background: rgba(84, 101, 238, 0.12); box-shadow: inset 0 0 0 2.5px var(--blue); }
 .aj-title {
   width: 100%; padding: var(--s3) var(--s4); border-radius: var(--r-card);
   border: 0; background: var(--fill-5);
@@ -692,7 +692,7 @@ body:has(#kid-app.chart-screen), body:has(#kid-app.box-screen) { --kid-dock-h: 8
 }
 .aj-go {
   width: 100%; padding: var(--s4); border-radius: var(--r-pill);
-  background-image: var(--nimiq-light-blue-bg, radial-gradient(100% 100% at bottom right, #265DD7, #0582CA));
+  background-color: var(--paint-blurple); background-image: none;
   color: #fff; font-size: var(--fs-body); font-weight: var(--fw-title);
   box-shadow: var(--sh-cta);
 }
@@ -753,6 +753,7 @@ body:has(#kid-app.chart-screen), body:has(#kid-app.box-screen) { --kid-dock-h: 8
   text-align: left; min-height: 52px;
 }
 .jp-emoji { font-size: 22px; line-height: 1; flex: none; }
+.jp-face { width: 28px; height: 28px; object-fit: contain; flex: none; display: block; }
 /* Two lines, then ellipsis: a translated title runs longer than the English it
  * was measured against (German especially), and a tile that clips mid-word tells
  * a kid nothing about which job it is. */
@@ -760,7 +761,7 @@ body:has(#kid-app.chart-screen), body:has(#kid-app.box-screen) { --kid-dock-h: 8
   font-size: var(--fs-small); font-weight: var(--fw-title); line-height: 1.2;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-.jp-tile.is-on { background: var(--nq-blue-10, rgba(5,130,202,.14)); box-shadow: inset 0 0 0 2px var(--nq-blue, #0582CA); }
+.jp-tile.is-on { background: var(--nq-blue-10, rgba(84, 101, 238, .14)); box-shadow: inset 0 0 0 2px var(--nq-blue, var(--paint-blurple)); }
 .jp-none { font-size: var(--fs-small); color: var(--ink-50); padding: var(--s2); }
 @media (min-width: 700px) {
   .jp-grid { max-height: 42vh; }
@@ -776,20 +777,20 @@ body:has(#kid-app.chart-screen), body:has(#kid-app.box-screen) { --kid-dock-h: 8
    pill, nothing to do first. */
 .ch-finish {
   display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 8px;
-  padding: 14px 16px; border: 2px dashed rgba(33,188,165,.45); border-radius: 16px;
-  background: rgba(33,188,165,.08); text-align: left; cursor: pointer;
+  padding: 14px 16px; border: 2px dashed rgba(27, 152, 94, .45); border-radius: 16px;
+  background: rgba(27, 152, 94, .08); text-align: left; cursor: pointer;
 }
 .ch-finish:active { transform: scale(0.985); }
 .ch-finish-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .ch-finish-title { font-size: 17px; font-weight: 700; }
 .ch-finish-sub { font-size: 13px; font-weight: 600; opacity: .65; }
-.ch-finish-mark { flex-shrink: 0; display: inline-flex; color: #21BCA5; }
+.ch-finish-mark { flex-shrink: 0; display: inline-flex; color: var(--paint-grass); }
 .ch-finish-mark svg { width: 26px; height: 26px; }
 
 /* A side quest names itself on its card. Without it the kid cannot tell the step they have
    to do from the one that only pays extra, which is the whole feature. */
 .ch-bonus-tag {
   display: inline-flex; align-items: center; margin-left: 6px; padding: 2px 8px;
-  border-radius: 999px; background: rgba(33,188,165,.16); color: #16887a;
+  border-radius: 999px; background: rgba(27, 152, 94, .16); color: #16887a;
   font-size: 11.5px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase;
 }

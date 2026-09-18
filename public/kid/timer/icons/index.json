@@ -14,8 +14,8 @@
   },
   {
    "slug": "hooray",
-   "fill": 0.292,
-   "reach": 0.102
+   "fill": 0.409,
+   "reach": 0.206
   },
   {
    "slug": "love",
@@ -49,8 +49,13 @@
   },
   {
    "slug": "teeth",
-   "fill": 0.215,
-   "reach": 0.127
+   "fill": 0.361,
+   "reach": 0.159
+  },
+  {
+   "slug": "eat",
+   "fill": 0.404,
+   "reach": 0.308
   }
  ]
 }

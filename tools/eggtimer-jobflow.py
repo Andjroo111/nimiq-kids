@@ -132,19 +132,19 @@ async def leg(pg, title, want_clock, errs, seen, shots):
     assert title in head, f"[{title}] the job is not named on the timer: {head!r}"
     clock = await fr.locator("#jobTime").inner_text()
     assert clock == want_clock, f"[{title}] job length reads {clock!r}, want {want_clock!r}"
-    # ⚠️ The card sits ABOVE the shell, not written across it. Andjroo, 2026-08-01.
-    # ⚠️ Measured against the EGG, not #rigWrap. The wrap is the whole 720x560 stage
-    # and the shell occupies a fraction of it, so a card clearing the wrap clears
-    # nothing in particular. RIG.geom() reports where the egg actually is.
+    # ⚠️ The job is said IN THE WHITE CARD under the plate, not written across the shell
+    # (Andjroo, 2026-08-01) and, since 2026-09-15, not hung above the egg either: the
+    # plate frames the egg from the first frame, so the job's row takes the picker's
+    # place in #setCard. Assert the row is inside the card and below the plate.
     import json as _j
     gap = _j.loads(await f.evaluate("""(()=>{
-      const w=document.getElementById('rig'), r=w.getBoundingClientRect();
-      const g=w.contentWindow.RIG.geom(), k=r.height/g.stage.h;
-      const eggTop=r.top+g.egg.y*k;
       const c=document.getElementById('jobCard').getBoundingClientRect();
-      return JSON.stringify({gap:eggTop-c.bottom, eggTop, cardBottom:c.bottom})})()"""))
-    assert gap["gap"] >= -2, \
-        f"[{title}] the card is ON the egg: card bottom {gap['cardBottom']:.0f} vs egg top {gap['eggTop']:.0f}"
+      const s=document.getElementById('setCard').getBoundingClientRect();
+      const p=document.getElementById('plate').getBoundingClientRect();
+      return JSON.stringify({inCard:c.top>=s.top&&c.bottom<=s.bottom, gap:s.top-p.bottom, cardTop:s.top, plateBottom:p.bottom})})()"""))
+    assert gap["inCard"], f"[{title}] the job row is not inside the set card: {gap}"
+    assert gap["gap"] >= 8, \
+        f"[{title}] the card is ON the plate: card top {gap['cardTop']:.0f} vs plate bottom {gap['plateBottom']:.0f}"
     # the REAL icon asset, not the emoji glyph
     ic = await f.evaluate(
         "(()=>{const i=document.getElementById('jobIcon');"
@@ -152,11 +152,11 @@ async def leg(pg, title, want_clock, errs, seen, shots):
     icd = _j.loads(ic)
     assert not icd["hidden"] and icd["src"], f"[{title}] no icon asset on the card: {icd}"
     assert icd["w"] > 0, f"[{title}] the icon did not load: {icd}"
-    print(f"[{W}px] {title}: card above the egg, icon {icd['src'].split('/')[-1]}")
+    print(f"[{W}px] {title}: job row in the card, icon {icd['src'].split('/')[-1]}")
 
     # everything a job has no business offering
     gone = await f.evaluate(
-        "JSON.stringify(['dial','plus','stepUp','stepDn','runCtl']"
+        "JSON.stringify(['cols','plus','stepUp','stepDn','runCtl']"
         ".filter(id=>!document.getElementById(id).hidden))")
     assert gone == "[]", f"[{title}] still offering: {gone}"
     shots.append((Image.open(io.BytesIO(await pg.screenshot())).convert("RGB"), f"{title} — set"))

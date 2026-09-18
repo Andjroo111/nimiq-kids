@@ -9,6 +9,7 @@
 // rest days a weekly target exists to allow.
 
 import { getDb } from "./db";
+import { iconUrlForEmoji } from "./task-icons";
 import { latestApprovalFor } from "./repo-approvals";
 import { mondayOf, addDays } from "./days";
 // The one reader of "was this child here at all", shared with firstActivityDay so the two
@@ -386,7 +387,7 @@ export function practiceView(p: Practice, today: string) {
   // nothing is ticked, so this is the offer; afterwards it is the record.
   const ticked = new Set(session ? tickedStepIds(session.id) : []);
   const steps = listSteps(p.id).map((s) => ({
-    id: s.id, title: s.title, titleKey: s.title_key, emoji: s.emoji,
+    id: s.id, title: s.title, titleKey: s.title_key, emoji: s.emoji, iconUrl: iconUrlForEmoji(s.emoji),
     rewardLuna: s.reward_luna, how: s.how, videoUrl: s.video_url, done: ticked.has(s.id),
   }));
   return {

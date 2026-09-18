@@ -8,7 +8,7 @@ import { showMoney } from "./money.js";
 
 /** The wallet's own QR on this screen is flat NAVY, not the registry's default
  *  light-blue radial. Verified against the captured reference. */
-const NIMIQ_QR_NAVY = "#1F2348";
+const NIMIQ_QR_NAVY = "#1C1B13";
 
 export function showReceive() {
   const kid = state.child;

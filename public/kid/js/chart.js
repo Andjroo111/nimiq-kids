@@ -702,6 +702,11 @@ function chartFingerprint() {
   // fetch and would make the fingerprint differ forever. Only what renders.
   return JSON.stringify([
     c.today, c.days, c.rows, c.todayTasks, c.practices,
+    // The goals too: a rung the parent approves while the board is open moves that ladder's
+    // card (climbed count, the next rung's state) and nothing else in this list changes with
+    // it, so the poll compared two equal strings and the card sat stale until something
+    // unrelated repainted (2026-09-18).
+    c.goals,
     state.wallet?.balanceLuna ?? 0, boxBadgeCount(),
     // The offline line is part of what the board says, so losing or regaining the network
     // has to repaint it. Without this the poll compares two identical payloads, decides

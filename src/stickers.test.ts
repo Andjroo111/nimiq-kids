@@ -511,10 +511,11 @@ test("catalog: every art sticker has art that actually exists on disk", () => {
   for (const row of rows) {
     expect(row.emoji).toBeTruthy();
     expect(row.asset_url).toBe(stickerAssetUrl(row.id));
-    // Since 2026-09-17 only the THEME stickers (the lineless packs) carry a file; the emoji
-    // packs for sale keep a null url and draw their emoji.
-    const themed = STICKER_PACKS.some((p) => p.id === row.pack_id && p.theme);
-    if (STICKER_ART_SHIPPED && themed) {
+    // Since 2026-09-17 the THEME stickers (the lineless packs) carry a file, and since
+    // 2026-09-18 the starter pack does too (`art`); the retired emoji packs keep a null url
+    // and draw their emoji.
+    const drawn = STICKER_PACKS.some((p) => p.id === row.pack_id && (p.theme || p.art));
+    if (STICKER_ART_SHIPPED && drawn) {
       expect(row.asset_url, row.id).not.toBeNull();
       expect(existsSync(join(import.meta.dir, "..", "public", row.asset_url!)), row.id).toBe(true);
     } else {

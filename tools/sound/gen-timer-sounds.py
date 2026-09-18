@@ -61,7 +61,8 @@ ENDING = {
 }
 
 # ---- DURING: the bed that plays while the egg counts down ---------------------------
-# ⚠️ lullaby, bounce and space are NOT these files any more (2026-09-17). Andjroo A/B'd the
+# ⚠️ lullaby, bounce and space are NOT these files any more (2026-09-17), and cozy, ocean, robot,
+# dragon (beds) plus rocket, roar (stings) were never here at all (Suno, 2026-09-18). Andjroo A/B'd the
 # ElevenLabs beds against Suno takes and picked Suno for those three: v6, Custom, no lyrics,
 # 1:10 masters, then audio.make_loop (whole bars, spectral seam match, 0.4s equal-power
 # crossfade) to a ~30s loop, normalised to -25 LUFS (what these files measured after the
@@ -103,6 +104,13 @@ REMINDERS = {
 
 # Baked playback levels, applied by lame --scale at encode time. Beds sit well under the
 # voices because they play UNDER a running timer; stings and reminders are foreground.
+# ⚠️ A SCALE IS NOT A LEVEL. These multiply whatever ElevenLabs happened to return, and
+# measured on 2026-09-17 the shipped results were 31 dB apart: end-chime (the default)
+# sat at -39 LUFS, end-fanfare at -8, bed-clock at -46. All three were "no sound" or
+# "too loud" bugs that nothing in this file could see. The shipped files were re-levelled
+# by measurement instead (stings -17 LUFS with a -1 dBFS peak cap, clock -27.8, the
+# most its transients allow); anything regenerated here has to be measured the same way
+# (ffmpeg ebur128) before it ships, not scaled.
 LEVEL = {"ending": 0.85, "during": 0.35, "reminders": 0.9}
 
 
@@ -207,7 +215,11 @@ def gen_voice(rid: str, text: str, who: str, vid: str, k: str) -> Path:
     raw = OUT / "reminders" / "raw" / f"{rid}-{who}.mp3"
     raw.parent.mkdir(parents=True, exist_ok=True)
     raw.write_bytes(post(f"/text-to-speech/{vid}",
-                         {"text": text, "model_id": "eleven_multilingual_v2"}, k))
+                         {"text": text, "model_id": "eleven_v3"}, k))
+    # ⚠️ eleven_v3, NOT multilingual_v2. v2 reads the bracket tag as a word ("Cheerful. Good
+    # job", verified by scribe_v1 on the shipped file, 2026-09-18); v3 treats it as delivery.
+    # Also transcribe every take back and reject it if the tag word is in the text, and cut
+    # the tail after the last voiced sample with a fade: v3 ends its mp3 mid-decay = a click.
     trimmed = OUT / "reminders" / "raw" / f"{rid}-{who}.trim.wav"
     trim_silence(raw, trimmed)
     out = OUT / "reminders" / f"{rid}-{who}.mp3"

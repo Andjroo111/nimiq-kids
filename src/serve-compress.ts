@@ -16,9 +16,20 @@
 // runs outermost = compresses what everything else has finished producing.
 import type { MiddlewareHandler } from "hono";
 
-const COMPRESSIBLE = /^(text\/|application\/(json|javascript|manifest|xml)|image\/svg)/;
+// ⚠️ AND WASM. 2026-09-18, the egg is Rive now: `rive-kit/rive.wasm` is 1.9MB raw and the
+// single biggest thing in front of the egg AND the hexagon (both documents load it). It
+// gzips to 782KB. A .riv does not (its images are PNGs already) and stays out.
+const COMPRESSIBLE = /^(text\/|application\/(json|javascript|manifest|xml|wasm)|image\/svg)/;
 // Below about a packet there is nothing to win and the gzip header is pure overhead.
 const MIN_BYTES = 1024;
+// A body this big is gzipped ONCE per process, not once per request: 1.9MB is ~60ms of
+// CPU a time, and the stamp on its URL means the same bytes are asked for by every
+// tablet after every deploy. Keyed on the path and the validators serveStatic set, so a
+// vendored update (new etag) is a new entry, and bounded so a rogue set of big
+// responses cannot fill the process.
+const BIG_BYTES = 256 * 1024;
+const MEMO_MAX = 8;
+const memo = new Map<string, Uint8Array<ArrayBuffer>>();
 
 export function compressText(): MiddlewareHandler {
   return async (c, next) => {
@@ -42,6 +53,16 @@ export function compressText(): MiddlewareHandler {
     // the response; a strong etag would have two different bodies under one validator.
     headers.delete("content-length");
     headers.delete("etag");
-    c.res = new Response(Bun.gzipSync(raw), { status: 200, headers });
+    let gz: Uint8Array<ArrayBuffer> | undefined;
+    if (raw.byteLength >= BIG_BYTES) {
+      const key = `${c.req.path}|${res.headers.get("etag") ?? ""}|${res.headers.get("last-modified") ?? ""}|${raw.byteLength}`;
+      gz = memo.get(key);
+      if (!gz) {
+        gz = Bun.gzipSync(raw) as Uint8Array<ArrayBuffer>;
+        if (memo.size >= MEMO_MAX) memo.delete(memo.keys().next().value as string);
+        memo.set(key, gz);
+      }
+    }
+    c.res = new Response(gz ?? Bun.gzipSync(raw), { status: 200, headers });
   };
 }

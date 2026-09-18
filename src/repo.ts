@@ -72,6 +72,9 @@ export interface Child {
    *  null on rows written before the column existed, which were all signMessage. */
   address_proof_kind: ProofKind | null;
   address_registered_at: number | null;
+  /** The character picked on the tablet, one id out of public/assets/heroes (src/kid-hero.ts).
+   *  NULL = never picked, which is what sends the kid up the onboarding climb. */
+  hero: string | null;
   created_at: number;
 }
 export interface Chore {
@@ -184,6 +187,7 @@ export function createChild(familyId: string, label: string, emoji = "🦖"): Ch
     address_proof_message: null, address_proof_pubkey: null, address_proof_sig: null,
     address_proof_kind: null,
     address_registered_at: null,
+    hero: null,
     created_at: now(),
   };
   getDb().run(
@@ -251,6 +255,17 @@ export function setChildLang(childId: string, lang: string | null): void {
       : undefined;
   if (value === undefined) throw new Error(`setChildLang: unknown language ${lang}`);
   getDb().run("UPDATE children SET lang=? WHERE id=?", [value, childId]);
+}
+
+/**
+ * Set, or CLEAR, the character one kid picked (the onboarding climb, 2026-09-18).
+ *
+ * The id is checked in src/kid-hero.ts, the only list of what ships; this is the only door to
+ * the column, so an id stored here is one the tablet can draw. `null` clears it, which puts the
+ * kid back at the top of the climb on their next login.
+ */
+export function setChildHero(childId: string, hero: string | null): void {
+  getDb().run("UPDATE children SET hero=? WHERE id=?", [hero, childId]);
 }
 
 /** Family mode: adjust the star tally (ledger rows live in star_events — see repo-approvals). */

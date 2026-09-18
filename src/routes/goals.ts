@@ -21,6 +21,8 @@ import { Hono } from "hono";
 import type { Context } from "hono";
 import * as repo from "../repo";
 import * as goals from "../repo-goals";
+import { GOAL_TEMPLATES, goalTitleKey, goalStepKey } from "../goal-templates";
+import { taskIconUrl } from "../task-icons";
 import * as approvalsRepo from "../repo-approvals";
 import { notifyParent } from "../notify";
 import { familyForSubject, PAIRING_REQUIRED, requestFamily } from "./families";
@@ -42,6 +44,15 @@ export const goalsRoutes = new Hono();
  * Read from `sticker_packs` rather than a second list over here, so a pack added to
  * src/sticker-catalog.ts is offered on the parent's sheet with no further edit.
  */
+/** The goal templates the parent climb offers (src/goal-templates.ts). Open like the themes:
+ *  keys and counts, no prose, the client translates. */
+goalsRoutes.get("/goal-templates", (c) => c.json({
+  templates: GOAL_TEMPLATES.map((t) => ({
+    id: t.id, emoji: t.emoji, iconUrl: taskIconUrl(t.icon), steps: t.steps, titleKey: goalTitleKey(t.id),
+    stepKeys: Array.from({ length: t.steps }, (_, i) => goalStepKey(t.id, i + 1)),
+  })),
+}));
+
 goalsRoutes.get("/goal-themes", (c) => c.json({
   themes: stickersRepo.listThemePacks().map((p) => ({
     packId: p.id, title: p.title, titleKey: p.title_key,

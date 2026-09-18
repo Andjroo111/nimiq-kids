@@ -92,3 +92,18 @@ test("the claim still goes through the parent: onClaim calls api.claimRung and n
   expect(UPKEEP).toContain("api.claimRung(g.id, rungId)");
   expect(PATH_JS).not.toContain("api.");
 });
+
+// ---- the board repaints when a rung moves ----
+// chartFingerprint() is what the poll compares to decide whether the board changed. It listed
+// today's tasks and practices but not the goals, so a rung approved on the phone while the
+// tablet sat on the board moved nothing: two equal strings, no repaint, a stale goal card
+// until something unrelated changed (2026-09-18). The lock-state entries are pinned the same
+// way in kid-games-dock.test.ts; this pins the goals.
+test("the chart fingerprint carries the goals, so an approved rung repaints the card", () => {
+  const CHART = read("public/kid/js/chart.js");
+  const fp = CHART.slice(CHART.indexOf("function chartFingerprint"));
+  const body = fp.slice(0, fp.indexOf("\n}"));
+  expect(body).toMatch(/c\.goals/);
+  // and still not the whole chart object, which carries serverTime and would never settle
+  expect(body).not.toMatch(/JSON\.stringify\(\s*(state\.chart|c)\s*\)/);
+});

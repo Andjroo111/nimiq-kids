@@ -44,7 +44,10 @@ export function makeDefaults() {
     speed: 120, speedJitter: 0.06, spin: 0, gravity: 0, drag: 1.5, life: 1.1,
     tickLength: 6, tickThickness: 3.5, squareRatio: 0.12, strays: 6,
     burstInterval: 660, burstPops: 2,
-    radial: true, colors: ["#FC8702", "#21BCA5", "#E9B213"], seed: 7,
+    // ⚠️ THE BRAND'S FOUR PAINTS, in the order the rings rotate through them (two per
+    // burst: inner + outer). Andjroo, 2026-09-18: "everything needs to be updated,
+    // including the confetti." blurple, yolk, grass, coral: ~/.claude/brands.json nimiq.kids.
+    radial: true, colors: ["#5465EE", "#FED56C", "#1B985E", "#DD675D"], seed: 7,
   };
 }
 
@@ -85,7 +88,7 @@ function makeParticle(rng, ox, oy, angle, speed, color, p) {
 
 function colorsOf(p) {
   const cs = (p.colors || []).filter(Boolean);
-  return cs.length ? cs : ["#21BCA5"];
+  return cs.length ? cs : ["#5465EE"];
 }
 
 // ONE pop at (ox,oy): `rings` concentric ring outlines (one color per ring) + strays.

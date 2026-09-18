@@ -2,6 +2,293 @@
 
 All notable changes to nimiq.kids will be documented here.
 
+## [0.123.35] - 2026-09-18
+### Changed
+Code comments and release notes name the owner by the public pseudonym, so the public export scans clean.
+
+## [0.123.34] - 2026-09-18
+### Changed
+- Live now tiles sit on white Nimiq hexagons (the logo hex as a mask) instead of rounded squares.
+
+## [0.123.33] - 2026-09-18
+### Changed
+- Homepage: Mulish is preloaded and blocks instead of swapping, so the page no longer re-flows from the fallback face; the hero stills are the size the rivs draw, so the canvas replaces them without a jump; the penguin sits 4% right so its slide lands centred; the Live now tiles spread across the palette (dustpan, lunchbox, ladder, sun, laptop, book).
+
+## [0.123.32] - 2026-09-18
+### Changed
+- Hero keeps the same space under the plate as above it, so the card no longer touches the next section.
+- Live now card: one line and six icon tiles (chores, Treasure Box, goals, staking, any browser, five languages) drawn from the app's own icon set, in place of seven bullet facts.
+
+## [0.123.31] - 2026-09-18
+### Fixed
+- The parent board's goal card never draws the OS's emoji: a ladder with a theme wears the pack's egg, otherwise the drawn icon for its emoji, otherwise the ladder icon (the same rule as the kid board).
+
+## [0.123.30] - 2026-09-18
+### Changed
+- Homepage header hugs the viewport edges (16 / 24 / 40px), content stays at 840; the drawer's X still lands on the burger at every width. "Create your own" is the primary pill in the hero, the steps and the menu; "Try the demo" is secondary, with a Demo row in the menu.
+- Hero cast is frog, penguin, octopus on the white plate under the pills, evened to one height, with a "Tap them" pill that fires all three verbs.
+- How to try it: each step carries one piece of the app's own art (pencil and paper, one real Nimiq identicon, the calculator) with its number in the corner; the six-character row is gone.
+- Hero plate is white at .88 with its own edge, so the meadow reads through; "Create your own" sits on the right of "Try the demo" in the hero and under How to try it.
+- `rive-mount.js` honours `data-props="off"`: the file's `props` boolean goes false after load, so a hatch character's catch prop stays hidden on a surface that wants the character alone. The hero mounts ask for it; it takes effect once the rebuilt files carry the input.
+### Fixed
+- The board's goal card never draws the OS's emoji: a ladder with a theme shows the pack's egg (what it is collecting), otherwise the drawn icon for its emoji, otherwise the ladder icon. The seeded "Ride the bike" drew a raw bicycle.
+
+## [0.123.29] - 2026-09-18
+### Added
+- The three approved Rive characters (frog, penguin, octopus, from riv.nimiq.kids) stand on the climb: the parent's welcome trio and the kid's Hi trio greet and answer taps; the character pick, the place and rung one show the kid's hero moving when it is one of the three, its drawn tile otherwise. An unreachable file leaves the slot hidden.
+
+## [0.123.28] - 2026-09-18
+### Fixed
+- The pack tiles on the parent climb are blurple hexagons, the one ground all four bosses read on (the seahorse, the astronaut and the robot vanished on grey); the picked tile wears the START ring on a tinted tile. Just the NIM stays the yolk prize hex.
+
+## [0.123.27] - 2026-09-18
+### Changed
+- `docs/ROADMAP.md` mirrors the homepage again: the onboarding climb is its own "How to try it" section with chores and goals kept apart, the month is "Our own mini economy, for real", the Rive animator and Community Council figure are gone (the funding is solved elsewhere), and Next holds two items.
+
+## [0.123.26] - 2026-09-18
+### Changed
+- Step 5 of the parent climb reads "Set a goal" with one line under it, "Jobs pay every day. A goal pays a prize.", and nothing else explains the screen; five languages.
+
+## [0.123.25] - 2026-09-18
+### Changed
+- Homepage: the three approved characters (frog, penguin, t-rex) stand on the meadow's pond under the hero as live rivs from riv.nimiq.kids, stills until they load, a tap fires each one's verb. "How to try it" is its own section above the roadmap (set up on your phone, hand over the tablet, set the jobs); the roadmap loses the onboarding chip and the Community funding chip, the next-month chip says the family's first real month is next, and the live card reads "your family" not "they". One spacing scale across the page.
+
+## [0.123.24] - 2026-09-18
+### Fixed
+- Step 5 of the parent climb shows the current art: each prize tile carries its pack's boss (the sticker the kid is climbing for), the path preview and the parent's goal card carry the pack's egg until the boss is owned (the kid path's own rule), and every goal template carries its drawn icon. Templates without a drawn icon are not offered (bike and swim wait on theirs); piano and "write your name" join shoes and read.
+
+## [0.123.23] - 2026-09-18
+### Changed
+- `connect-src` names `https://riv.nimiq.kids`, the host the characters' `.riv` files are fetched from; the rest of the policy is unchanged.
+
+## [0.123.22] - 2026-09-18
+### Changed
+- Homepage keeps the everyday loop and goals apart: the hero and the meta description no longer call the job's pay a prize, and the live card says goals are their own path with the prize at the top.
+
+## [0.123.21] - 2026-09-18
+### Fixed
+- A goal is not a chore. The parent climb's step 5 had made the first goal's rungs out of the three starter chores, fusing the everyday loop with the ladder. Now every new family gets the three everyday jobs on the board AND a first goal from a goal template (Ride the bike, Tie your shoes, Swim across the pool, Read a book by yourself), a skill in steps with a prize on top. `POST /api/onboard` takes `goal: { packId, template }`; `GET /api/goal-templates` lists them. Five languages.
+
+## [0.123.20] - 2026-09-18
+### Changed
+- Homepage H1 and the lines under it read the way the intro video's narrator says it: "Turn their tablet into a mini economy", the prize, the job, the yes, the money landing, spent back. "Approves" became "says yes", still scoped to jobs.
+
+## [0.123.19] - 2026-09-18
+### Changed
+
+- The mark, favicon, PWA tile and all three lockups wear the lineless hand (Andjroo's Midjourney pick, traced) on a flat two-tone gold hexagon in place of the radial; the hexagon geometry is unchanged. The PWA tile is the mark on paper inside the maskable safe zone instead of a bare hexagon that every launcher clipped.
+
+## [0.123.18] - 2026-09-18
+### Changed
+- The demo chooser (/demo) wears the paint set: paper ground, line ink, a blurple lip button for the tablet, the parent app as the line ghost, the network label and the refresh control in the line at their old alphas. Gold stays on the lockup only.
+
+## [0.123.17] - 2026-09-18
+### Changed
+- The two onboarding climbs read shorter and plainer, 22 lines picked by Andjroo off the copy sheet: the welcome says what the app is, the name screens ask what to call you and who is doing the jobs, the privacy line says what is kept (a name for the screen), the wallet and goal lines lose their hedges, and the kid climb talks like a kid (Pick your money face, This one!). All five languages.
+
+## [0.123.16] - 2026-09-18
+### Changed
+
+- The ten starter stickers are drawn. Star, heart, rainbow, lightning, flower, trophy and paw with no face, the unicorn and the smiley with the family face, the dino the hatch T-rex as drawn; they were the last raw emoji a kid could put on a calendar day. `pack-starter` carries `art: true` in `src/sticker-catalog.ts` and its rows resolve to `/assets/stickers/<id>.png` like the theme packs.
+
+## [0.123.15] - 2026-09-18
+### Changed
+
+- The egg's shells come to rest at 0.80 of their size (rive-lab #197). On a 390 phone the landed pair was cut 18 px a side; it now clears the screen by 17 and 19. The egg's own size and the character's room are unchanged.
+
+## [0.123.14] - 2026-09-18
+### Changed
+
+- Every face the two apps draw is now the lineless set. The three routine headers (morning, afternoon, bedtime), the goal, practice-step and savings-target defaults, the add-a-job and climb-setup catalog tiles, the timer task head and the thermometer all drew a raw emoji; each now draws the drawn icon, resolved from the same emoji the row already stores (`src/task-icons.ts` FACE_ICONS, `/api/task-icons` `faces`, `iconUrl` on the job catalog, on practice steps and on the savings meter).
+- The five Treasure Box tiles ship (#404): 15, 30 and 60 minutes wear one sky tablet with a clock, pick-what-is-for-dinner the timer plate, stay-up-late a plain blurple crescent. `STORE_ART_SHIPPED` is on.
+- `tools/art/cut-lineless.py --only faceicons|storeart` cuts them from `lineless-list.json` `faceIcons` and `storeArt`.
+
+## [0.123.13] - 2026-09-18
+### Fixed
+
+- The egg timer arrives once. The cover now waits for the hexagon's first frame and for the egg's shells to be decoded and drawn, not just for the rig to exist, so nothing pops in after the fade; the rig is hooked the moment it publishes itself instead of on its frame's load event (a second earlier on a slow CPU); the fallback geometry is the Rive rig's own, so the egg no longer shrinks by 17% as it fades in; the cover is the first thing in the markup, so a slow connection paints white rather than a half-parsed page; past the failsafe cap the hexagon and egg fade in on arrival instead of popping; and the heavy art starts after the fade finishes, not with it.
+- The hexagon plate's runtime and scene are stamped with the timer's real version, the same stamp the rig uses. Stamped with the hand-typed BUILD, `eggplate.riv` was cached immutable for a year against a token nobody bumped when the plate was recoloured, and `rive.wasm` was fetched, cached and compiled twice under two URLs.
+- `rive.wasm` is served gzipped (1.9MB to 800KB, once per process). A cold load at 1.6 Mbps draws the egg at 11s instead of 19s; at 8 Mbps, 2.4s.
+
+## [0.123.12] - 2026-09-18
+### Fixed
+- The climb's first screen always shows one of the 21 drawn heroes: a kid whose emoji nobody has drawn (the demo's Ava was a unicorn) showed the OS's emoji instead. Unmapped emoji stand as the T-rex; the demo seeds Ava as a bunny.
+
+## [0.123.11] - 2026-09-18
+### Changed
+- The kid app wears the paint set, by role: the line for ink and every navy grey at the same alphas, blurple for actions and the picked tile, grass for done and rewards, yolk for prizes and prices, coral for alerts and Done, paper for the page, white cards; every Nimiq radial is one flat fill, including the registry components the screens stand on (`paint.css` remaps the legacy `--nimiq-*` tokens). The hex logo keeps its gold, the characters, identicons, scenes and timer-style art keep their own colours.
+
+## [0.123.10] - 2026-09-18
+### Changed
+- The parent sees a goal ladder as the same climb the kid does: the duo-path on the paint set, prize under the banner, rung one at the bottom, the rung title in the active bubble, the gift on the prize, with the name, the price and the state captioned under every node. Tapping a node opens the rung sheet, the one action a row had.
+
+## [0.123.9] - 2026-09-18
+### Fixed
+timer: "Kids cheer" is off the sounds sheet. It had no file behind it, so it previewed silence while every other tile sounded; the cheer itself is part of the hatch and still plays there, and it can no longer be cut off by a prime still in flight from Start. A phone that had it chosen falls back to No sound.
+
+## [0.123.8] - 2026-09-18
+### Fixed
+timer: the end sting no longer plays the moment Start is tapped after being tried in the sounds sheet. The last fix marked a tried clip as live for good, so the prime at Start let its own play run out loud; live is a moment now, and a prime yields only to a real play asked for after it began. Start also silences any sting still playing from the sheet.
+
+## [0.123.7] - 2026-09-18
+### Fixed
+- The kid board repaints when a rung of a goal moves: the poll's fingerprint now carries the goals, so a rung approved on the phone while the tablet sits on the board updates the goal card instead of waiting for something unrelated to change.
+
+## [0.123.6] - 2026-09-18
+### Fixed
+timer: the first tap on any sound in a session was silent, and the bed under the first run of a session stopped a moment after it started. The muted prime that unlocks a clip pauses it when its promise lands, and that landed a few milliseconds into the real play that followed it. A real play marks the clip live and the prime leaves it be.
+timer: the egg, music and scene pickers are inert once the timer has started; the capsule stays, dimmed.
+
+## [0.123.5] - 2026-09-18
+### Added
+- The 42 job-tile icons ship, drawn under the lineless lock and picked 2026-09-17 (brand-voice-research lineless/packs/task-icons), cut to `public/assets/icons/<id>.png` by `tools/art/cut-lineless.py --only taskicons`. Every job on the parent board, the kid board and the kid's add-a-job picker draws its icon instead of its emoji; an emoji nobody drew still renders as itself.
+### Changed
+- The climb's first screen shows the kid's character as one of the 21 lineless heroes (the default 🦖 is the T-rex) instead of the raw emoji, until the `hi` riv lands.
+### Removed
+- The three icon rows no job pointed at (dogbowl, plant, towel): nothing was drawn for them and the kid's picker lists every row with its url.
+
+## [0.123.4] - 2026-09-18
+### Changed
+- The whole parent app wears the paint set, by role: blurple for every action, grass for done and success, coral for alerts, the line for ink and dark fills, paper for the page, white cards; the measured wallet greys are the line at the same alphas; the header is white on paper with the light lockup; the toast is flat grass, coral, or blurple; the shell's corner control reads the same tokens. The charts keep their validated series hues (the paint set fails CVD separation as a categorical palette) and take the line for ink and grid.
+
+## [0.123.3] - 2026-09-18
+### Fixed
+timer: the back arrow is the size of the icons beside it. The glyph is a 1em span, so the disc grew with the row while the arrow stayed at the button's 16px font; the em is .6 of the disc now, with the timer's 3px pen.
+
+## [0.123.2] - 2026-09-18
+### Changed
+timer: its chrome sits on the app's own corner row. The back button, the egg/music/scene capsule and the battery pill are one height and one line on every device (46px on a phone, 72 on the tablet, 54 in landscape), and the back wears what the timer's surfaces wear. When the battery pill holds the right corner the capsule moves to the middle; with no battery it stays right. The host hands the row to the frame in the URL because the frame cannot see the pill.
+
+## [0.123.1] - 2026-09-18
+### Changed
+- The parent's first run is a climb: six stepped screens and a prize, one ask per screen, progress on top, duo lip buttons on the paint set. Your name, the kid's name, the wallet (skip under server custody, required under parent custody), the first goal from a template (a prize pack, three starter rungs kept or swapped, the kid's path previewed live), notifications, then Family ready with the tablet's pairing code.
+- `POST /api/onboard` takes a `goal` field (`{ packId, jobs }`) and builds the kid's first ladder with the family in the same call, three rungs at the three starter prices, instead of the loose sample chores. No `goal` keeps the judge path as it was.
+
+## [0.123.0] - 2026-09-18
+### Added
+- Kid onboarding climb: a new kid's first login is five screens on the Duolingo mechanics
+  (Hi, the money face, the character, the place, the goal path) instead of the identicon
+  picker alone. `children.hero` holds the picked character; `PATCH /api/kids/:id/hero`
+  (kid-authed, re-pickable). The place writes the existing `prefs.background_id`.
+
+## [0.122.9] - 2026-09-18
+### Changed
+timer: the capsule is egg, music and scene again, so the kid can pick who comes out of the egg. The celebration control is a plus button on the egg's shoulder once more, a plain disc this time rather than a speech bubble, and it still carries the chosen icon through the run.
+
+## [0.122.8] - 2026-09-18
+### Changed
+- The paint set is the duo contract: `--duo-face` blurple, `--duo-done` grass, `--duo-prize` yolk, `--duo-paper-ink` line, mapped on the kid and parent `:root` from the seven hexes in `brands.json` nimiq.kids. The goal path and every lip button read it; edges stay derived (face with 20% black), and the yolk's label is the line, never white (1.4:1 against 12.3:1).
+- `public/kid/timer/README.md` flips the vendor direction: since #487 the timer is authored in the app, anim-demo is the archive and was caught up to #506.
+
+## [0.122.7] - 2026-09-18
+### Changed
+- Homepage in the paint set: white header with the light lockup, line ink, paper roadmap band, lip pills in blurple and paper, the live card grass, the next lane blurple, the rules in yolk. Nimiq navy and gold stay inside the lockup only.
+- Homepage copy cut to the shortest true version of every block; the Council figure corrected to $4,500 to match `docs/ROADMAP.md`.
+- Roadmap, both on the homepage and in `docs/ROADMAP.md`: the onboarding climb is the next milestone (parent stepped path ending in the first goal, kid picks a wallet face, a character and a place, cast animations, paint set), and the tiers read Live now, Next, Then, Later.
+- Two named animation mounts for the animations agent, `#anim-hero-opener` above the headline and `#anim-onboarding` in the onboarding card, wired to `/site/anim.js`: set `data-riv` and the vendored Rive runtime plays `Main` and fires `data-verb` on tap; blank or missing file, the mount stays collapsed and nothing is fetched.
+
+## [0.122.6] - 2026-09-18
+### Added
+- `public/js/lib/rive-mount.js`, the one Rive mount for the homepage, the parent app and the kid app: an element with `data-riv` (and optionally `data-verb`) loads the vendored runtime once, plays `Main`, fires the verb on tap, and is left untouched when the file is blank or missing. Precached in the shell; `src/rive-mount.test.ts` holds the empty, missing, tap and reduced-motion cases.
+
+## [0.122.5] - 2026-09-18
+### Fixed
+- The timer's spoken reminders are back and say only the line. The twelve files shipped in
+  August were made on `eleven_multilingual_v2`, which reads the delivery tag as a word
+  ("Cheerful. Good job", confirmed by transcribing the shipped file); they are redone on
+  `eleven_v3`, transcribed back to prove the tag is gone, cut after the last voiced sample
+  and faded so the file ends on silence instead of a click, and levelled to -19 LUFS. Andjroo
+  picked Eva or Tilly per line. The line plays last at the hatch, 2.9 s in, after the cheer
+  clears, and a tap on the reminder sheet previews it. Timer BUILD bumped.
+
+## [0.122.4] - 2026-09-18
+### Changed
+timer: Min and Sec are bigger with air under them and a rule between them and the numbers. The card gained the room under Start that a press needs: the face used to land 8px off the card's bottom edge and read as resting on it, it has 16 now, pressed or not.
+
+## [0.122.3] - 2026-09-18
+### Changed
+- Timer reminder sheet: Hooray is two raised hands and Brush teeth is a cup holding two brushes, the popper and the lone toothbrush that shipped in #492 did not sit with the rest of the set. Time to eat has its icon (a plate with fork and spoon); it drew its monoline glyph before. Cut by `tools/art/cut-lineless.py` from `lineless/packs/timer-icons/` (brand-voice-research PR #8).
+
+## [0.122.2] - 2026-09-18
+### Changed
+timer: Done is coral, not grass. The hatch's one button wears the alert paint with its own lip.
+
+## [0.122.1] - 2026-09-18
+### Fixed
+kid app: a deploy showed the previous deploy's art on the first load. The service worker's cache-first path fell back to a loosely matched older copy of any stamped asset (`ignoreSearch`) and served it while fetching the new one for next time, so a recoloured countdown came up in the old colour once per tablet. A stamp miss goes to the network first now; the loose match is for the offline case only.
+
+## [0.122.0] - 2026-09-18
+### Added
+- Four more during-timer beds on the sounds sheet, Cozy, Ocean, Robot and Dragon (Suno loops,
+  about 30 s, -25 LUFS like the three that shipped 09-17), and two more end sounds, Rocket and
+  Roar (2.5 s stings at -17 LUFS). Picked by Andjroo on a local audition against two takes each.
+- The NIM-landed screen plays a real coins sting instead of the WebAudio triangle chirp:
+  `assets/sounds/nim-landed.mp3` (3 s) with a 2.2 s `nim-landed-quick.mp3` beside it, both in the
+  catalog's `alarms`. `playAlarm()` takes the first catalog alarm when the stored pref names
+  nothing, which every kid's did: the schema default `chick-chirp` never had a file.
+- Twenty-one hatch-character call sounds, `assets/sounds/call-<slug>.mp3`, under 1.5 s each
+  (ElevenLabs, levelled to -17 LUFS, -1 dBFS ceiling), for the HOLD move: press swells silently,
+  release plays the call. All 24 new files are in the service worker shell so an offline tablet
+  has them. Timer BUILD bumped.
+
+## [0.121.11] - 2026-09-18
+### Changed
+timer: the whole timer is on the brand's paint set. Blurple is the action (Start, pause and stop, the selection band, the badge, the dot, the countdown fluid), grass is Done, the confetti bursts in blurple, yolk, grass and coral, every glyph and digit is the line, and the sheets stand on paper. The old teal, sky, navy and amber are gone, and the plate's shadow and rim are the line at the opacities the navy had (rive-lab #195).
+
+## [0.121.10] - 2026-09-18
+### Fixed
+timer: on a tablet the landed shells and the hexagon's own shadow were cut off at the edges of the 430px control lane while the scene ran on behind them. The lane decides where things go, not what may be seen: it no longer clips, and the viewport is the only edge. No sideways scroll at 1024x768, 768x1024 or 390x844, because the lane is fixed and the document already cannot scroll.
+
+## [0.121.9] - 2026-09-18
+### Changed
+timer: the egg is lineless, like everything else on the screen now. The navy outline is gone from the shell, the crack is a groove in the shell's own shadow tone, and the landed shells' broken edges are shell grey instead of navy (rive-lab #194). Nothing was redrawn: the line was taken out of the art and the RML.
+
+## [0.121.8] - 2026-09-17
+### Fixed
+timer: the hexagon plate and the egg were missing INSIDE the app. Both are a Rive runtime, which is WebAssembly, and the app's `script-src` named neither `'wasm-unsafe-eval'` nor `'unsafe-eval'`, so the browser refused to instantiate it: the chrome and the card drew, the egg did not, and the only sign was a console line. The standalone copies carry no CSP and looked perfect throughout. `'wasm-unsafe-eval'` permits compiling wasm and nothing else; `eval` and `new Function` stay refused, and so does the runtime's CDN fallback.
+timer: one back button in the app, not two. The guard asked whether a JOB host was talking to us, which is null for the dock's plain timer, so the timer drew its own chevron under the app's. It asks whether it is in a frame at all now.
+
+## [0.121.7] - 2026-09-17
+### Changed
+timer: the egg is Rive. The shell, the crack and the break come from `rive-kit/egghatch.riv` (rive-lab #152), one artboard per crack pattern, `EggHatch1` to `EggHatch4`; the rig keeps the clock, the wobble, the face, the character and its API, and draws them over the scene. The canvas egg's own code is off the frame path.
+timer: the run screen is the hexagon plate. `rive-kit/eggplate.riv` (rive-lab #99) frames the egg, its tunnel is the countdown, the count with its nudges and the pause/stop pill sit on one white card, music and bell in one capsule, the scene full-bleed.
+timer: the set screen speaks the plate's language. The plate frames the faceless egg from the first frame; the picker and Start share the run card's box (the picker where the count goes, Start where the pill goes); egg, music and scene ride in one capsule top right on every screen (the music and bell mute toggles are gone: the sounds sheet's No music and No sound are the same choices). Start swaps what the card holds and nothing moves. A job says itself as a row in that card instead of a tooltip hung above the egg.
+### Fixed
+timer: a job's "I'm done!" pill painted under the run card and could not be tapped.
+timer: the plate is sized off the badge and capped so it clears the white card by 12px on every phone shape; the set card is the run card's box on all of them (`tools/eggtimer-setcard.py`).
+timer: the hatch screen is the same card: the spent clock where the count was, Done in the pill's slot. After the shells land and settle they fade away, leaving whatever hatched alone in the plate.
+timer: the white card has an edge, like the plate. Every button is a lip button: the lip is the face's own colour with 20% black over it, and a press drops the face the whole lip onto it.
+timer: the hexagon plate fills the band between the capsule and the card, so it is 16% wider and the egg grows with it.
+timer: one line treatment. The plus bubble drops its 4px navy outline for the buttons' lip, and the capsule's music glyph is monoline like the egg and the picture beside it.
+timer: the card's height is its contents, not two anchors on the screen's height: 279px becomes 224 on a 390x844 phone, and the plate takes what it gives up. The plus bubble stops at the capsule, measured where the safe-area inset really puts it. The capsule's third glyph was drawn at a different scale and is one weight with the other two now.
+timer: one line system. Every white surface wears the plate's own side, navy at 30% (solved off a render, not guessed), as both its rim and its side, so the card composites with the scene the way the hexagon does instead of drifting on the dark ones. Every glyph is one 3px pen. The card is as wide as its contents, not the column, and the count is fitted to it by measuring. A back capsule sits top left when nothing is hosting the timer, where the app's own chevron goes.
+timer: the countdown tunnel is thinner (rive-lab #183): rim 34 to 23, floor 30 to 20.3, fluid 14 to 9.5, pushed out so its outer edge holds and the hole grows from R141 to R152.
+timer: Start is a third smaller, and so is everything sharing its slot. One pill sizes Start, pause, stop and Done: 224x70 becomes 152x48 on a 390x844 phone (review board, Andjroo's pick), the transport glyphs keep their 40-of-70 ratio inside it, and the card comes down from 224 tall to 202. The plate is capped on the badge, so on a tall phone the freed space widens the gap under the hexagon, 56px to 67px; on a short one the plate takes it.
+timer: minus on the left of the count, plus on the right, the way a number line runs (Andjroo's call). The ids stay put: stepUp still adds a minute.
+timer: the count's nudges are a sixth smaller, 45px to 38 (review board, Andjroo's pick), so the secondary control stops matching the pill it sits over, and the count grows into the room it frees, 51px to its 56 cap. 36px is the floor; nq lint fails a tap target under it.
+timer: the reminder is a celebration, and it lives in the capsule. Andjroo: "it's not so much a reminder as it is a celebration, so maybe we should move that up into that right hand navigation." The plus comes off the egg's shoulder and becomes the capsule's third seat, with a dot when something is chosen; the egg glyph is hidden for now, so the capsule is music, scene and celebration. The chosen icon still rides the egg on the run screen, because a dot says that something is set and never which. The sheet is "When the timer ends" now: it holds Hooray as well as Brush teeth, so it is named for when it happens.
+timer: the celebration seat wears the Hooray tile's own face (review board, Andjroo's pick over a sparkle, a popper, a speech bubble and a star), so the button and the thing it opens are one drawing.
+timer: the countdown drains in one colour, the teal every control already wears (rive-lab #191, Andjroo's pick off a board of three ramps rendered on the real page). It was lime into yellow, orange and coral, so the tunnel no longer says it is running out by going warm. The four stops and their alpha converters stay in the scene: a colour pass after the artwork lands is four strings in either direction.
+timer: the drawn art for ten of the end-of-timer choices is out while Andjroo regenerates it (Good job, You did it, Hooray, Love you, Shoes on, Get dressed, Bath time, Bedtime, Clean up, Brush teeth, Time to eat). `icons/index.json` lists only what got drawn, so the sheet already fell back to the monoline glyph; the bubble on the run screen now does the same, instead of showing a chosen celebration as an empty white disc. Screens off keeps its art.
+timer: Screens off is gone from the end-of-timer sheet, tile, art and glyph (Andjroo is putting it back where he wants it). A phone that had it chosen falls back to Off rather than carrying a choice its kid can no longer see; the voice line stays on disk.
+timer: the selected badge is the brand hexagon instead of a disc, on every sheet that ticks a choice. It is one drawn path with its halo as a stroke, so the badge scales without a second rule and the 27px character grid keeps the same proportions as the 32px reminder grid.
+timer: stop cracks the egg. It used to rewind the rig and drop back to the set screen, which made it the one button on the run screen that ended in nothing happening; it takes the same route the job's "I'm done!" does, so the kid who waits and the kid who is done travel the same last seconds. Pause is unchanged, and stopping while paused still cracks.
+timer: the redrawn end-of-timer art is in, ten lineless icons taken from `feat/lineless-art` (Good job, You did it, Hooray, Love you, Shoes on, Get dressed, Bath time, Bedtime, Clean up, Brush teeth). You did it has art for the first time. Time to eat has none on that branch, so it keeps its monoline glyph.
+timer: the selected hexagon clears the tile instead of cutting into it. At the old offsets its lower corner sat 6.9px inside the circle's ring; it is 11px out on both axes now, and the sheet body gained the top padding that room needs, because an overflow box was clipping the first row's badge.
+timer: the end-of-timer choice has no voice. Each `say-<slug>.mp3` read the label and its delivery out loud, which Andjroo heard as creepy; the choice is now what the egg wears, the icon on its shoulder through the run and at the hatch. The twelve recordings stay on disk, unreferenced. The bed, the countdown, the crack, the cheer and the end sting are untouched.
+timer: the end-of-timer sheet is celebrations only, Off, Good job, You did it, Hooray and Love you. Shoes on, Get dressed, Bath time, Bedtime, Clean up, Brush teeth and Time to eat are objectives, not things the egg says, and Andjroo is moving them elsewhere in the app; they are unlisted here rather than deleted, so their art and their glyphs are ready wherever they land. A phone that had one of them chosen falls back to Off.
+timer: the seven objectives are back on the end-of-timer sheet, and stay there until the screen that will hold them exists. Unlisting them rather than deleting them made the return one line.
+timer: audio unlocks on a silent clip instead of on a muted one. iOS allows muted playback without a gesture, so the muted prime at Start never unlocked anything there; what did the unlocking was the unmuted voice line on tapping a reminder, and taking the voices out took that with it. `sfx/silence.mp3` is 0.25s of digital silence played unmuted inside both gestures, so nothing can leak and the countdown, the bed and the cheer still have their permission.
+
+## [0.121.6] - 2026-09-17
+### Fixed
+- The timer's end sounds are one level now. Chime, the default, shipped at -39 LUFS and was
+  inaudible on the tablet; Fanfare shipped at -8 and blasted. Chime, Fanfare and Bell are
+  re-levelled by measurement to about -17 LUFS with a -1 dBFS peak cap (Pop was already
+  there). Ticking, the one bed that was not replaced, is lifted from -46 LUFS to -27.8, the
+  most its wooden ticks allow without clipping. The timer BUILD token is bumped so cached
+  copies let go.
+
 ## [0.121.5] - 2026-09-17
 ### Changed
 - Three of the four during-timer beds are new: Lullaby, Bouncy and Floaty are Suno v6

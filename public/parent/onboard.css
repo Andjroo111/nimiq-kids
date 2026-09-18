@@ -1,0 +1,153 @@
+/* nimiq.kids parent app: THE CLIMB, first run as six stepped screens and a prize (WP2,
+   2026-09-18). Own file: parent.css sits on the 800-line guard. AFTER paint.css and the
+   three duo sheets (index.html), whose tokens it reads; no hue is written here except through
+   the --paint-* map. Every button is a duo lip button; the step node is the Nimiq hexagon.
+
+   The screen is one column inside .app (460 max, the phone's width below that): progress on
+   top with a back chevron, the ask, the control, and Continue pinned at the foot. One primary
+   per screen. Sized on a 390 phone first. */
+
+/* ---- the frame ---- */
+.climb {
+  display: flex; flex-direction: column; flex: 1; min-height: 0;
+  gap: 16px;
+  font-family: 'Mulish', 'Muli', system-ui, sans-serif;
+  color: var(--paint-line);
+}
+.climb-body { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+/* the welcome and the prize read as a stage: centred, the art on top */
+.climb.is-welcome .climb-body,
+.climb.is-ready .climb-body,
+.climb.is-pair .climb-body { align-items: center; text-align: center; }
+
+/* ---- progress: one bar filling in the action colour, a back chevron on its left ---- */
+.climb-top { display: flex; align-items: center; gap: 12px; }
+.climb-back {
+  flex: none; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 12px;
+  background: transparent; color: var(--paint-line); display: grid; place-items: center;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.climb-back:hover { background: rgba(28, 27, 19, 0.06); }
+.climb-bar {
+  flex: 1; height: 14px; border-radius: 500px; overflow: hidden;
+  background: rgba(28, 27, 19, 0.12);
+}
+.climb-bar i {
+  display: block; height: 100%; border-radius: inherit;
+  width: calc(var(--p, 0) * 100%);
+  background: var(--paint-blurple);
+  /* the lip, as the bar's own highlight: duolingo.com's bar carries a lighter inner band */
+  box-shadow: inset 0 -4px 0 color-mix(in srgb, var(--paint-blurple) 80%, #000);
+  transition: width 240ms var(--nimiq-ease, ease-out);
+}
+
+/* ---- type ---- */
+.climb-title { margin: 8px 0 0; font-size: 24px; font-weight: 800; line-height: 1.2; text-wrap: balance; }
+.climb-sub { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.4; color: rgba(28, 27, 19, 0.64); max-width: 34ch; }
+.climb-hint { margin: 0; font-size: 13px; font-weight: 600; line-height: 1.4; color: rgba(28, 27, 19, 0.5); }
+.climb-label { font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(28, 27, 19, 0.5); margin-top: 8px; }
+.climb .onb-privacy { color: rgba(28, 27, 19, 0.5); }
+.climb .onb-link { color: var(--paint-line); }
+.climb .onb-connected { color: var(--paint-grass); }
+
+/* ---- controls ---- */
+.climb-field {
+  width: 100%; box-sizing: border-box; font-size: 18px; font-weight: 700; padding: 14px 16px;
+  border-radius: 12px; background: #fff; color: var(--paint-line);
+  box-shadow: inset 0 0 0 2px rgba(28, 27, 19, 0.16);
+}
+.climb-field:focus { outline: none; box-shadow: inset 0 0 0 2px var(--paint-blurple); }
+.climb-field::placeholder { color: rgba(28, 27, 19, 0.35); font-weight: 600; }
+.climb-field.onb-code { text-align: center; letter-spacing: 6px; font-variant-numeric: tabular-nums; }
+/* Continue sits at the foot with the lip's room under it */
+.climb-foot { margin-top: auto; padding: 12px 0 calc(var(--duo-lip, 4px) + 4px); width: 100%; }
+.climb-wallet { display: flex; flex-direction: column; gap: 8px; padding: 4px 0 calc(var(--duo-lip, 4px)); }
+/* the registry's .nq-icon is 1em by default and shrinks a spot icon to type size */
+.climb-glyph { color: var(--paint-line); }
+.climb-glyph .nq-icon { width: 72px; height: 72px; }
+.climb-notify { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.climb-notify .set-hint { color: rgba(28, 27, 19, 0.64); font-size: 14px; }
+/* the notify card's own buttons are re-classed to lips in views-onboard.js wireNotify */
+.climb-notify .btn-row { display: flex; gap: 10px; }
+.climb-notify .btn-row .duo-button { flex: 1; }
+.climb-notify .nt-qr { display: flex; justify-content: center; }
+
+/* ---- the stage: animation slots (rive-mount), collapsed while empty ---- */
+.climb-stage { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; padding: 8px 0 4px; }
+.climb-lockup { height: 28px; width: auto; }
+.climb-cast { display: flex; justify-content: center; gap: clamp(12px, 5vw, 32px); align-items: flex-end; width: 100%; }
+.anim:empty { display: none; }
+.climb-cast .anim { width: 96px; height: 96px; }
+.climb-cast .anim canvas { width: 100%; height: 100%; display: block; }
+.climb-hatch { width: 160px; height: 160px; }
+.climb-hatch canvas { width: 100%; height: 100%; display: block; }
+
+/* ---- step 5: the prize row, the three rungs, the preview ---- */
+/* a wrapping grid: four packs and "no prize" fit a 390 column in two rows, nothing hides
+   off the edge of a scroller a parent would not know to drag */
+.climb-prizes {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 8px;
+  padding: 12px 0 4px;
+}
+.climb-prize {
+  display: grid; justify-items: center; gap: 8px;
+  padding: 10px 4px 10px; border: 0; border-radius: 14px;
+  background: transparent; color: var(--paint-line); font: inherit; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.climb-prize .duo-node { --duo-node-size: 56px; --duo-node-lip: 6px; --duo-ring-gap: 7px; }
+.climb-prize .duo-node-face { cursor: pointer; }
+/* a pack tile is a blurple hexagon (the boss reads on it), Just the NIM the yolk prize hex; the
+   picked one wears the ring with the fluid off, on a tinted tile */
+.climb-prize .duo-node.is-active { --duo-ring: transparent; --duo-track: rgba(84, 101, 238, 0.35); }
+.climb-prize.is-on { background: rgba(84, 101, 238, 0.10); }
+.climb-prize .duo-node-face > img { width: 78%; height: 78%; }
+.climb-prize-name { font-size: 12px; font-weight: 800; line-height: 1.2; text-align: center; }
+.climb-rungs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.climb-rung {
+  display: flex; align-items: center; gap: 12px;
+  background: #fff; border-radius: 12px; padding: 10px 10px 10px 12px;
+  box-shadow: inset 0 0 0 2px rgba(28, 27, 19, 0.10);
+}
+.climb-rung-n {
+  flex: none; width: 28px; height: 28px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 14px; font-weight: 800;
+  background: var(--paint-paper); color: var(--paint-line);
+}
+.climb-rung-job { flex: 1; min-width: 0; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.climb-rung-emoji { font-size: 20px; line-height: 1; flex: none; }
+.climb-rung-icon { width: 28px; height: 28px; flex: none; object-fit: contain; display: block; }
+.climb-rung-face { width: 26px; height: 26px; object-fit: contain; flex: none; display: block; }
+.climb-rung .duo-button { flex: none; }
+/* a goal template is a whole-row button: the skill and its step count, the picked one ringed
+   in the action colour the way a picked prize is */
+.climb-tpl { padding: 0; }
+.climb-tpl-btn {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 12px 12px 14px;
+  border: 0; border-radius: 12px; background: transparent; color: var(--paint-line);
+  font: inherit; text-align: left; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.climb-tpl.is-on { box-shadow: inset 0 0 0 2px var(--paint-blurple); background: rgba(84, 101, 238, 0.08); }
+.climb-tpl-n { flex: none; font-size: 12px; font-weight: 700; color: rgba(28, 27, 19, 0.5); }
+/* the preview is the kid's own path, smaller: 56px nodes, a 20px pitch, a 48px wave */
+.climb-preview {
+  --duo-node-size: 56px; --duo-node-lip: 6px; --duo-ring-gap: 9px;
+  --duo-path-pitch: 20px; --duo-path-amp: 48px; --duo-bubble-room: 40px;
+  padding: 12px 12px 16px; margin-top: 8px;
+  background: #fff; border-radius: 16px;
+  pointer-events: none;
+}
+.climb-preview .duo-path-head { margin-bottom: 28px; padding: 12px 16px; }
+.climb-preview .duo-path-title { font-size: 17px; }
+.climb-preview .duo-node.is-prize { --duo-node-size: 68px; --duo-node-lip: 8px; }
+.climb-preview .duo-node-bubble { width: max-content; max-width: 180px; white-space: normal; text-align: center; line-height: 1.25; }
+
+/* ---- the prize screen's code ---- */
+.climb-code-card {
+  width: 100%; box-sizing: border-box; display: grid; justify-items: center; gap: 8px;
+  background: #fff; border-radius: 16px; padding: 16px 16px 18px;
+  box-shadow: inset 0 0 0 2px rgba(28, 27, 19, 0.10);
+}
+.climb-code-card .climb-label { margin-top: 0; }
+.climb-code-card .pair-code-big { color: var(--paint-line); padding: 0; }
+.climb-code-card .climb-hint { text-align: center; }

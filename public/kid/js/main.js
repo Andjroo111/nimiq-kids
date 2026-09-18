@@ -20,7 +20,8 @@ import { stopMoneyPoll, showMoney } from "./money.js";
 import { showPayout } from "./payout.js";
 import { applyKidLang } from "./kid-lang.js";
 import { mountBattery, repaintBattery } from "./battery.js";
-import { showCharacterPicker } from "./character.js";
+import { needsClimb, showClimb } from "./onboard.js";
+import { onGoalTap } from "./upkeep.js";
 import { warmLocalPhotos } from "/js/lib/local-photos.js";
 
 const STORE_KEY = "kid.childId";
@@ -109,18 +110,19 @@ const setKidLang = (child) => {
   if (window.nimiqKidsShell?.setLanguage) applyKidLang(child, LANG_DEPS);
 };
 
-export async function selectChild(child, { characterChecked = false } = {}) {
+export async function selectChild(child, { climbed = false } = {}) {
   if (!child) return showLogin();
-  // BEFORE ANYTHING READS THE WALLET (#381). A kid with no address has never chosen a character,
-  // and `refreshWallet()` below is the call that would mint one for them. So the choice comes
-  // first, and the rest of login resumes through the callback once the server has agreed.
+  // BEFORE ANYTHING READS THE WALLET (#381). A kid with no hero has never been up the climb,
+  // and the climb's second screen is the money face: `refreshWallet()` below is the call that
+  // would mint an address for a kid who has none. So the climb comes first, and the rest of
+  // login resumes through the callback once the server has the pick (onboard.js).
   //
-  // `characterChecked` is what makes this terminate. The picker also calls back when it has
-  // NOTHING to offer — the kid already holds an account, or this instance does not derive them —
-  // and in that case the address on this client's copy of the row is still null. Re-testing it
-  // would send the same kid back to the same empty picker forever. Asked once, answered once.
-  if (!child.address && !characterChecked) {
-    return showCharacterPicker(child, () => selectChild(child, { characterChecked: true }));
+  // `climbed` is what makes this terminate. The climb also calls back when a screen has NOTHING
+  // to ask — the money face on a parent-custody instance, the place with no catalogue — and the
+  // row this client holds may still say null. Re-testing it would send the same kid back up the
+  // same climb forever. Asked once, answered once.
+  if (needsClimb(child) && !climbed) {
+    return showClimb(child, () => selectChild(child, { climbed: true }));
   }
   state.child = child;
   localStorage.setItem(STORE_KEY, child.id);
@@ -140,6 +142,15 @@ export async function selectChild(child, { characterChecked = false } = {}) {
   // refreshChart re-applies any unsent taps itself, so the board a kid lands on already
   // carries the answers they gave in the car.
   await Promise.all([refreshWallet(), refreshChart(), refreshStore(), refreshGoalSets()]);
+  // THE TOP OF THE CLIMB IS THE GOAL PATH, not the board: the parent's first goal, rung one
+  // open, START in its bubble. A kid with no goal yet lands on the board as before. `back`
+  // is the board, and the repaint refreshes the ladder the way the board's own tap does.
+  if (climbed) {
+    const first = (state.chart?.goals ?? []).find((g) => !g.done);
+    if (first) {
+      return onGoalTap(first.id, () => Promise.all([refreshChart(), refreshGoalSets()]), showChart);
+    }
+  }
   showChart();
 }
 

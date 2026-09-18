@@ -142,43 +142,47 @@ function demoPage(lang: GateLang): string {
 @font-face { font-family: Mulish; font-style: normal; font-weight: 200 1000; font-display: swap;
   src: url("/fonts/mulish-latin-wght-normal.woff2") format("woff2"); }
 * { box-sizing: border-box; margin: 0; }
+/* The paint set (2026-09-18, by role): paper ground, line ink, blurple action with its derived
+   edge, the ghost is the line at the same alphas it had on navy. Gold stays on the lockup. */
 body { min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px;
-  font-family: Mulish, system-ui, sans-serif; color: #1F2348;
-  background: radial-gradient(100% 100% at bottom right, #260133, #1F2348); }
+  font-family: Mulish, system-ui, sans-serif; color: #1C1B13;
+  background: #F4F4E8; }
 .stack { width: 100%; max-width: 420px; text-align: center; }
-/* The network label sits ABOVE the card, centred on the navy, in the white-60% Nimiq
-   uses for secondary text on dark (about 5:1). In the card's corner it was the only
-   thing on the page off the centre line, and it drew the eye first. */
+/* The network label sits ABOVE the card, centred on the paper, in the line at 55%. In the
+   card's corner it was the only thing on the page off the centre line, and it drew the eye
+   first. */
 .net { display: block; margin-bottom: 16px; font-size: 12px; font-weight: 700;
-  letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.6); }
+  letter-spacing: .06em; text-transform: uppercase; color: rgba(28,27,19,.55); }
 .card { width: 100%; background: #fff; border-radius: 10px; padding: 32px 24px;
-  box-shadow: 0 8px 56px rgba(0,0,0,.2); }
+  box-shadow: 0 8px 56px rgba(28,27,19,.12); }
 /* The lockup IS the title. h1 rather than a bare img so the page keeps a real heading;
    the alt text carries the name for anything that cannot see the artwork. */
 h1 { margin: 0; line-height: 0; }
 .lockup { width: min(${LOCKUP_W}px, 100%); height: auto; }
-p { margin-top: 16px; font-size: 15px; line-height: 1.55; color: rgba(31,35,72,.75); }
+p { margin-top: 16px; font-size: 15px; line-height: 1.55; color: rgba(28,27,19,.75); }
 .btn { display: block; width: 100%; margin-top: 12px; padding: 16px 24px; border: 0;
   border-radius: 999px; font: 700 16px Mulish, system-ui, sans-serif; cursor: pointer;
   text-decoration: none; color: #fff; transition: transform .2s cubic-bezier(.25,0,0,1),
   box-shadow .2s cubic-bezier(.25,0,0,1), background-color .2s cubic-bezier(.25,0,0,1);
-  background: radial-gradient(100% 100% at bottom right, #265DD7, #0582CA); }
+  background: #5465EE; box-shadow: 0 4px 0 #4351BE; }
 .btn:first-of-type { margin-top: 24px; }
-.btn:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(0,0,0,.2); }
-.btn:active { transform: translateY(1px); box-shadow: 0 3px 5px rgba(0,0,0,.2); }
-.btn.ghost { color: #1F2348; background: rgba(31,35,72,.07); font-weight: 600; }
-.btn.ghost:hover { background: rgba(31,35,72,.12); }
+.btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #4351BE; }
+.btn:active { transform: translateY(4px); box-shadow: 0 0 0 #4351BE; }
+.btn:focus-visible { outline: 2px solid #5465EE; outline-offset: 3px; }
+.btn.ghost { color: #1C1B13; background: rgba(28,27,19,.07); font-weight: 600; box-shadow: none; }
+.btn.ghost:hover { background: rgba(28,27,19,.12); box-shadow: none; }
+.btn.ghost:active { box-shadow: none; }
 /* The reset control carries words: on a page whose other two controls are labelled, an
    unlabelled glyph reads as decoration. It stays quiet by being small and grey, not by
    being wordless, and it lives OUTSIDE the card because it undoes the card. */
 .reset { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px;
   padding: 12px 24px; border: 0; border-radius: 999px; cursor: pointer;
-  font: 600 13px Mulish, system-ui, sans-serif; color: rgba(255,255,255,.6);
-  background: rgba(255,255,255,.08);
+  font: 600 13px Mulish, system-ui, sans-serif; color: rgba(28,27,19,.6);
+  background: rgba(28,27,19,.06);
   transition: color .2s cubic-bezier(.25,0,0,1), background-color .2s cubic-bezier(.25,0,0,1); }
-.reset:hover { color: #fff; background: rgba(255,255,255,.16); }
-.reset:focus-visible { outline: 2px solid #0CA6FE; outline-offset: 3px; }
-.status { margin-top: 24px; font-size: 13px; color: rgba(31,35,72,.55); }
+.reset:hover { color: #1C1B13; background: rgba(28,27,19,.12); }
+.reset:focus-visible { outline: 2px solid #5465EE; outline-offset: 3px; }
+.status { margin-top: 24px; font-size: 13px; color: rgba(28,27,19,.55); }
 [hidden] { display: none !important; }
 @media (prefers-reduced-motion: reduce) {
   .btn, .reset { transition: none; }

@@ -62,6 +62,24 @@
   font-size: 12px; letter-spacing: 0.4px; font-variant-numeric: tabular-nums;
   color: var(--duo-paper-ink); opacity: 0.7;
 }
+/* The kid's hero beside rung one (the climb, 2026-09-18): a Rive slot on the shared contract,
+   hidden while blank, left of the node when a file is in it. The step (shrunk to its node by
+   the column's align-items) is the positioning context, so `right: 100%` is the node's left
+   edge; the slot sits at the node's height and does not move the wave. */
+.gp .duo-path-step { position: relative; }
+.gp .gp-anim:empty { display: none; }
+.gp .gp-anim {
+  position: absolute; right: calc(100% + 4px); bottom: calc(var(--duo-node-lip) - 8px);
+  width: 120px; height: 120px; pointer-events: none;
+}
+.gp .gp-anim canvas { display: block; width: 100%; height: 100%; }
+/* START over rung one's title (the climb, 2026-09-18): the same bubble, a smaller line in the
+   paper ink so the title keeps the face colour and stays the thing that is read. */
+.gp-bubble-start {
+  display: block; margin-bottom: 4px;
+  font-size: 10px; letter-spacing: 1.4px;
+  color: var(--duo-paper-ink); opacity: 0.6;
+}
 
 /* ---- phone: the column is 390 wide but the slab inside it is not ----
    30px of screen padding and the slab's own leaves ~306px for the path, so the wave's 70px
@@ -82,6 +100,7 @@
   .gp .duo-path-steps { --duo-bubble-room: 76px; }
   .gp .duo-node-bubble { max-width: 260px; font-size: 15px; }
   .gp-bubble-pay { font-size: 14px; }
+  .gp-bubble-start { font-size: 12px; }
   .gp-num { font-size: 38px; }
   .gp-mark { font-size: 40px; }
   .gp .duo-path-kicker { font-size: 15px; }

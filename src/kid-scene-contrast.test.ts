@@ -118,7 +118,8 @@ for (const [name, css, sel] of [
     expect(base!).toMatch(/box-shadow:\s*var\(--lift-1\)/);
     const kid = read("public/kid/kid.css");
     expect(kid).toMatch(/--lift-1:[^;]*var\(--lift-ring\)/);
-    expect(kid).toMatch(/--lift-ring:\s*0 0 0 1px rgba\(31, 35, 72/);
+    // The ring is the LINE now (the paint set, 2026-09-18), at the alpha it always had.
+    expect(kid).toMatch(/--lift-ring:\s*0 0 0 1px rgba\(28, 27, 19/);
   });
 }
 
@@ -126,12 +127,14 @@ test("cards are white on every scene: the token holds its :root white, the ring 
   // "Keep all white for right now" (Andjroo, 2026-08-28). The token mechanism stays — a future
   // recolor is one override here — so what this locks is that scene.css no longer overrides
   // --card, that :root still says white, and that the scene screens still carry the ring.
-  expect(read("public/kid/kid.css")).toMatch(/--card:\s*#ffffff/);
+  // White by way of the paint set's own white token (2026-09-18), still white.
+  expect(read("public/kid/kid.css")).toMatch(/--card:\s*var\(--paint-white\)/);
+  expect(read("public/kid/kid.css")).toMatch(/--paint-white:\s*#FFFFFF/i);
   // comments may TALK about the token; only a declaration outside them is the regression
   expect(SCENE.replace(/\/\*[\s\S]*?\*\//g, "")).not.toMatch(/--card:/);
   const ring = SCENE.match(/#kid-app\.bg-image[^{]*\{([^}]*)\}/);
   expect(ring).not.toBeNull();
-  expect(ring![1]).toMatch(/0 0 0 1px rgba\(31, 35, 72/);
+  expect(ring![1]).toMatch(/0 0 0 1px rgba\(28, 27, 19/);
   for (const cls of ["bg-meadow", "bg-ocean", "bg-space", "bg-city"]) {
     expect(ring![0]).toContain(`#kid-app.${cls}`);
   }

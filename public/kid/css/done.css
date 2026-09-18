@@ -53,7 +53,7 @@
   transition: background var(--t-press) var(--ease), transform var(--t-press) var(--ease);
 }
 .pr-step:active { transform: scale(var(--press-scale)); }
-.pr-step.is-on { background: rgba(65, 163, 142, 0.12); }
+.pr-step.is-on { background: rgba(27, 152, 94, 0.12); }
 /* The tick is an empty ring until it is ticked — the state has to be readable at a
    glance across a table, not inferred from a background wash. */
 .pr-step-tick {
@@ -127,11 +127,11 @@
   width: 46px; height: 46px; border-radius: 10px; flex: none;
   border: 2px dashed var(--ink-30); display: grid; place-items: center;
 }
-.gl-slot.is-on { border-style: solid; border-color: transparent; background: rgba(33,188,165,.12); }
+.gl-slot.is-on { border-style: solid; border-color: transparent; background: rgba(27, 152, 94, .12); }
 .gl-slot img { width: 100%; height: 100%; object-fit: contain; display: block; }
 /* The prize stands apart from the five it is won with. */
 .gl-slot-boss { margin-left: 12px; border-color: var(--gold); }
-.gl-slot-boss.is-on { background: rgba(233,178,19,.18); }
+.gl-slot-boss.is-on { background: rgba(254, 213, 108, .18); }
 .gl-set-line {
   font-size: var(--fs-label); font-weight: var(--fw-title); color: var(--ink-70);
   text-align: center; font-variant-numeric: tabular-nums;
@@ -185,11 +185,11 @@
 .gs-strip { display: flex; gap: 6px; flex-wrap: nowrap; margin: 6px 0 2px; }
 .gs-set .gs-slot {
   width: 34px; height: 34px; border: 0; border-radius: 8px;
-  background: var(--ink-05, rgba(31,48,71,.06));
+  background: var(--ink-05, rgba(28, 27, 19, .06));
 }
 .gs-set .gs-slot img { opacity: .85; }
 /* The prize keeps its gold, so the thing at the end of the set is still the thing at the end. */
-.gs-set .gl-slot-boss { margin-left: 8px; background: rgba(233,178,19,.14); }
+.gs-set .gl-slot-boss { margin-left: 8px; background: rgba(254, 213, 108, .14); }
 /* Asked: the tap is spent. Dimmed rather than removed, because a set that vanished on tap
    would read as "it did not work" to the one person who cannot ask twice. */
 .gs-set.is-asked { opacity: .55; }

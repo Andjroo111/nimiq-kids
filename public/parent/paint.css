@@ -1,0 +1,54 @@
+/* nimiq.kids parent app: THE PAINT SET, as the duo contract (WP1, 2026-09-18).
+   Own file because parent.css sits on the CI 800-line guard. Linked from index.html
+   right after parent.css; both declare on :root and share no property, so order is
+   only a courtesy.
+
+   The same seven hexes as public/kid/kid.css and ~/.claude/brands.json nimiq.kids,
+   one job each, read by the duo components (duo-button, duo-node, duo-path) the parent
+   climb vendors in WP2. Nimiq navy and gold stay on the hex logo only.
+   ⚠️ No --duo-edge: the lip is derived at the point of use, the face with 20% black.
+   ⚠️ The yolk's label is the line, never white (1.4:1 against 12.3:1). */
+:root {
+  --paint-blurple: #5465EE;   /* action */
+  --paint-grass:   #1B985E;   /* done */
+  --paint-yolk:    #FED56C;   /* prize */
+  --paint-coral:   #DD675D;   /* alert */
+  --paint-line:    #1C1B13;   /* text and lines */
+  --paint-paper:   #F4F4E8;   /* the ground */
+  --paint-white:   #FFFFFF;
+  --duo-face:      var(--paint-blurple);
+  --duo-face-bg:   none;
+  --duo-done:      var(--paint-grass);
+  --duo-done-bg:   none;
+  --duo-prize:     var(--paint-yolk);
+  --duo-prize-bg:  none;
+  --duo-paper:     var(--paint-white);
+  --duo-paper-ink: var(--paint-line);
+}
+.duo-button.is-prize,
+.duo-node.is-prize:not(.is-locked) { --duo-ink: var(--paint-line); }
+
+/* The toast in the paint set (follow-up to WP2, 2026-09-18). The registry toast paints the
+   Nimiq radials: blue for a note, green for success, orange for an error. On this surface a
+   note is blurple, success is grass, an error is coral, and each is one flat fill: the paint
+   set has no gradients (DESIGN-SYSTEM.md, "flat fills only"). After the vendor sheet in
+   index.html, so equal specificity wins here. */
+.nq-toast { background-color: var(--paint-blurple); background-image: none; }
+.nq-toast--success { background-color: var(--paint-grass); background-image: none; }
+.nq-toast--error { background-color: var(--paint-coral); background-image: none; }
+
+/* The shell's corner control (nimiq-app-shell, injected styles) reads these tokens; the two
+   radials it hardcodes are overridden below with the header's specificity, since its <style>
+   lands after this sheet. */
+:root {
+  --nq-cc-accent: var(--paint-blurple);
+  --nq-cc-face-fg: var(--paint-line);
+  --nq-cc-menu-fg: var(--paint-line);
+  --nq-cc-menu-muted: rgba(28, 27, 19, 0.6);
+  --nq-cc-menu-line: rgba(28, 27, 19, 0.08);
+  --nq-cc-menu-hover: rgba(28, 27, 19, 0.06);
+}
+.phdr .nq-cc-connect, .phdr .nq-cc-connect:hover { background-color: var(--paint-line); background-image: none; }
+.phdr .nq-cc-send, .phdr .nq-cc-send:hover,
+.phdr .nq-cc-send-confirm, .phdr .nq-cc-send-confirm:hover:not(:disabled) { background-color: var(--paint-blurple); background-image: none; }
+.phdr .nq-cc-name-input:focus, .phdr .nq-cc-input:focus { box-shadow: inset 0 0 0 2px var(--paint-blurple); }

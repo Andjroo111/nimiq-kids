@@ -6,11 +6,14 @@
 
   Deliberately self-contained: inline <style>, locally vendored Mulish, no external CSS,
   no service-worker registration, no manifest link. A judge's first paint must not depend
-  on a CDN, and a stale cached shell must never be able to shadow this page.
+  on a CDN, and a stale cached shell must never be able to shadow this page. The only
+  things fetched after parse are the characters' .riv files (riv.nimiq.kids, in the CSP's
+  connect-src) and the Rive runtime the egg timer vendors; their still PNGs paint first.
 
-  Styling follows the nimiq-ui MODERN marketing set (16px root, sentence-case 999px pill,
-  bottom-right radial gradients, light footer). The CTA pill is the pixel-verified
-  nimiq.com hero CTA. No glassmorphism. No em dashes.
+  Colour is the paint set in ~/.claude/brands.json nimiq.kids (2026-09-18): blurple is the
+  action, grass is done, yolk is the prize, coral is the alert, the line is every letter,
+  paper is the ground. Nimiq navy and gold live only inside the lockup. Every edge is its
+  face at 80% + black, derived at the point of use. No glassmorphism. No em dashes.
 -->
 <html lang="en">
 <head>
@@ -19,8 +22,8 @@
   <!-- COPY: page title -->
   <title>nimiq.kids</title>
   <!-- COPY: meta description (shows in search + link previews) -->
-  <meta name="description" content="A family ecosystem where kids do chores, routines and activities, and parents reward them in NIM. Five languages, no app store." />
-  <meta name="theme-color" content="#1F2348" />
+  <meta name="description" content="Your family's own mini economy, on the tablet your kid already has. Your kid does the jobs, you say yes, they earn NIM. Five languages, no app store." />
+  <meta name="theme-color" content="#FFFFFF" />
   <link rel="icon" href="/favicon.svg" />
   <link rel="apple-touch-icon" href="/icon.svg" />
   <meta property="og:type" content="website" />
@@ -28,45 +31,46 @@
   <!-- COPY: social share title -->
   <meta property="og:title" content="nimiq.kids" />
   <!-- COPY: social share description -->
-  <meta property="og:description" content="A family ecosystem where kids do chores, routines and activities, and parents reward them in NIM. Five languages, no app store." />
+  <meta property="og:description" content="Your family's own mini economy, on the tablet your kid already has. Your kid does the jobs, you say yes, they earn NIM. Five languages, no app store." />
   <meta name="twitter:card" content="summary" />
+  <!-- Mulish is preloaded and blocks (never swaps): the fallback face is wider, so a swap
+       re-flowed every line and the page "popped into place" (Andjroo, 2026-09-18). -->
+  <link rel="preload" href="/fonts/mulish-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <!-- The animation mounts' loader: a module, so it runs after parse, same origin, and it
+       fetches the Rive runtime only for a mount whose data-riv is set. -->
+  <script type="module" src="/site/anim.js"></script>
 
   <style>
-    /* ================================================================
-       ONE-LINE TOGGLE: take the roadmap off the homepage.
-       Set the value below to `none` and the whole roadmap section is gone.
-       (To delete it outright, remove the block between the
-        "ROADMAP SECTION BEGIN" / "ROADMAP SECTION END" comments.)
-       ================================================================ */
+    /* ONE-LINE TOGGLE: set to `none` and the whole roadmap section is gone. */
     [data-section="roadmap"] { display: block; }
 
     @font-face {
       font-family: 'Mulish';
       font-style: normal;
       font-weight: 200 1000;
-      font-display: swap;
+      font-display: block;
       src: url('/fonts/mulish-latin-wght-normal.woff2') format('woff2');
     }
 
     :root {
-      /* Nimiq palette, verbatim from the verified color table */
-      --navy: #1F2348;
-      --navy-bg: radial-gradient(100% 100% at bottom right, #260133, #1F2348);
-      --gray: #F4F4F4;
-      --light-gray: #FAFAFA;
-      --ink-60: rgba(31, 35, 72, 0.6);
-      --ink-45: rgba(31, 35, 72, 0.45);
-      /* Opaque grey for the uppercase section labels. Nimiq allows a GREY eyebrow but not a
-         colored one, and a navy-with-alpha value still reads as navy to the brand linter.
-         Value chosen for 4.7:1 on the #FAFAFA roadmap band, which clears WCAG AA at 12px. */
-      --label-grey: #6E707E;
-      --hairline: rgba(31, 35, 72, 0.12);
-      --on-navy-60: rgba(255, 255, 255, 0.6);
-      --on-navy-35: rgba(255, 255, 255, 0.35);
-      --light-blue-on-dark: #0CA6FE;
+      /* The paint set, verbatim from brands.json. A job each; nothing below names a hue of its own. */
+      --blurple: #5465EE;
+      --grass: #1B985E;
+      --yolk: #FED56C;
+      --coral: #DD675D;
+      --line: #1C1B13;
+      --paper: #F4F4E8;
+      /* The line, quieter. .64 measures 5.0:1 on paper, so labels clear AA at 12px. */
+      --ink-64: rgba(28, 27, 19, 0.64);
+      --hairline: rgba(28, 27, 19, 0.12);
+      --on-paint-92: rgba(255, 255, 255, 0.92);
+      --lip: 4px;
       --ease: cubic-bezier(0.25, 0, 0, 1);
-      --spring: cubic-bezier(0.41, 0.34, 0.26, 1.55);
       --hdr-h: 68px;
+      /* the header and the drawer's X hug the viewport edge by this much; content stays at 840 */
+      --edge: 16px;
+      /* one spacing scale for the whole page */
+      --s-3: 24px; --s-4: 32px; --s-6: 48px; --s-8: 64px; --s-12: 96px;
     }
 
     * { box-sizing: border-box; }
@@ -76,7 +80,7 @@
       font-family: 'Mulish', system-ui, -apple-system, sans-serif;
       font-size: 16px;
       line-height: 1.6;
-      color: var(--navy);
+      color: var(--line);
       background: #fff;
       overflow-x: hidden;
     }
@@ -86,37 +90,31 @@
 
     .skip {
       position: absolute; left: -9999px; top: 0; z-index: 200;
-      background: #fff; color: var(--navy); padding: 8px 16px;
+      background: #fff; color: var(--line); padding: 8px 16px;
       border-radius: 999px; font-weight: 700; text-decoration: none;
     }
     .skip:focus { left: 16px; top: 16px; }
 
     .wrap { width: 100%; max-width: 840px; margin: 0 auto; padding: 0 16px; }
 
-    /* ---------- sticky navy header ---------- */
+    /* ---------- sticky header: white, one hairline, the lockup carries the only navy ---------- */
     .site-hdr {
-      /* Sits BELOW .menu (z-index 40) on purpose. The open drawer covers the
-         burger's corner and carries the registry close-button in that exact
-         spot. Dismiss is the X, a scrim tap, or Escape. */
+      /* Sits BELOW .menu (z-index 40) on purpose: the open drawer covers the burger's
+         corner and carries the registry close-button in that exact spot. */
       position: sticky; top: 0; z-index: 30;
-      /* Renders the TOP slice of the same bottom-right radial the hero paints, so the bar
-         and the hero read as one navy field. Anchoring the radial inside a 56px-tall box
-         instead drives the purple end of the ramp right up the bar and leaves a seam. */
-      background-image: var(--navy-bg);
-      background-size: 100% 720px;
-      background-position: top left;
-      background-repeat: no-repeat;
-      color: #fff;
+      background: #fff;
+      border-bottom: 1px solid var(--hairline);
+      color: var(--line);
       padding-top: env(safe-area-inset-top);
     }
     .site-hdr__row {
       display: flex; align-items: center; gap: 16px;
       height: var(--hdr-h);
-      width: 100%; max-width: 840px; margin: 0 auto; padding: 0 16px;
+      width: 100%; padding: 0 var(--edge);
     }
     .brand { display: inline-flex; align-items: center; text-decoration: none; }
     .brand__logo { display: block; width: 176px; height: auto; }
-    .brand:focus-visible { outline: 2px solid var(--light-blue-on-dark); outline-offset: 4px; border-radius: 4px; }
+    .brand:focus-visible { outline: 2px solid var(--blurple); outline-offset: 4px; border-radius: 4px; }
     @media (min-width: 640px) { .brand__logo { width: 200px; } }
 
     .burger {
@@ -124,47 +122,35 @@
       width: 44px; height: 44px;
       display: grid; place-items: center;
       background: transparent; border: none; padding: 0;
-      color: #fff; cursor: pointer; border-radius: 999px;
+      color: var(--line); cursor: pointer; border-radius: 999px;
     }
-    .burger:focus-visible { outline: 2px solid var(--light-blue-on-dark); outline-offset: 2px; }
-    /* The verbatim Nimiq hamburger-menu icon from nimiq-branding-cli
-       assets/icons/nimiq-icons.json: three lines of DECREASING width mirrored on
-       X, exactly as nimiq.com renders it. It does NOT swap to a cross when open,
-       because the open drawer covers it and carries its own close-button. */
+    .burger:focus-visible { outline: 2px solid var(--blurple); outline-offset: 2px; }
+    /* The verbatim Nimiq hamburger icon (nimiq-branding-cli nimiq-icons.json): three lines
+       of DECREASING width mirrored on X. It does not swap to a cross when open; the drawer
+       covers it and carries its own close-button. */
     .burger svg { grid-area: 1 / 1; display: block; }
     .burger__open { transform: scaleX(-1); }
 
     /* ---------- hamburger menu: white side drawer ----------
-       Reworked 2026-08-01: the burger sits top-RIGHT, so the menu slides in
-       from the right edge instead of rising from the bottom. Panel mechanics
-       follow the wallet's own sidebar (nimiq/wallet src/App.vue): a full-height,
-       square-cornered panel moved by translateX on the Nimiq ease, over a navy
-       scrim. The INTERIOR keeps the vocabulary captured live off nimiq.com's
-       OWN mobile menu at 390px (2026-07-30):
-         - one gradient pill anchoring the top (nimiq.com: "New wallet")
-         - small UPPERCASE 12px/600 grey rows, hairline-separated, with the
-           marker sitting immediately BESIDE the label rather than pushed to the
-           far right, which is the iOS/SaaS settings-list tell
-       Leaf rows take the real Nimiq arrow-right glyph, because on nimiq.com a
-       down chevron means "this expands" and an arrow means "this navigates".
-       The bottom sheet's drag handle is a sheet affordance and did not carry
-       over; its job passes to the registry close-button (nq close-button),
-       pinned exactly where the burger sits so the toggle point never moves.
-       -------------------------------------------------------- */
+       Burger top-RIGHT, so the panel slides in from the right edge, moved by translateX on
+       the Nimiq ease over a scrim (the wallet's own sidebar). Interior is nimiq.com's mobile
+       menu at 390px (2026-07-30): one pill on top, then small UPPERCASE 12px/600 grey rows,
+       hairline-separated, the arrow beside the label. Leaf rows take the Nimiq arrow-right
+       (a down chevron means "expands" on nimiq.com). The registry close-button sits exactly
+       where the burger sits, so the toggle point never moves. */
     .menu {
       position: fixed; inset: 0; z-index: 40;
       display: flex; justify-content: flex-end;
       opacity: 0; visibility: hidden;
-      /* visibility holds until the fade ends on close, but flips INSTANTLY on
-         open (the is-open rule below), so the close-button is focusable the
-         moment the drawer starts sliding. A 240ms visibility transition kept
-         the panel unfocusable at open and the focus handoff silently failed. */
+      /* visibility holds until the fade ends on close, but flips INSTANTLY on open (the
+         is-open rule), so the close-button is focusable the moment the drawer starts
+         sliding; a transitioned visibility made the focus handoff silently fail. */
       transition: opacity 240ms var(--ease), visibility 0s linear 240ms;
     }
     .menu::before {
       content: ""; position: absolute; inset: 0;
-      /* rule 11: modal scrims are navy, never black */
-      background: rgba(31, 35, 72, 0.5);
+      /* the scrim is the line, never pure black */
+      background: rgba(28, 27, 19, 0.5);
     }
     .menu.is-open {
       opacity: 1; visibility: visible;
@@ -176,41 +162,34 @@
       width: min(320px, 85vw);
       height: 100%;
       background: #fff;
-      padding: calc(12px + env(safe-area-inset-top)) calc(24px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) 24px;
+      /* right padding is the header's edge plus the X's 8px overhang, so the X lands on the burger at every width */
+      padding: calc(12px + env(safe-area-inset-top)) calc(var(--edge) + 8px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) 24px;
       overflow-y: auto;
       transform: translateX(100%);
       transition: transform 240ms var(--ease);
     }
     .menu.is-open .menu__panel { transform: translateX(0); }
 
-    /* The registry close-button: icon rests at .2 ink and wakes to .4 on
-       hover/focus, round halo. Sized 44px and margined so its center lands on
-       the burger's center (16px + 22px off the right edge, 34px down) at any
-       viewport narrow enough for the header row to hug the edges (< 872px,
-       i.e. every phone and tablet); on wider screens the burger sits inside
-       the centered 840px row while the X stays pinned to the drawer. */
+    /* The registry close-button: icon rests at .2 ink and wakes to .4, round halo. 44px and
+       margined so its centre lands on the burger's centre at every width. */
     .menu__close {
       display: grid; place-items: center;
       width: 44px; height: 44px;
       margin: 0 -8px 0 auto;
       background: none; border: none; padding: 0;
-      color: var(--navy); cursor: pointer; border-radius: 50%;
+      color: var(--line); cursor: pointer; border-radius: 50%;
     }
     .menu__close svg { display: block; opacity: 0.2; transition: opacity 300ms var(--ease); }
     .menu__close:hover svg,
     .menu__close:active svg,
     .menu__close:focus svg { opacity: 0.4; }
-    .menu__close:focus-visible { outline: 2px solid #0582CA; outline-offset: 2px; }
+    .menu__close:focus-visible { outline: 2px solid var(--blurple); outline-offset: 2px; }
 
     .menu__cta { margin: 24px 0 32px; }
-    /* The panel is white, so the hero pill's rest shadow, which is tuned to sit on the
-       navy hero, smears a grey halo across it. nimiq.com's own pill on its own white
-       sheet casts none, and runs a good deal smaller than a hero CTA. Scoped to the
-       menu: the two hero pills keep their accepted styling untouched. */
+    /* Scoped to the menu: a smaller pill than the hero's, as nimiq.com's own sheet runs. */
     .menu__cta .pill {
       min-height: 44px; padding: 10px 24px;
       font-size: 14px; letter-spacing: normal;
-      box-shadow: none;
     }
 
     .menu__list { list-style: none; margin: 0; padding: 0; }
@@ -218,189 +197,155 @@
       display: flex; align-items: center; gap: 8px;
       min-height: 56px;
       font-size: 12px; font-weight: 600; text-transform: uppercase;
-      color: var(--label-grey); text-decoration: none;
+      color: var(--ink-64); text-decoration: none;
       border-top: 1px solid var(--hairline);
       transition: color 200ms var(--ease);
     }
     .menu__list li:last-child .menu__link { border-bottom: 1px solid var(--hairline); }
-    .menu__link:hover { color: var(--navy); }
-    .menu__link:focus-visible { outline: 2px solid #0582CA; outline-offset: -2px; }
+    .menu__link:hover { color: var(--line); }
+    .menu__link:focus-visible { outline: 2px solid var(--blurple); outline-offset: -2px; }
     .menu__arrow { flex: none; width: 12px; height: 8px; }
 
-    /* ---------- hero ---------- */
+    /* ---------- animation mounts ----------
+       /site/anim.js (the shared /js/lib/rive-mount.js) attaches a canvas to every [data-riv]
+       once its file loads and fires data-verb on tap. The three hero mounts carry the same
+       character as a still PNG until then; a mount with no still collapses while empty.
+         #hero-cast      frog, penguin, t-rex on the pond, riv.nimiq.kids, Main + jump/slide/stomp
+         #anim-onboarding  the two climbs, under "How to try it", empty until that riv exists */
+    .anim:empty { display: none; }
+    .anim canvas { display: block; width: 100%; height: 100%; }
+    .anim:has(canvas) img { display: none; }
+    .anim--milestone { margin: 0 0 var(--s-3); height: 120px; }
+
+    /* ---------- hero: the meadow, a white plate, the cast on the pond ---------- */
     .hero {
-      /* Light stage. Only the nav bar stays navy, so the page reads as one
-         continuous light surface from the hero through the footer. */
-      background: #fff;
-      color: var(--navy);
-      padding: 32px 0 48px;
+      background: var(--paper) url('/assets/backgrounds/meadow.jpg') center bottom / cover no-repeat;
+      color: var(--line);
+      padding: var(--s-4) 0;
       text-align: center;
-      /* Fill the first screen. svh is the SMALL viewport unit, so the hero still
-         fits when iOS Safari's toolbars are expanded; vh would overshoot by the
-         toolbar height and push the CTAs under the chrome. Falls back to vh. */
-      min-height: calc(100vh - var(--hdr-h));
-      min-height: calc(100svh - var(--hdr-h));
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
+    }
+    /* the plate: white at .88 so the meadow reads through, its own edge and shadow so the
+       copy is a card on the art, not text floating on it (Andjroo, 2026-09-18) */
+    .hero__card {
+      background: rgba(255, 255, 255, 0.88); border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      padding: var(--s-4) 20px;
+      box-shadow: 0 12px 32px rgba(28, 27, 19, 0.18);
+      display: flex; flex-direction: column; align-items: center; gap: var(--s-3);
     }
     .hero__title {
       font-size: clamp(30px, 7.5vw, 44px);
       line-height: 1.12;
       font-weight: 700;
       letter-spacing: -0.2px;
-      color: var(--navy);
-      max-width: 24ch;
-      margin-inline: auto;
+      max-width: 20ch;
     }
     .hero__sub {
-      margin: 16px auto 0;
+      margin: 0;
       max-width: 44ch;
       font-size: 16px;
       line-height: 1.6;
       font-weight: 600;
-      color: var(--ink-60);
+      color: var(--ink-64);
     }
 
     /* video slot */
     .video {
-      margin: 32px auto 0;
-      width: 100%; max-width: 720px;
+      width: 100%; max-width: 640px;
       aspect-ratio: 16 / 9;
       border-radius: 8px;
       overflow: hidden;
-      background: rgba(31, 35, 72, 0.04);
+      background: var(--paper);
     }
     .video iframe { width: 100%; height: 100%; border: 0; display: block; }
     .video__placeholder {
       width: 100%; height: 100%;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 8px; padding: 24px; text-align: center;
-      border: 1px dashed rgba(31, 35, 72, 0.22);
+      border: 1px dashed rgba(28, 27, 19, 0.22);
       border-radius: 8px;
     }
-    .video__placeholder b { font-size: 16px; font-weight: 800; color: var(--navy); }
-    .video__placeholder span { font-size: 13px; font-weight: 600; color: var(--ink-60); max-width: 34ch; }
+    .video__placeholder b { font-size: 16px; font-weight: 800; color: var(--line); }
+    .video__placeholder span { font-size: 13px; font-weight: 600; color: var(--ink-64); max-width: 34ch; }
+
+    /* the cast, on the white plate under the pills; each mount is a 1024 square riv, so the
+       box is square. The character sits low in its artboard with headroom for the jump, so
+       the boxes run large and overlap a little; --scale evens the three files out. */
+    .cast {
+      width: 100%; margin: -16px auto 0;
+      display: flex; justify-content: center; align-items: flex-end;
+    }
+    .cast .anim { --scale: 1; --nudge: 0; width: calc(clamp(150px, 44vw, 300px) * var(--scale)); aspect-ratio: 1; margin: 0 clamp(-30px, -6vw, -8px); display: flex; align-items: flex-end; justify-content: center; transform: translateX(var(--nudge)); }
+    /* the still is the riv's own drawn size (ink 107px in a 300px box, 19px off the floor),
+       so the canvas replaces it without a jump */
+    .cast img { max-height: 36%; width: auto; display: block; margin-bottom: 6%; }
+    .pill--sm { min-height: 40px; padding: 8px 20px; font-size: 14px; margin-top: -8px; }
 
     /* CTA row */
-    .cta-row {
-      margin-top: 32px;
-      display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;
-    }
+    .cta-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+    /* The lip button: a flat face over a hard lip in the face's own colour with 20% black,
+       pressed by riding down onto it. The edge is derived here, never hand-picked. */
     .pill {
+      --face: var(--blurple);
+      --face-ink: #fff;
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      min-height: 48px; padding: 16px 32px;
+      min-height: 48px; padding: 14px 32px;
       border: none; border-radius: 999px;
       font-family: inherit; font-size: 15px; font-weight: 700; letter-spacing: 0.2px;
-      color: #fff; text-decoration: none; cursor: pointer;
-      transition: transform 450ms var(--ease), box-shadow 450ms var(--ease), background 200ms var(--ease);
-      /* No `will-change: box-shadow` here on purpose. box-shadow is not a compositable
-         property, so the hint bought nothing, but it did promote every pill to its own
-         layer, and a promoted layer paints over the menu's translucent scrim even though
-         the scrim wins hit-testing. That put an undimmed hero pill on top of the open
-         menu at 360px. Removing the hint changes no visual property of the pills. */
+      color: var(--face-ink); text-decoration: none; cursor: pointer;
+      background: var(--face);
+      box-shadow: 0 var(--lip) 0 color-mix(in srgb, var(--face) 80%, #000);
+      transition: transform 140ms var(--ease), box-shadow 140ms var(--ease), filter 200ms var(--ease);
+      /* No `will-change: box-shadow` here on purpose: it promoted every pill to its own
+         layer, and a promoted layer paints over the menu's translucent scrim (an undimmed
+         hero pill sat on top of the open menu at 360px). */
     }
-    /* The one lit element on the page, and it is Nimiq's own light-blue gradient
-       verbatim: --nimiq-light-blue-bg, then --nimiq-light-blue-bg-darkened for
-       hover and focus, exactly as .nq-button.light-blue pairs them.
+    .pill--secondary { --face: var(--paper); --face-ink: var(--line); }
+    .pill:hover,
+    .pill:focus-visible { filter: brightness(1.05); }
+    .pill:active { transform: translateY(var(--lip)); box-shadow: 0 0 0 color-mix(in srgb, var(--face) 80%, #000); }
+    .pill:focus-visible { outline: 2px solid var(--line); outline-offset: 3px; }
 
-       It used to be hand-rolled, and it was BACKWARDS. Nimiq anchors every colored
-       area's radial at bottom right with the DEEPER stop at the anchor, lightening
-       outwards (#265DD7 -> #0582CA). This had #3f96f2 at the anchor and #2766e0
-       at 78%: light in the corner, dark at the far edge, which reads as lit from
-       the top left and is the opposite of every other blue surface in the fleet.
-       The two stops were also off-palette, and the 120% 180% extent stretched the
-       falloff into a diagonal wash. Do not re-derive these values, they are tokens. */
-    .pill--primary {
-      background: radial-gradient(100% 100% at bottom right, #265DD7, #0582CA);
-      box-shadow: 0 5px 16px rgba(31, 35, 72, 0.22);
-    }
-    .pill--primary:hover,
-    .pill--primary:focus-visible { background: radial-gradient(100% 100% at bottom right, #2355C4, #0071C3); }
-    /* On a light stage the secondary is the legacy .nq-button-s chip: a navy wash
-       with navy ink, never a grey outline button. */
-    .pill--secondary { background: rgba(31, 35, 72, 0.07); color: var(--navy); }
-    .pill--secondary:hover,
-    .pill--secondary:focus-visible { background: rgba(31, 35, 72, 0.12); }
-    .pill:hover { transform: translate3d(0, -2px, 0); box-shadow: 0 16px 40px rgba(31, 35, 72, 0.18); }
-    .pill:active {
-      transform: translate3d(0, 1px, 0); box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
-      transition: transform 200ms var(--spring), box-shadow 200ms var(--spring);
-    }
-    .pill:focus-visible { outline: 2px solid #0582CA; outline-offset: 3px; }
-
-    /* ---------- roadmap ---------- */
-    .roadmap { background: var(--light-gray); padding: 48px 0 72px; }
+    /* ---------- sections share one rhythm ---------- */
+    .section { padding: var(--s-8) 0; }
     .eyebrow {
       font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
-      color: var(--label-grey); margin: 0 0 12px;
+      color: var(--ink-64); margin: 0 0 12px;
     }
-    .roadmap__title {
+    .section__title {
       font-size: clamp(24px, 6.5vw, 34px); line-height: 1.2;
       font-weight: 700; letter-spacing: -0.3px; max-width: 20ch;
-    }
-    .roadmap__intro { margin: 12px 0 0; max-width: 52ch; font-size: 16px; color: var(--ink-60); }
-    .phases { list-style: none; margin: 32px 0 0; padding: 0; display: flex; flex-direction: column; gap: 24px; }
-    .phase {
-      background: #fff;
-      border: 1px solid var(--hairline);
-      border-radius: 8px;
-      padding: 24px;
-    }
-    .phase__label {
-      font-size: 12px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase;
-      color: var(--label-grey); margin: 0 0 8px;
-    }
-    .phase__title { font-size: 19px; font-weight: 800; letter-spacing: -0.2px; }
-    .phase__body { margin: 8px 0 0; max-width: 62ch; font-size: 16px; color: var(--ink-60); }
-
-    /* ---------- footer ---------- */
-    .site-ftr {
-      background: #fff; border-top: 1px solid var(--hairline);
-      padding: 32px 0 calc(32px + env(safe-area-inset-bottom));
-      font-size: 15px;
-    }
-    .site-ftr__row { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; }
-    /* The real lockup, not the wordmark retyped. This was a bare Nimiq hexagon with
-       "nimiq.kids" beside it as text, with no hand and no logotype, which the brand
-       README forbids. Light variant here; sized by width like .brand__logo. */
-    .ftr-brand { display: inline-flex; }
-    .ftr-brand img { display: block; width: 138px; height: auto; }
-    .ftr-links { display: flex; flex-wrap: wrap; gap: 24px; margin-left: auto; }
-    .ftr-links a { font-weight: 700; text-decoration: none; color: var(--navy); transition: color 200ms var(--ease); }
-    .ftr-links a:hover { color: var(--ink-60); }
-    .ftr-links a:focus-visible { outline: 2px solid #0582CA; outline-offset: 3px; border-radius: 4px; }
-
-    @media (min-width: 640px) {
-      .wrap { padding: 0 24px; }
-      .hero { padding: 32px 0 48px; }
-      .video { max-width: 640px; }
-      .roadmap { padding: 72px 0 96px; }
-      .phase { padding: 32px; }
+      margin: 0 0 var(--s-4);
     }
 
-    /* Below ~340px the clamp floor (30px) is wider than the line can take and the
-       headline spills to a third line. Scoped here so 360 and up keep full size. */
-    @media (max-width: 340px) {
-      .hero__title { font-size: 26px; }
+    /* ---------- how to try it: three steps, one row on desktop ---------- */
+    .try { background: #fff; }
+    .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; counter-reset: step; }
+    .step {
+      position: relative;
+      background: var(--paper); border-radius: 8px; padding: var(--s-3) 20px;
+      display: flex; flex-direction: column; gap: 8px;
     }
+    /* the step number, a small blurple lip in the corner; the art up top is the step's own */
+    .step::before {
+      counter-increment: step; content: counter(step);
+      position: absolute; top: 16px; right: 16px;
+      width: 32px; height: 32px; border-radius: 50%;
+      display: grid; place-items: center;
+      background: var(--blurple); color: #fff; font-weight: 800; font-size: 15px;
+      box-shadow: 0 3px 0 color-mix(in srgb, var(--blurple) 80%, #000);
+    }
+    .step__art { width: 64px; height: 64px; display: block; margin-bottom: 4px; }
+    .step__title { font-size: 19px; font-weight: 700; letter-spacing: 0; }
+    .step__body { margin: 0; font-size: 16px; color: var(--ink-64); }
+    .try .cta-row { margin-top: var(--s-4); }
 
-    @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
-      *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-      }
-    }
-  
-    /* ---------- live card: the one lit element ----------
-       Nimiq's OFFICIAL darkened light-blue gradient. The standard token's light
-       end reaches only 4.16:1 on white; these stops clear AA at 5.06 and 6.63. */
-    .live { margin: 28px 0 0; filter: drop-shadow(0 8px 14px rgba(31,35,72,.07)) drop-shadow(0 3px 3px rgba(31,35,72,.04)); }
+    /* ---------- roadmap as a climb: grass is what runs, blurple what is under way ---------- */
+    .roadmap { background: var(--paper); }
+    .live { filter: drop-shadow(0 8px 14px rgba(28,27,19,.08)) drop-shadow(0 3px 3px rgba(28,27,19,.05)); }
     .live__in {
-      background-image: radial-gradient(100% 100% at bottom right, #2355C4, #0071C3);
-      color: #fff; padding: 24px 20px 34px; border-radius: 6px 6px 0 0;
+      background: var(--grass);
+      color: #fff; padding: var(--s-3) 20px 40px; border-radius: 6px 6px 0 0;
       clip-path: polygon(
         0 0, 100% 0, 100% calc(100% - 16px),
         calc(50% + 15px) calc(100% - 16px), 50% 100%,
@@ -412,42 +357,34 @@
       color: rgba(255,255,255,.95); margin: 0 0 6px;
     }
     .live__title { font-size: 21px; font-weight: 700; letter-spacing: 0; color: #fff; }
-    .live__body { margin: 10px 0 0; font-size: 16px; color: rgba(255,255,255,.92); max-width: 60ch; }
-    .live__facts { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; max-width: 60ch; }
-    .live__facts li { font-size: 15px; line-height: 1.4; color: rgba(255,255,255,.92); padding-left: 14px; position: relative; }
-    .live__facts li::before { content: ""; position: absolute; left: 0; top: .55em; width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.7); } @media (max-width: 460px) { .live__facts { grid-template-columns: 1fr; } }
+    .live__body { margin: 12px 0 0; font-size: 16px; font-weight: 600; color: var(--on-paint-92); max-width: 60ch; }
+    /* the facts as icon tiles: the app's own drawn icons on white, one short label each */
+    .live__facts { list-style: none; margin: var(--s-3) 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .live__facts li { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; font-size: 14px; font-weight: 700; line-height: 1.3; color: #fff; }
+    /* each icon on a white Nimiq hexagon: the logo's own rounded hex as a mask over the
+       white tile, 20:18 like the mark, the icon inset so its corners clear the slant */
+    .live__facts img {
+      width: 72px; height: 64px; padding: 10px 14px; background: #fff; display: block;
+      -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 18'><path d='M19.964 8.156 15.758.844A1.69 1.69 0 0014.299 0H5.887c-.6 0-1.156.32-1.456.844L.225 8.156c-.3.523-.3 1.165 0 1.688l4.206 7.312c.3.523.856.844 1.456.844h8.412c.6 0 1.156-.32 1.456-.844l4.206-7.312a1.69 1.69 0 00.003-1.688'/></svg>") center / 100% 100% no-repeat; mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 18'><path d='M19.964 8.156 15.758.844A1.69 1.69 0 0014.299 0H5.887c-.6 0-1.156.32-1.456.844L.225 8.156c-.3.523-.3 1.165 0 1.688l4.206 7.312c.3.523.856.844 1.456.844h8.412c.6 0 1.156-.32 1.456-.844l4.206-7.312a1.69 1.69 0 00.003-1.688'/></svg>") center / 100% 100% no-repeat;
+    }
+    @media (min-width: 640px) { .live__facts { grid-template-columns: repeat(3, 1fr); gap: 16px; } .live__facts img { width: 90px; height: 80px; padding: 12px 18px; } }
 
-    /* ---------- lanes: dark first, lighter as certainty drops ----------
-       Labels stay navy in both lanes: they sit ABOVE the band on the light
-       stage, so white there is invisible. */
-    .lane { margin: 22px 0 0; }
+    .lane { margin: var(--s-4) 0 0; }
     .lane__label {
       font-size: 12px; font-weight: 700; letter-spacing: 1.7px; text-transform: uppercase;
-      color: var(--navy); margin: 0 0 10px;
+      color: var(--line); margin: 0 0 12px;
     }
-    .lane .chain { list-style: none; margin: 0; padding: 16px; border-radius: 6px; }
-
-    /* near lane: solid navy field */
-    .lane--0 .chain {
-      background-image: radial-gradient(100% 100% at bottom right, #260133, #1F2348);
-      padding: 20px 16px;
-    }
-    .lane--0 .chip { filter: drop-shadow(0 10px 18px rgba(0,0,0,.28)) drop-shadow(0 3px 4px rgba(0,0,0,.18)); }
-
-    /* far lane: light blue tint */
-    /* Nimiq blue ladder, dark to light as the horizon gets further out:
-       navy field, then blue-600, then blue-400 from the modern colors.css
-       ladder, expressed as alpha tints of the palette #0582CA so the brand
-       linter can trace them (dE 2.2 and 1.4 off the oklch originals).
-       blue-500 is skipped, it sits dE 4.1 from blue-600 and would not read. */
-    .lane--1 .chain { background: rgba(5, 130, 202, 0.22); }
-    .lane--2 .chain { background: rgba(5, 130, 202, 0.08); }
+    .lane .chain { list-style: none; margin: 0; padding: 20px 16px; border-radius: 6px; }
+    .lane--0 .chain { background: var(--blurple); }
+    .lane--0 .chip { filter: drop-shadow(0 10px 18px rgba(28,27,19,.22)) drop-shadow(0 3px 4px rgba(28,27,19,.14)); }
+    .lane--1 .chain { background: rgba(84, 101, 238, 0.18); }
+    .lane--2 .chain { background: rgba(84, 101, 238, 0.07); }
 
     /* drop-shadow, NOT box-shadow: clip-path clips a box-shadow away entirely. */
-    .chip { filter: drop-shadow(0 8px 14px rgba(31,35,72,.07)) drop-shadow(0 3px 3px rgba(31,35,72,.04)); }
-    .chip + .chip { margin-top: 4px; }
+    .chip { filter: drop-shadow(0 8px 14px rgba(28,27,19,.08)) drop-shadow(0 3px 3px rgba(28,27,19,.05)); }
+    .chip + .chip { margin-top: 8px; }
     .chip .chip__in {
-      background: #fff; padding: 22px 20px 30px;
+      background: #fff; padding: var(--s-3) 20px 36px;
       clip-path: polygon(
         0 0, calc(50% - 15px) 0, 50% 16px, calc(50% + 15px) 0, 100% 0,
         100% calc(100% - 16px), calc(50% + 15px) calc(100% - 16px),
@@ -463,50 +400,79 @@
       );
     }
     .chip:last-child .chip__in {
-      border-radius: 0 0 6px 6px; padding-bottom: 22px;
+      border-radius: 0 0 6px 6px; padding-bottom: var(--s-3);
       clip-path: polygon(
         0 0, calc(50% - 15px) 0, 50% 16px, calc(50% + 15px) 0,
         100% 0, 100% 100%, 0 100%
       );
     }
+    .chip--first:last-child .chip__in { border-radius: 6px; clip-path: none; }
     .chip__label {
       font-size: 12px; font-weight: 700; letter-spacing: 1.7px; text-transform: uppercase;
-      color: var(--label-grey); margin: 0 0 6px;
+      color: var(--ink-64); margin: 0 0 6px;
     }
-    /* Status chip, Nimiq's own "Coming Soon" geometry: monochrome, 4px radius,
-       hairline ring, hung in the corner. Never a brand-coloured pill. Ink is navy
-       because their neutral-800 measures 3.28:1 on this fill and fails at 11px. */
-    .chip__hd {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 10px; margin: 0 0 6px;
-    }
+    /* Status chip: monochrome, 4px radius, hairline ring, hung in the corner. Never a paint. */
+    .chip__hd { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 6px; }
     .chip__hd .chip__label { margin: 0; }
     .chip__stat {
       font-size: 11px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase;
-      color: var(--navy); background: #E4E4E9;
-      box-shadow: inset 0 0 0 1px rgba(31, 35, 72, 0.14);
+      color: var(--line); background: rgba(28, 27, 19, 0.08);
+      box-shadow: inset 0 0 0 1px var(--hairline);
       border-radius: 4px; padding: 4px 8px; white-space: nowrap;
     }
-    @media (max-width: 360px) {
-      .chip__stat { font-size: 10px; letter-spacing: 1.1px; padding: 3px 6px; }
-    }
+    @media (max-width: 360px) { .chip__stat { font-size: 10px; letter-spacing: 1.1px; padding: 3px 6px; } }
     .chip__title { font-size: 20px; font-weight: 700; letter-spacing: 0; }
-    .chip__body { margin: 10px 0 0; font-size: 16px; color: var(--ink-60); max-width: 60ch; }
+    .chip__body { margin: 10px 0 0; font-size: 16px; color: var(--ink-64); max-width: 60ch; }
     /* Named third-party apps link out. Underlined, not colour-only: this body is already grey. */
-    .chip__body a { color: inherit; text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; text-decoration-color: rgba(31,35,72,.35); }
-    .chip__body a:hover, .chip__body a:focus-visible { color: rgba(31,35,72,.95); text-decoration-color: currentColor; }
+    .chip__body a { color: inherit; text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; text-decoration-color: rgba(28,27,19,.35); }
+    .chip__body a:hover, .chip__body a:focus-visible { color: var(--line); text-decoration-color: currentColor; }
 
+    /* the prize at the top of the climb: the rules, in yolk */
     .always {
-      margin: 40px 0 0; padding: 26px 22px; border-radius: 6px; background: #fff;
-      box-shadow: 0 18px 38px rgba(31,35,72,.07), 0 7px 8.5px rgba(31,35,72,.04);
+      margin: var(--s-6) 0 0; padding: var(--s-3) 22px; border-radius: 6px; background: var(--yolk); color: var(--line);
+      box-shadow: 0 var(--lip) 0 color-mix(in srgb, var(--yolk) 80%, #000);
     }
-    .always__label {
-      font-size: 12px; font-weight: 700; letter-spacing: 1.7px; text-transform: uppercase;
-      color: var(--label-grey); margin: 0 0 8px;
-    }
+    .always__label { font-size: 12px; font-weight: 700; letter-spacing: 1.7px; text-transform: uppercase; color: var(--ink-64); margin: 0 0 8px; }
     .always__title { font-size: 20px; font-weight: 700; letter-spacing: 0; }
-    .always__body { margin: 10px 0 0; font-size: 16px; color: var(--ink-60); max-width: 60ch; }
+    .always__body { margin: 10px 0 0; font-size: 16px; color: var(--line); max-width: 60ch; }
 
+    /* ---------- footer ---------- */
+    .site-ftr {
+      background: #fff; border-top: 1px solid var(--hairline);
+      padding: var(--s-4) 0 calc(var(--s-4) + env(safe-area-inset-bottom));
+      font-size: 15px;
+    }
+    .site-ftr__row { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; }
+    .ftr-brand { display: inline-flex; }
+    .ftr-brand img { display: block; width: 138px; height: auto; }
+    .ftr-links { display: flex; flex-wrap: wrap; gap: 24px; margin-left: auto; }
+    .ftr-links a { font-weight: 700; text-decoration: none; color: var(--line); transition: color 200ms var(--ease); }
+    .ftr-links a:hover { color: var(--ink-64); }
+    .ftr-links a:focus-visible { outline: 2px solid var(--blurple); outline-offset: 3px; border-radius: 4px; }
+
+    @media (min-width: 640px) {
+      :root { --edge: 24px; }
+      .wrap { padding: 0 24px; }
+      .hero { padding: var(--s-6) 0; }
+      .hero__card { padding: var(--s-6) var(--s-4); }
+      .section { padding: var(--s-12) 0; }
+      .steps { grid-template-columns: repeat(3, 1fr); gap: 24px; }
+      .step { padding: var(--s-4) 24px; }
+      .chip .chip__in { padding-left: var(--s-4); padding-right: var(--s-4); }
+      .live__in { padding-left: var(--s-4); padding-right: var(--s-4); }
+    }
+    @media (min-width: 1024px) { :root { --edge: 40px; } }
+    /* Below ~340px the clamp floor (30px) spills the headline to a third line. */
+    @media (max-width: 340px) { .hero__title { font-size: 26px; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
   </style>
 </head>
 
@@ -516,10 +482,8 @@
   <header class="site-hdr">
     <div class="site-hdr__row">
       <a class="brand" href="/" aria-label="NIMIQ.kids home">
-        <!-- The real lockup, not type. "NIMIQ" is the verbatim logotype path and
-             ".kids" is outlined, so this needs no font. public/assets/brand/README.md:
-             "Never retype the wordmark." Dark variant because the header is navy. -->
-        <img class="brand__logo" src="/assets/brand/nimiq-kids-lockup-dark.svg"
+        <!-- The real lockup, not type (public/assets/brand/README.md: never retype the wordmark). -->
+        <img class="brand__logo" src="/assets/brand/nimiq-kids-lockup-light.svg"
              alt="NIMIQ.kids" width="176" height="28" />
       </a>
       <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu">
@@ -528,29 +492,25 @@
     </div>
   </header>
 
-  <!-- ============================================================
-       HAMBURGER MENU (right-side drawer)
-       The demo has exactly ONE entry here: the "Try the demo" pill.
-       It used to appear twice, as the pill AND a Demo row pointing at
-       the same URL; consolidated 2026-08-01. Row order is fixed:
-       Roadmap, Live. A 3rd row slots in by uncommenting the block at
-       the bottom of this list. Nothing else needs to change.
-       ============================================================ -->
+  <!-- HAMBURGER MENU (right-side drawer). The pill is the primary action, Create your own
+       (Andjroo, 2026-09-18: highlight that over the demo). Rows: How to try it, Roadmap, Demo. -->
   <nav class="menu" id="menu" aria-label="Main">
     <div class="menu__panel">
-      <!-- Verbatim registry close-button icon (@nimiq/style close.svg). Keep the
-           <svg> flush against the <button> tags; whitespace adds visible width. -->
+      <!-- Verbatim registry close-button icon (@nimiq/style close.svg). Keep the <svg> flush
+           against the <button> tags; whitespace adds visible width. -->
       <button class="menu__close" id="menu-close" type="button" aria-label="Close menu"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M3.528 3.52c4.683-4.684 12.275-4.686 16.96-.005 4.678 4.69 4.678 12.28 0 16.97-4.685 4.68-12.277 4.678-16.96-.005-4.682-4.684-4.682-12.276 0-16.96zm13.145 13.133a1 1 0 0 0 .036-1.374l-3.11-3.11a.25.25 0 0 1 0-.352l3.11-3.11a1 1 0 1 0-1.414-1.415l-3.11 3.11a.25.25 0 0 1-.354 0l-3.11-3.11a1 1 0 0 0-1.41 1.415l3.11 3.11a.249.249 0 0 1 0 .353l-3.11 3.109a1 1 0 0 0 0 1.415c.396.38 1.021.38 1.416 0l3.109-3.11a.252.252 0 0 1 .354 0l3.11 3.11a1 1 0 0 0 1.373-.041z" fill="currentColor"/></svg></button>
 
-      <!-- The pill that anchors the drawer, exactly as nimiq.com's mobile menu
-           opens on its "New wallet" pill. Same .pill--primary the hero uses, so
-           there is one lit element and one only. This IS the menu's demo entry;
-           never add a second Demo row beneath it. -->
       <div class="menu__cta">
-        <a class="pill pill--primary" href="https://demo.nimiq.kids/demo">Try the demo</a>
+        <a class="pill pill--primary" href="/parent/">Create your own</a>
       </div>
 
       <ul class="menu__list">
+        <li>
+          <a class="menu__link" href="#try">
+            How to try it
+            <svg class="menu__arrow" viewBox="0 0 12 8" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="m8 .5 3.5 3.445L8 7.39m3-3.437H.5"/></svg>
+          </a>
+        </li>
         <li>
           <a class="menu__link" href="#roadmap">
             Roadmap
@@ -558,135 +518,151 @@
           </a>
         </li>
         <li>
-          <!-- LINK: Live target. /parent/ with no stored token renders the self-serve
-               create-your-family screen (public/parent/views-onboard.js). -->
-          <a class="menu__link" href="/parent/">
-            Live
+          <a class="menu__link" href="https://demo.nimiq.kids/demo">
+            Demo
             <svg class="menu__arrow" viewBox="0 0 12 8" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="m8 .5 3.5 3.445L8 7.39m3-3.437H.5"/></svg>
           </a>
         </li>
-        <!-- 3RD ROW SLOT. Cut on purpose: andjroo.com sits behind a PIN wall, so a
-             judge who taps it gets a password prompt. Uncomment to restore.
-        <li>
-          <a class="menu__link" href="https://andjroo.com/" rel="noopener">
-            Bio
-            <svg class="menu__arrow" viewBox="0 0 12 8" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="m8 .5 3.5 3.445L8 7.39m3-3.437H.5"/></svg>
-          </a>
-        </li>
-        -->
       </ul>
     </div>
   </nav>
 
   <main id="main">
 
-    <!-- ============================================================
-         HERO. The video is the first thing a judge sees.
-         ============================================================ -->
+    <!-- HERO. The meadow is the app's own timer background; the cast stands on its pond. -->
     <section class="hero">
       <div class="wrap">
-        <!-- COPY: hero headline -->
-        <h1 class="hero__title">Your house, running its own mini economy</h1>
-        <!-- COPY: hero subline -->
-        <p class="hero__sub">Kids do their chores, routines and activities. You approve, they get paid in seconds, then spend it on things you already give them: screen time, new toys, a trip to the pool. Nobody loses a dollar.</p>
+        <div class="hero__card">
+          <!-- COPY: hero headline -->
+          <h1 class="hero__title">Your family's own mini economy</h1>
+          <!-- COPY: hero subline -->
+          <p class="hero__sub">It runs on the tablet your kid already has. You set the jobs, your kid does them, you say yes, and real money lands in their wallet. They spend it back on screen time, the pool, a toy. Nobody in the house loses a dollar.</p>
 
-        <div class="video" id="video-slot">
-          <div class="video__placeholder">
-            <b>Video goes here</b>
-            <span>Placeholder. Paste the YouTube id into VIDEO_ID at the bottom of this file.</span>
+          <div class="video" id="video-slot">
+            <div class="video__placeholder">
+              <b>Video goes here</b>
+              <span>Placeholder. Paste the YouTube id into VIDEO_ID at the bottom of this file.</span>
+            </div>
           </div>
+
+          <!-- the primary sits on the RIGHT (Andjroo, 2026-09-18) -->
+          <div class="cta-row">
+            <a class="pill pill--secondary" href="https://demo.nimiq.kids/demo">Try the demo</a>
+            <a class="pill pill--primary" href="/parent/">Create your own</a>
+          </div>
+
+          <!-- THE CAST, on the white plate: frog, penguin, octopus (Andjroo, 2026-09-18). Each mount
+               holds its still until the riv's canvas attaches; a tap on a character, or the button,
+               fires its verb. Rebuilds land over the same URL, so nothing is pinned. --scale evens
+               out how large each file draws its character inside the 1024 artboard. -->
+          <div class="cast" id="hero-cast" data-anim="hero-opener" aria-hidden="true">
+            <div class="anim" id="anim-frog" style="--scale: 0.85" data-props="off" data-riv="https://riv.nimiq.kids/nimiq-kids-frog.riv" data-verb="jump"><img src="/assets/heroes/hero-frog.png" alt="" width="611" height="640" /></div>
+            <div class="anim" id="anim-penguin" style="--scale: 1; --nudge: 4%" data-props="off" data-riv="https://riv.nimiq.kids/nimiq-kids-penguin.riv" data-verb="slide"><img src="/assets/heroes/hero-penguin.png" alt="" width="485" height="640" /></div>
+            <div class="anim" id="anim-octopus" style="--scale: 1" data-props="off" data-riv="https://riv.nimiq.kids/nimiq-kids-octopus.riv" data-verb="wave"><img src="/assets/heroes/hero-octopus.png" alt="" width="565" height="640" /></div>
+          </div>
+          <button class="pill pill--secondary pill--sm" id="cast-tap" type="button">Tap them</button>
         </div>
 
+      </div>
+    </section>
+
+    <!-- HOW TO TRY IT. The two climbs the onboarding builds today: six screens for the parent,
+         three picks for the kid. Not part of the roadmap on purpose (Andjroo, 2026-09-18). -->
+    <section class="section try" id="try">
+      <div class="wrap">
+        <p class="eyebrow">Two minutes</p>
+        <h2 class="section__title">How to try it</h2>
+        <!-- ANIMATION SLOT: the two climbs, empty until that riv exists. -->
+        <div class="anim anim--milestone" id="anim-onboarding" data-anim="onboarding-climb" data-riv="" data-verb="" aria-hidden="true"></div>
+        <ol class="steps">
+          <li class="step">
+            <img class="step__art" src="/assets/icons/pencilpaper.png" alt="" width="256" height="256" />
+            <h3 class="step__title">Set up your family on your phone</h3>
+            <p class="step__body">Your name, your kid's name, a wallet or skip it, and their first goal. Under 90 seconds.</p>
+          </li>
+          <li class="step">
+            <!-- A real Nimiq identicon, rendered once with the vendored iqons lib from a fixed
+                 address and inlined; it is the wallet face a kid picks in the app. -->
+            <svg class="step__art step__art--iqon" viewBox="0 0 160 160" width="64" height="64" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"> <defs><clipPath id="hexagon-clip-74"> <path d="M251.6 17.34l63.53 110.03c5.72 9.9 5.72 22.1 0 32L251.6 269.4c-5.7 9.9-16.27 16-27.7 16H96.83c-11.43 0-22-6.1-27.7-16L5.6 159.37c-5.7-9.9-5.7-22.1 0-32L69.14 17.34c5.72-9.9 16.28-16 27.7-16H223.9c11.43 0 22 6.1 27.7 16z" transform="scale(0.5) translate(0, 16)"/> </clipPath></defs> <g clip-path="url(#hexagon-clip-74)"> <g color="#795548" fill="#D94432"> <rect fill="#21BCA5" x="0" y="0" width="160" height="160"/> <circle cx="80" cy="80" r="40" fill="#795548"/> <g opacity=".1" fill="#010101"><path d="M119.21,80a39.46,39.46,0,0,1-67.13,28.13c10.36,2.33,36,3,49.82-14.28,10.39-12.47,8.31-33.23,4.16-43.26A39.35,39.35,0,0,1,119.21,80Z"/></g> <path xmlns="http://www.w3.org/2000/svg" d="M133 48.8c-1.9-8.6-10.2-12.6-28.2-9.5C99.4 32 89 19 82 15l-3.7-2-21.3-.2c-3.2.3-5.8.7-7.2 1.5 0 0-.7 3-1.9 4.1-2.9 2.4 5.1 3.4 5.1 3.4l-2 3 4 2v3c1.8 6.9-.3 14-.3 14s1.2 1.6-17.2.4C19.1 43 23 65.8 36 63.8l8.9-1a171 171 0 0049.4-9.4c3.8-1 7.6-1.6 11.5-1.9 3.7 2.8 6.8 6.3 9.2 10.2l.3-.2-.2.1c0 .2 19.9-3.8 17.9-12.8zm-21.5 3c1.7.2 3.2.9 4.5 2-1.4-.9-2.9-1.6-4.5-2z" fill="#fff"/><path xmlns="http://www.w3.org/2000/svg" d="M105.8 51.5c3.7 3 7 6.2 9.2 10.5 0 0 6.3-2.8 1.6-8 0 0-1.6-3-10.8-2.5z" opacity=".5"/><path xmlns="http://www.w3.org/2000/svg" d="M37.8 63.4s33-.9 56.8-10c0 0 16.7-4.6 21.7.4s-.9 8-.9 8 20-4 18-13-11-13-31-9-18.6 17.3-64.6 23.6z" opacity=".25"/><path xmlns="http://www.w3.org/2000/svg" d="M70.9 13c11 11.6 22 25.6 19 31.6 5-2.5 8.1-4.2 14.9-5.3-2.9-4.2-6-8.2-9.2-12.1C95.6 27.2 83 14 78 13z" opacity=".1"/><path xmlns="http://www.w3.org/2000/svg" d="M54.4 44c9 2 29.2-2 45.5-11.5l-8.6-9.9c-.5 2-30.7 7.7-36.3 8.4.9 3.5.2 7.8-.6 13z"/><path xmlns="http://www.w3.org/2000/svg" d="M69.9 26L83 22.2c2-.6 4 .6 4.6 2.5l3.3 11.4c.6 2-.6 4-2.5 4.6l-13.1 3.8c-2 .6-4-.6-4.6-2.5l-3.3-11.4c-.6-2 .6-4 2.5-4.6z" fill="#ffe000"/><path xmlns="http://www.w3.org/2000/svg" d="M73.9 28.5l7.1-2c1.5-.4 3 .4 3.5 1.9l1.9 6.6c.4 1.5-.4 3-1.9 3.5l-7.1 2c-1.5.4-3-.4-3.5-1.9L72 31.9c-.4-1.5.4-3 1.9-3.4z"/> <path xmlns="http://www.w3.org/2000/svg" d="M14.2 80.3l6.1-.9c1.7-.2 3.3.9 3.5 2.6.2 1.7-.9 3.3-2.6 3.5l-6.1.9c-1.7.2-3.3-.9-3.5-2.6-.2-1.7.9-3.2 2.6-3.5z" fill="currentColor"/><g xmlns="http://www.w3.org/2000/svg" fill="#e0e0e0"><path d="M36.3 92.3L36 99c-.3-.3 2.7 2.3 5 0l-.4-7.8-4.3 1.1zM129.6 97.1l-.8 6.7c-.3-.3 2.5 2.5 5 .3l.1-6.1a6 6 0 01-4.3-.9zM34 42.2s.9-4.3 3.5-1.7 5.8 16.1 2.4 23.9c-.8 4.7-.6 5.7-.6 5.7-1.1.5-2.4.5-3.5 0L34 42.2zM129.5 50.8l-.8 15.4s-.2 4.6 4.4 4.9 5.5-2.8 5.6-4.3l.8-15.4s-1.2.3-1.4 4.2-1.2 7.6-2 7.6h-.6c-.5 0-.9-.2-.8-2.4.2-3.1.5-9.2-.3-9.3s-1.3 9.2-1.3 9.2-.1 2.3-1.7 2.2-1.1-8.5-1.1-8.5.4-4-.8-3.6zM130.9 77l-2.4 7.8 2 .2 2.2-7.3z"/></g><g xmlns="http://www.w3.org/2000/svg" fill="#fff"><path d="M37.5 40.4S44 50 39.9 64.3c.5 5.7-.3-22.2-2.4-23.9z" opacity=".1"/><g opacity=".3"><path d="M34.6 42c.3 0 .5.2.5.5l1.7 26.9c0 .3-.2.5-.5.5s-.5-.2-.5-.5l-1.7-26.9c0-.2.2-.4.5-.5zM139.5 51.3s-.9 3-1.4 10.7c0 0 0 8.4-2.6 8.7 0 0 2.8.4 3.3-8.8l.7-10.6zM134.4 60.2l.5-8.5s-.4 8.5-.1 10-.5 1.5-.5 1.5l.1-3z"/></g><path d="M27 68.2a7 7 0 00-1.7 5.9l.1 1.6s-7.9-2.3-7.6 4.2l.1 1.7c.2 5.3.8 7.8 4.1 9.7 3.6 2.1 4.2-1.4 6.5-.2s14.6 10.2 18.1-1.6l.5-5.2c.2-2.6 1.8-4.3.6-9.4s-6.1-6.6-10-6.1c0 0-.6.3-1.7-1.6s-6-3.5-9 1z"/></g><path xmlns="http://www.w3.org/2000/svg" d="M25 80.4l4.4-.4c.2 0 .5.2.5.4s-.2.5-.4.5l-4.4.4c-.2 0-.5-.2-.5-.4s.1-.4.4-.5zM25.2 82.2l4.4-.4c.2 0 .5.2.5.4s-.2.5-.4.5l-4.4.4c-.2 0-.5-.2-.5-.4 0-.3.2-.5.4-.5zM25.5 83.9l4.4-.4c.2 0 .5.2.5.4s-.2.5-.4.5l-4.4.4c-.2 0-.5-.2-.5-.4s.1-.4.4-.5z"/><path xmlns="http://www.w3.org/2000/svg" d="M124 73.5a6.8 6.8 0 00-1.6 5.8l.1 1.6-3.3-.3-1.4 7.7c.8.6 1.5 1.2 2.1 1.9.6 1 3.5 4.4 5.8 5.5l2.4 1.3c4.4 2.4 12.7 6 15.2-3.3l.4-5.1c.2-2.5 1.7-4.2.4-9.2s-6-6.3-9.8-5.8c0 0-.6.3-1.7-1.5s-5.8-3-8.6 1.4z" fill="#d8d8d8"/><path xmlns="http://www.w3.org/2000/svg" d="M127.2 96.5c4 2.3 13.4 7.1 16.1-2.8l.4-5.1c.2-2.5 1.7-4.2.4-9.2s-1.3-5-9.8-5.8c-7.8-.7-5.5 11.9-7.8 20-.3.8.1 2.5.7 2.9z" fill="#fff"/><g xmlns="http://www.w3.org/2000/svg" opacity=".05"><path d="M28.4 91c-2.5-.9 14.7 10.2 18.1-1.6l.5-5.2c.2-2.6 1.8-4.3.6-9.4s-6.1-6.6-10-6.1C49 70.9 40.8 94.4 28.4 91zM125.7 95.7c-2.4-.8 14.4 9.6 17.6-1.9l.4-5.1c.2-2.5 1.7-4.2.4-9.2s-6-6.3-9.8-5.8c11.1 2 3.5 25-8.6 22z"/></g><g xmlns="http://www.w3.org/2000/svg" opacity=".16"><path d="M19 88.4c.8 1.1 1.8 2 2.9 2.8 3.6 2.1 4.2-1.4 6.5-.2 2 1.1 11.7 8 16.4 1.9.7-1.1 1.2-2.3 1.7-3.5-1 1.6-4.9 2.7-8.7 2.3-5.2-.5-8.3-4.6-11.5-4.4-5.4 2.1-7.3 1.1-7.3 1.1zM117.8 88.3s5.7 6.2 7.9 7.4c2 1 11.6 7.6 16 1.5a26 26 0 001.6-3.4c-.9 1.6-4.7 2.7-8.4 2.4-5.1-.3-8.1-4.3-11.3-4.1a26.3 26.3 0 00-5.8-3.8z"/></g> <path xmlns="http://www.w3.org/2000/svg" d="M87.2 94h21.2s-.6 11-10.8 11c-2.6.1-5.2-.9-7.1-2.7-3.2-3.3-3.3-8.3-3.3-8.3z" fill="#603813"/><path xmlns="http://www.w3.org/2000/svg" d="M105.5 101.3a10 10 0 01-7.9 3.5c-2.6.1-5.2-.9-7.1-2.7-3.2-3.3 17.7-4 15-.8z" fill="#f15a24"/><path xmlns="http://www.w3.org/2000/svg" d="M71.3 68h-1.8v4h1.8c1 .3 1.8 1.2 1.8 2.2V80s-.3 8.1 11.8 7.9c0 0-8.6.2-10-8.3v-5.4c0-.8-.6-1.5-1.3-1.8l-1.9-.4-.4-4z" fill="#010101" opacity=".5"/><path xmlns="http://www.w3.org/2000/svg" d="M71.3 68v4l2 .2c.8.3 1.3 1 1.4 1.8v5.4s.9 9 10.8 8.5S95.7 78 95.7 78s0-4.5 2.2-4.5 2.3 4.5 2.3 4.5.4 9.9 10.3 9.9 10.3-8.5 10.3-8.5v-5.8c0-.7.6-1.3 1.3-1.3h1.9v-4l-21.8-.1c-.8.2-1.4.6-2 1.2l-2.1 2-2.2-2.1a3.4 3.4 0 00-2.7-1L71.3 68z" opacity=".5" stroke="#000" stroke-miterlimit="10"/><path xmlns="http://www.w3.org/2000/svg" d="M71.3 68v4l2 .2c.8.3 1.3 1 1.4 1.8v5.4s.9 9 10.8 8.5S95.7 78 95.7 78s0-4.5 2.2-4.5 2.3 4.5 2.3 4.5.4 9.9 10.3 9.9 10.3-8.5 10.3-8.5v-5.8c0-.7.6-1.3 1.3-1.3h1.9v-4l-21.8-.1c-.8.2-1.4.6-2 1.2l-2.1 2-2.2-2.1a3.4 3.4 0 00-2.7-1L71.3 68z" fill="none" stroke="#000" stroke-miterlimit="10"/> <ellipse xmlns="http://www.w3.org/2000/svg" cx="80" cy="131.5" rx="32" ry="8.7" opacity=".3"/><ellipse xmlns="http://www.w3.org/2000/svg" cx="80" cy="130.3" rx="17" ry="4.1" opacity=".6"/> </g> </g></svg>
+            <h3 class="step__title">Hand your kid the tablet</h3>
+            <p class="step__body">They pick a face for their wallet, a character and a place.</p>
+          </li>
+          <li class="step">
+            <img class="step__art" src="/assets/icons/calculator.png" alt="" width="256" height="256" />
+            <h3 class="step__title">Set the jobs and the price</h3>
+            <p class="step__body">Your kid does them, you say yes, and NIM lands in their wallet.</p>
+          </li>
+        </ol>
         <div class="cta-row">
-          <a class="pill pill--primary" href="https://demo.nimiq.kids/demo">Try the demo</a>
-          <a class="pill pill--secondary" href="/parent/">Create your own</a>
+          <a class="pill pill--secondary" href="https://demo.nimiq.kids/demo">Try the demo</a>
+          <a class="pill pill--primary" href="/parent/">Create your own</a>
         </div>
       </div>
     </section>
 
-    <!-- ROADMAP SECTION BEGIN =======================================
-         Delete everything down to ROADMAP SECTION END to take the
-         roadmap off the homepage, or flip the one-line CSS toggle at
-         the top of this file.
-
-         Copy rewritten to Andjroo's dictation 2026-07-31. Source of truth:
-         ~/gdkc/data/automation/nimiq-kids-submission/ROADMAP-COPY.md
-         The long-form version of the same plan is docs/ROADMAP.md.
-
-         Structure is a dependency chain, not a dated list. Three
-         registers, in order:
-           .live   solid blue card, the only lit element on the page
-           .lane--0  what Andjroo does next, solid navy field
-           .lane--1  what waits on something else, light blue tint
-           .always   standing rules, deliberately outside the sequence
-
-         Cards interlock on a hexagon point, borrowed from the era band
-         on nimiq.com/roadmap. The interlock is the connector, which is
-         why there is no rail, no dots and no step numbers anywhere.
-         ============================================================ -->
-    <section class="roadmap" id="roadmap" data-section="roadmap">
+    <!-- ROADMAP SECTION BEGIN. This page is the copy source of truth; docs/ROADMAP.md is the
+         long form and must say the same thing. Tiers: .live what runs today (grass),
+         .lane--0 what our family does next (blurple), .lane--1 waits on that, .lane--2 a
+         promise only once it survives the kitchen table, .always the rules (yolk). -->
+    <section class="section roadmap" id="roadmap" data-section="roadmap">
       <div class="wrap">
         <p class="eyebrow">Roadmap</p>
-        <h2 class="roadmap__title">What comes next</h2>
+        <h2 class="section__title">What comes next</h2>
 
         <div class="live">
           <div class="live__in">
             <p class="live__label">Live now</p>
             <h3 class="live__title">A chore app built on Nimiq</h3>
+            <p class="live__body">Your family runs its own mini economy, training wheels on. Nothing leaves your kid's wallet unless you say yes.</p>
             <ul class="live__facts">
-              <li>Any browser, or a mini app inside Nimiq Pay</li><li>A mini wallet built into the page: no app store, no extension, no seed phrase</li>
-              <li>Any device is theirs once they connect it</li><li>Five languages</li>
-              <li>Earn for chores, routines and activities. Spend it in the Treasure Box. The money circles back to you</li><li>Stake it and watch it earn while it sits</li>
+              <li><img src="/assets/icons/dustpan.png" alt="" width="256" height="256" loading="lazy" />Chores, routines and activities</li>
+              <li><img src="/assets/icons/lunchbox.png" alt="" width="256" height="256" loading="lazy" />Spend it in the Treasure Box</li>
+              <li><img src="/assets/icons/ladder.png" alt="" width="256" height="256" loading="lazy" />Goals, a separate path with a prize on top</li>
+              <li><img src="/assets/icons/sun.png" alt="" width="256" height="256" loading="lazy" />Stake it and it grows</li>
+              <li><img src="/assets/icons/laptop.png" alt="" width="256" height="256" loading="lazy" />Any browser, no app store</li>
+              <li><img src="/assets/icons/book.png" alt="" width="256" height="256" loading="lazy" />Five languages</li>
             </ul>
-            <p class="live__body">They are learning to be their own bank with the training wheels still on: they run it, they stake it, they spend it, and none of it leaves their wallet unless you approve.</p>
           </div>
         </div>
         <div class="lane lane--0">
-          <p class="lane__label">August</p>
+          <p class="lane__label">Next</p>
           <ol class="chain">
             <li class="chip chip--first">
               <div class="chip__in">
-                <p class="chip__label">One month</p>
-                <h3 class="chip__title">Testing it with my own kids</h3>
-                <p class="chip__body">My kids run their real chore routines on it for a full month, on our own tablets. The feedback button is live in both apps, in the corner menu next to the language picker.</p>
+                <p class="chip__label">Next month</p>
+                <h3 class="chip__title">Our own mini economy, for real</h3>
+                <p class="chip__body">My kids have been running this app while I built on it and fixed what broke. Next month is the first month our family runs its own mini economy on it, start to finish.</p>
               </div>
             </li>
-            <li class="chip ">
-              <div class="chip__in">
-                <p class="chip__label">Community funding</p>
-                <h3 class="chip__title">A Rive animator to gamify the app</h3>
-                <p class="chip__body">A Nimiq Community Funding proposal, $5,000 to $10,000, for a Rive animator. Quotes from two or three I already know in the Rive community. The bar is Duolingo: a character that reacts when a chore is approved, a streak that builds, coins that fly into the balance, a celebration when a whole routine lands.</p>
-              </div>
-            </li>
-            <li class="chip ">
+            <li class="chip">
               <div class="chip__in">
                 <p class="chip__label">Building now</p>
                 <h3 class="chip__title">Recurring allowance and bonuses</h3>
-                <p class="chip__body">An allowance the parent sets and controls, that repeats, plus bonuses.</p>
+                <p class="chip__body">An allowance you set and control, that repeats, plus bonuses.</p>
               </div>
             </li>
           </ol>
         </div>
         <div class="lane lane--1">
-          <p class="lane__label">September</p>
+          <p class="lane__label">Then</p>
           <ol class="chain">
             <li class="chip chip--first">
               <div class="chip__in">
                 <p class="chip__label">Distribution</p>
                 <h3 class="chip__title">A grassroots push to get families on it</h3>
-                <p class="chip__body">Most crypto asks people to invest first. This solves a problem first. I have young kids, so I am around parents constantly: I hand them a cashlink and ask them to try it at home. Real families first, then an App Store listing, then marketing once there is something to point at.</p>
+                <p class="chip__body">Most crypto asks people to invest first. This solves a problem first. I am around parents all day, so I hand them a cashlink and ask them to try it at home. Real families first, then an App Store listing, then marketing.</p>
               </div>
             </li>
           </ol>
         </div>
         <div class="lane lane--2">
-          <p class="lane__label">Future goals</p>
+          <p class="lane__label">Later</p>
           <ol class="chain">
             <li class="chip chip--first">
               <div class="chip__in">
                 <p class="chip__label">Cosmetics</p>
                 <h3 class="chip__title">Creator drops, the way Fortnite does it</h3>
-                <p class="chip__body">New sticker packs, backgrounds and characters, released in seasons. Outside creators make them too: a creator submits a pack, I approve it into the app, then each parent decides whether their own kid can buy it. Two gates before anything reaches a kid.</p>
+                <p class="chip__body">Sticker packs, backgrounds and characters, released in seasons. Outside creators can submit a pack. I approve it into the app, then each parent decides whether their own kid can buy it.</p>
               </div>
             </li>
             <li class="chip chip--stat">
@@ -696,7 +672,7 @@
                   <span class="chip__stat">Research phase</span>
                 </div>
                 <h3 class="chip__title">Paying kids for learning too</h3>
-                <p class="chip__body">Connecting to apps that teach reading, math, music and coding. <a href="https://www.ello.com/" target="_blank" rel="noopener">Ello</a>, <a href="https://learn.khanacademy.org/khan-academy-kids/" target="_blank" rel="noopener">Khan Academy Kids</a>, <a href="https://yousician.com/" target="_blank" rel="noopener">Yousician</a>. Nothing that is only a game. HTLCs would release the reward once the work is confirmed.</p>
+                <p class="chip__body">Apps that teach reading, math, music and coding: <a href="https://www.ello.com/" target="_blank" rel="noopener">Ello</a>, <a href="https://learn.khanacademy.org/khan-academy-kids/" target="_blank" rel="noopener">Khan Academy Kids</a>, <a href="https://yousician.com/" target="_blank" rel="noopener">Yousician</a>. Nothing that is only a game. An HTLC would release the reward once the work is confirmed.</p>
               </div>
             </li>
           </ol>
@@ -705,11 +681,11 @@
         <div class="always">
           <p class="always__label">Always</p>
           <h3 class="always__title">No ads, no tracking, nothing predatory</h3>
-          <p class="always__body">The parent funds everything and approves every chore before it pays. It stays open source.</p>
+          <p class="always__body">The parent funds everything and says yes before any job pays. It stays open source.</p>
         </div>
       </div>
     </section>
-    <!-- ROADMAP SECTION END ======================================= -->
+    <!-- ROADMAP SECTION END -->
 
   </main>
 
@@ -719,6 +695,7 @@
         <img src="/assets/brand/nimiq-kids-lockup-light.svg" alt="NIMIQ.kids" width="138" height="22" />
       </span>
       <nav class="ftr-links" aria-label="Footer">
+        <a href="#try">Try it</a>
         <a href="#roadmap">Roadmap</a>
         <a href="https://demo.nimiq.kids/demo">Demo</a>
         <a href="/parent/">Live</a>
@@ -727,11 +704,8 @@
   </footer>
 
   <script>
-    /* ================================================================
-       VIDEO: THE ONE LINE TO CHANGE.
-       Paste the YouTube video id (the part after v=) between the quotes.
-       Leave it empty and the hero shows the labelled placeholder.
-       ================================================================ */
+    /* VIDEO: THE ONE LINE TO CHANGE. Paste the YouTube video id (the part after v=) between
+       the quotes. Leave it empty and the hero shows the labelled placeholder. */
     const VIDEO_ID = "";
 
     (function () {
@@ -763,15 +737,12 @@
         burger.setAttribute("aria-label", open ? "Close menu" : "Open menu");
         document.body.style.overflow = open ? "hidden" : "";
         if (open && viaKeyboard) {
-          /* The drawer covers the burger, so KEYBOARD users get their focus
-             moved to the close-button standing on the burger's exact spot.
-             Never move focus on tap/click: WebKit matches :focus-visible on
-             ANY programmatic focus(), which painted blue focus rings on the
-             X and the burger for iPhone taps (Andjroo, 2026-08-01). A click
-             fired by Enter/Space on a button reports detail 0; a real
-             pointer click reports 1+. The offsetHeight read flushes the
-             is-open style flip first; focus() on a still-hidden element is
-             silently refused. */
+          /* KEYBOARD users get their focus moved to the close-button standing on the
+             burger's spot. Never move focus on tap/click: WebKit matches :focus-visible on
+             ANY programmatic focus(), which painted rings on iPhone taps (Andjroo,
+             2026-08-01). Enter/Space reports detail 0; a pointer click reports 1+. The
+             offsetHeight read flushes the is-open flip first; focus() on a hidden element
+             is silently refused. */
           void menu.offsetHeight;
           menuClose.focus({ preventScroll: true });
         }
@@ -782,12 +753,16 @@
         setOpen(false);
         if (e.detail === 0) burger.focus({ preventScroll: true });
       });
-      /* Tapping the scrim closes. The scrim is the .menu box itself (its tint is a
-         ::before pseudo, which is never an event target), so the sheet's own taps
-         do not reach here. */
+      /* Tapping the scrim closes: the scrim is the .menu box itself (its tint is a ::before
+         pseudo, never an event target), so the sheet's own taps do not reach here. */
       menu.addEventListener("click", function (e) { if (e.target === menu) setOpen(false); });
       document.addEventListener("keydown", function (e) {
         if (e.key === "Escape" && open) { setOpen(false); burger.focus({ preventScroll: true }); }
+      });
+      /* "Tap them": one press fires every character's verb through the mounts' own click handlers. */
+      document.getElementById("cast-tap").addEventListener("click", function () {
+        var cast = document.querySelectorAll("#hero-cast .anim");
+        for (var j = 0; j < cast.length; j++) cast[j].click();
       });
       var links = menu.querySelectorAll("a");
       for (var i = 0; i < links.length; i++) {

@@ -187,12 +187,22 @@ export { esc };
 // ---------- i18n (shell bridge + English fallback while the shell bundle boots) ----------
 const FALLBACK = {
   "app.kidWho": "Who are you?",
-  "app.charTitle": "Which one is you, {name}?",
-  "app.charSub": "Pick the one you like. It is yours to keep.",
-  "app.charShuffle": "Show me different ones",
-  "app.charNoMore": "That is all of them. Pick your favourite.",
-  "app.charTryAgain": "Someone was quicker. Here are some more.",
-  "app.charPickOne": "Character {n}",
+  "app.obHi": "Hi, {name}!",
+  "app.obGo": "Let's go",
+  "app.obFaceTitle": "Your money has a face",
+  "app.obFaceSub": "Pick one. This is your wallet address. It stays yours.",
+  "app.obFaceMore": "Show me more",
+  "app.obFaceNoMore": "That is all of them. Pick your favourite.",
+  "app.obFaceTryAgain": "Someone was quicker. Here are some more.",
+  "app.obFacePick": "Money face {n}",
+  "app.obHeroTitle": "Pick your character",
+  "app.obHeroPick": "Character {n}",
+  "app.obThatOne": "That one",
+  "app.obPlaceTitle": "Pick your place",
+  "app.obPlaceSub": "You can change it later.",
+  "app.obSkip": "Skip",
+  "app.kidGoalStart": "Start",
+  "app.kidYourHero": "Your character",
   "app.pairTitle": "Connect your tablet",
   "app.pairSub": "Ask a grown-up to open the parent app, go to Settings, tap Pair a device, and read you the 6 digits.",
   "app.pairGo": "Connect",
@@ -652,7 +662,12 @@ export function unlockAudio() {
 }
 export function playAlarm() {
   const id = state.prefs?.alarm_sound_id;
-  const entry = (state.catalog?.alarms ?? []).find((a) => a.id === id);
+  const alarms = state.catalog?.alarms ?? [];
+  // ⚠️ THE STORED DEFAULT NAMES A FILE THAT NEVER EXISTED. schema.sql seeds alarm_sound_id as
+  // 'chick-chirp' and no asset was ever made under that id, so every kid's pref pointed at
+  // nothing and this fell through to the oscillator below on the NIM-landed screen. The first
+  // catalog alarm is the default now (nim-landed, 2026-09-18); the chirp is the no-catalog case.
+  const entry = alarms.find((a) => a.id === id) ?? alarms[0];
   if (entry?.url) { new Audio(entry.url).play().catch(() => {}); return; }
   if (!actx) return;
   try {

@@ -35,7 +35,13 @@
   .card{background:var(--panel);border-radius:16px;box-shadow:0 4px 20px rgba(31,35,72,.09);padding:12px;margin-bottom:12px}
   #stageCard{position:sticky;top:60px;margin-bottom:12px}
   canvas{display:block;width:100%;height:auto;border-radius:12px;touch-action:none}
-  #stage{background:var(--sage)}
+  /* the egg is RIVE now (2026-09-15): `#rive` draws the shell, the crack and the
+     break underneath; `#stage` stays on top, transparent, for the face, the
+     character and the HUD. The wobble is one transform applied to `#rive` (css)
+     and to the face (canvas) from the same matrix, see riveWobble(). */
+  #eggStage{position:relative;background:var(--sage);border-radius:12px}
+  #rive{position:absolute;inset:0;width:100%;height:100%;border-radius:0;transform-origin:0 0}
+  #stage{position:relative;background:transparent}
   /* embed: the stage alone, transparent, no card and no chrome around it. The
      host sizes the iframe and clips it — nothing here assumes a viewport. */
   /* the same rules, keyed on <html> so they are live before the body exists */
@@ -43,12 +49,12 @@
   html.embed header,html.embed #stripCard,html.embed main>div:last-child{display:none}
   html.embed main{display:block;padding:0;gap:0}
   html.embed #stageCard{position:static;margin:0;padding:0;background:transparent;box-shadow:none;border-radius:0}
-  html.embed #stage{background:transparent;border-radius:0}
+  html.embed #stage,html.embed #eggStage{background:transparent;border-radius:0}
   body.embed{background:transparent;overflow:hidden}
   body.embed header,body.embed #stripCard,body.embed main>div:last-child{display:none}
   body.embed main{display:block;padding:0;gap:0}
   body.embed #stageCard{position:static;margin:0;padding:0;background:transparent;box-shadow:none;border-radius:0}
-  body.embed #stage{background:transparent;border-radius:0}
+  body.embed #stage,body.embed #eggStage{background:transparent;border-radius:0}
   #strip{background:rgba(31,35,72,.04);cursor:crosshair}
   .row{display:flex;align-items:center;gap:8px;margin:7px 0}
   .row label{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;opacity:.6;width:92px;flex:none}
@@ -158,7 +164,10 @@
 <main>
   <div>
     <div class="card" id="stageCard">
-      <canvas id="stage" width="720" height="560"></canvas>
+      <div id="eggStage">
+        <canvas id="rive" width="720" height="560"></canvas>
+        <canvas id="stage" width="720" height="560"></canvas>
+      </div>
     </div>
     <div class="card" id="stripCard">
       <h2>the heartbeat of <span id="stripWho">the middle</span> <span style="opacity:.7;font-weight:700;text-transform:none;letter-spacing:0">— each pin is one shove. sideways for when, up for how hard.</span></h2>
@@ -400,7 +409,7 @@
 </main>
 
 <script>
-const BUILD='wig-b0858a';
+const BUILD='wig-6644cb';
 /* ⚠️ VER, not BUILD, is what stamps every asset URL below. The host passes `v` in
    (timer.html), and in the app that token comes off the vendored copy's own file
    times — so a recut PNG busts its own URL even when nobody bumps BUILD. Without
@@ -430,6 +439,150 @@ $('stamp').textContent=BUILD;
    on `window`, and `function` declarations are — so half of it would appear to
    work from an iframe and half would silently be `undefined`. RIG is the surface. */
 const EMBED=new URLSearchParams(location.search).has('embed');
+
+/* ================= the egg is RIVE (2026-09-15) =================
+   The shell, the crack and the break are `rive-kit/egghatch.riv` now, built in
+   rive-lab (`examples/nimiq-kids-egg-hatch`, PR #152): one artboard per crack
+   pattern, `EggHatch1`..`EggHatch4`, two bound numbers on `HatchVM`:
+
+     crack  0..1   his crack drawn from the top rim, branches from their forks
+     break  0..1   the shells part and land either side of the character's box
+
+   This rig keeps everything else: the clock, the three gears of wobble, the face
+   and its director, the character, the API the phone drives it through. What it
+   stops doing is DRAWING the egg: draw() and drawBreak() write the two numbers
+   and put the wobble on the Rive canvas as a css transform, and paint the face
+   over it on `#stage` from the same matrix. The canvas egg's own code (the
+   halves, the chips, the swell, paintEggAt) is still in the file and no longer
+   on the frame path; it goes as the rest of the rig moves into the scene.
+
+   ⚠️ THE RIVE EGG IS SMALLER ON THE STAGE THAN THE CANVAS EGG WAS. The scene
+   draws the egg at 0.52 of the art from frame one (rive-lab, Andjroo 2026-09-15:
+   the shells keep their size and topple, no zooming back), centred at
+   (360, 316.92) with its bottom on the ground line 426, so the landed pair plus
+   the gap for the character fit the 720 stage. Every number below comes from
+   the scene's `stage.json`; geom() reports THIS box, so the host sizes and
+   centres off the egg that is actually drawn.
+
+   ⚠️ The runtime is `@rive-app/canvas` 2.42.1, vendored as `rive-kit/rive.js` +
+   `rive-kit/rive.wasm` and pointed at its own wasm (setWasmUrl): the kiosk
+   tablet is offline at times and nothing here may reach a CDN. */
+const RIVE={cx:360, cy:316.92, z:0.52, ground:426, hole:{x:360,y:322,w:224,h:208},
+            artW:374, artH:444, dur:1.0 /* Andjroo: "Perfect at 1 sec" */,
+            /* the landed shells sit for `settle`, then fade over `gone` and are not
+               there any more. Andjroo, 2026-09-15: "after the egg settles ... I would
+               actually like it to crack and disappear. So that way the main focus will
+               be the character inside of our hexagon." The Rive canvas IS the shells
+               (the character is painted over it on #stage), so its opacity is the
+               shells' opacity; the character never fades. */
+            settle:0.7, gone:0.45};
+RIVE.box={x0:RIVE.cx-RIVE.artW/2*RIVE.z, y0:RIVE.cy-RIVE.artH/2*RIVE.z,
+          x1:RIVE.cx+RIVE.artW/2*RIVE.z, y1:RIVE.cy+RIVE.artH/2*RIVE.z};
+/* the badge is the stage: the host scales the rig so the ring it reports fills the
+   badge (k = badgeR / ring.r) and the badge is .44 of the column, so a ring of
+   .44 * 720 puts the whole 720 stage across the column and the landed shells
+   stay on screen. The egg reads small inside the badge; that is the size Andjroo
+   approved on the 720 stage, seen at phone width. */
+/* ⚠️ THE RING IS THE EGG'S SIZE IN THE PLATE, and it moved with the tunnel. Andjroo,
+   2026-09-16: "make the countdown timer ... a little bit thinner so the egg can take up a
+   little bit more space." Thinning the tunnel alone gives the egg MORE white around it, not
+   more egg, so the ring came in by exactly what the tunnel gave back: the hole's inner edge
+   went 141 to 152 of the plate's 430 art units, +7.8%, and .44 becomes .408.
+   🔴 AND IT IS ALSO THE LANDED SHELLS' SIZE, which is why it went back to .44. The approved
+   landing is two 433 px shells either side of a 480 px gap, and SHELLZ 0.52 exists to make
+   that 1,346 px group fit the 720 stage (gen/motion.py) — so the group is 3.45 egg widths,
+   welded. At .44 the pair is 421 px on a 390 phone and loses 15 a side; at .408 the egg
+   gains 9 px and the pair loses 32 a side, half a shell, on the payoff frame. The egg cannot
+   grow further until that 480 gap comes in, and the gap is the room the character hatches
+   into: Andjroo's call, not this file's. */
+RIVE.ring={x:RIVE.cx, y:RIVE.cy, r:720*.44};
+const riveC=$('rive');
+let RV=null, RVM=null, RVPAT=1, RVARTS=[];
+function riveArtboards(){ return RVARTS.length?RVARTS:[1,2,3,4] }
+/* ⚠️ THE EGG IS RASTER, AND "LOADED" IS NOT "DRAWN". egghatch.riv carries eight PNGs
+   (intact1..4, cracked1..4, ~110KB each) and the runtime decodes them AFTER onLoad, on
+   the main thread, all eight, while the artboard already draws: the shell's box paints
+   with nothing in it. Measured on the .186 tablet, 2026-09-18: the rig said inked at
+   988ms and the egg's centre pixel was alpha 0 until ~2100ms, so the host lifted its
+   cover on an empty plate and the egg popped in a second later. Every open.
+   So the PNGs are ours to decode: assetLoader hands each one over, the mounted
+   pattern's two are decoded now (`RVINK` is the promise the first frame waits on,
+   see frame()), the other six are not decoded at all until their pattern is mounted,
+   and a decoded image is kept (RVIMG) so a remount of the same pattern is free.
+   ⚠️ NEVER unref() a cached image: the wasm object is what the next mount reuses. */
+const RVIMG={};
+let RVINK=Promise.resolve(), RVREADY=false;
+function riveMount(n){
+  return new Promise(res=>{
+    if(RV){ try{RV.cleanup()}catch(e){} RV=null; RVM=null }
+    RVPAT=n; RVREADY=false;
+    const mine=new RegExp('^(intact|cracked)'+n+'$'), decodes=[];
+    RV=new rive.Rive({
+      canvas:riveC, src:'rive-kit/egghatch.riv?v='+VER, artboard:'EggHatch'+n,
+      stateMachines:'HatchBinding', autoplay:true, autoBind:true,
+      layout:new rive.Layout({fit:rive.Fit.Contain}),
+      assetLoader(asset,bytes){
+        if(!asset.isImage)return false;
+        if(!mine.test(asset.name))return true;          // another pattern's shell: not now
+        const have=RVIMG[asset.name];
+        if(have){ asset.setRenderImage(have); return true }
+        decodes.push(rive.decodeImage(bytes).then(img=>{ RVIMG[asset.name]=img; asset.setRenderImage(img) })
+                     .catch(e=>console.error('decode '+asset.name,e)));
+        return true;
+      },
+      onLoad(){
+        const vmi=RV.viewModelInstance;
+        RVM={crack:vmi.number('crack'), brk:vmi.number('break')};
+        RVARTS=(RV.contents&&RV.contents.artboards||[]).map(a=>+(a.name.match(/^EggHatch(\d+)$/)||[])[1]).filter(Boolean);
+        riveFit(); riveSet(riveLast.c, riveLast.b);
+        // decoded, then drawn: the runtime paints on its own frame after setRenderImage,
+        // and two frames is the far side of that whichever callback rAF runs first
+        RVINK=Promise.all(decodes).then(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))))
+                                  .then(()=>{ RVREADY=true });
+        res(true);
+      },
+      onLoadError(e){ console.error('egghatch.riv', e); RVREADY=true; res(false) },
+    });
+  });
+}
+const riveLast={c:0,b:0};
+function riveSet(c,b){
+  riveLast.c=c; riveLast.b=b;
+  if(!RVM)return;
+  if(RVM.crack.value!==c)RVM.crack.value=c;
+  if(RVM.brk.value!==b)RVM.brk.value=b;
+}
+/* how much of the landed shells is left, 1 there to 0 gone; '' outside the break so a
+   reset, a scrub back, or the next run finds the egg whole and solid */
+function riveGone(g){
+  const v=g==null?'':String(1-g);
+  if(riveC.style.opacity!==v)riveC.style.opacity=v;
+}
+/* the Rive canvas renders at the stage's own backing resolution, see fitPixels() */
+function riveFit(){
+  const w=Math.round(720*PIXR), h=Math.round(560*PIXR);
+  if(riveC.width!==w||riveC.height!==h){ riveC.width=w; riveC.height=h }
+  if(RV)RV.resizeToCanvas();
+}
+/* the wobble, on the Rive egg: the rig's transform is about a pivot in the ART's
+   box (pivotPoint, in art px); the same turn about the same point of the SMALLER
+   egg is `T(A(P)+z*jolt) R S T(-A(P))` on the stage, with A() the art-to-stage
+   map of the scene. Applied to the canvas as css (in css px, so the translation
+   is scaled by what 720 is shown at) and returned for the face. */
+function riveArt(){ const m=new DOMMatrix(); m.translateSelf(RIVE.cx,RIVE.cy); m.scaleSelf(RIVE.z,RIVE.z); m.translateSelf(-RIVE.artW/2,-RIVE.artH/2); return m }
+function riveWobble(P,tx,ty,rot,sx,sy){
+  const a=riveArt().transformPoint(new DOMPoint(P.x,P.y));
+  const m=new DOMMatrix();
+  m.translateSelf(a.x+RIVE.z*tx, a.y+RIVE.z*ty);
+  m.rotateSelf(rot);
+  m.scaleSelf(sx===undefined?1:sx, sy===undefined?1:sy);
+  m.translateSelf(-a.x,-a.y);
+  return m;
+}
+function riveCss(m){
+  const k=(riveC.clientWidth||720)/720;
+  riveC.style.transform=m?`matrix(${m.a},${m.b},${m.c},${m.d},${m.e*k},${m.f*k})`:'';
+}
 
 /* ---------- the pieces that rock as one body ----------
    ⚠️ THE EGG CANVAS GREW BY `ARTPAD` ON EVERY SIDE (2026-07-31, tools/round_egg.py).
@@ -686,7 +839,11 @@ Promise.all([
    one case the check cannot see: a host that frames the rig and then never asks. */
 .then(()=>Promise.all([loadImg('egg-body',SRC+'egg-body.png?v='+VER),
   ...activeCrackSprites('intact').map(id=>loadImg(id,SRC+id+'.png?v='+VER)),
-  ...(EMBED?[]:faceParts())]))
+  ...(EMBED?[]:faceParts()),
+  // the egg itself: the runtime, then the scene, mounted on the active pattern
+  loadScript('rive-kit/rive.js?v='+VER).then(()=>{
+    rive.RuntimeLoader.setWasmUrl('rive-kit/rive.wasm?v='+VER);   // ours, never unpkg
+    return riveMount(activePattern()) })]))
 .then(start)
 .then(()=>Promise.all([
   ...activeCrackSprites().filter(id=>!IMG[id]).map(id=>loadImg(id,SRC+id+'.png?v='+VER)),
@@ -695,6 +852,12 @@ Promise.all([
 .then(()=>{ if(!EMBED||window.parent===window)return loadRest();
             setTimeout(()=>{ if(!restAsked)loadRest() },5000) })
 .catch(e=>console.error('late art',e));
+function loadScript(src){
+  return new Promise((res,rej)=>{ const t=document.createElement('script');
+    t.src=src; t.onload=res; t.onerror=()=>rej(new Error('script '+src)); document.head.appendChild(t) });
+}
+/* the pattern the rig is on, 1-based, the way the artboards are named */
+function activePattern(){ return clamp((CK.pat|0),0,riveArtboards().length-1)+1 }
 /* ⚠️ A FUNCTION DECLARATION, so it hoists above the promise chain that uses it.
    A `const` arrow declared mid-chain is a syntax error and one declared after it
    is a TDZ throw at boot with the egg simply never drawing. */
@@ -810,6 +973,8 @@ function measure(){
 }
 function start(){
   measure(); load();
+  // load() may have restored another pattern than the one the boot wave mounted
+  if(RV&&RVPAT!==activePattern())riveMount(activePattern());
   W=STAGES[stage];
   face.cur=FD.start;
   prepCrack(); buildHalves(); buildChips();
@@ -940,14 +1105,17 @@ function embed(){
        the list whose drawing does not exist — and eggImg() falls back to the plain
        egg-body, so it would not crash, it would silently hatch an egg with no crack in
        it. The host's roll already treats false as "pick another". */
-    setPattern(n){ const i=(CRK&&CRK.patterns||[]).findIndex(p=>p.n===n);
-                   if(i<0||!IMG['crack-p'+n+'-cracked'])return false;
-                   setPattern(i); return true },
+    /* ⚠️ THE PATTERNS ARE THE SCENE'S ARTBOARDS NOW, `EggHatch1`..`EggHatch4`
+       (the rig's own Aug 22 crack set, Andjroo's pick 2026-09-15), not crack.json's
+       five: crack.json still feeds the tuning page's contact boards, nothing on
+       the frame. n is 1-based as the artboards are named. */
+    setPattern(n){ if(!riveArtboards().includes(n))return false;
+                   setPattern(n-1); return true },
     /* the read to go with the write. setPattern() has always been here and nothing
        could ask which crack was actually loaded, so "the app only ever shows one"
        could not be measured — only argued about. */
-    pattern(){ const P=activePat(); return P?P.n:null },
-    patterns(){ return ((CRK&&CRK.patterns)||[]).map(p=>p.n) },
+    pattern(){ return RVPAT },
+    patterns(){ return riveArtboards().slice() },
     heroes(){ return HEROES.map(h=>({id:h.id,name:h.label||h.name||h.id})) },
     /* ⚠️ The host must call this. It is the only one who knows how much the
        iframe is being CSS-scaled by, and that multiplies with the device's own
@@ -960,9 +1128,9 @@ function embed(){
        EGGPATH, so OUTBOX is the egg that exists on screen; BOX is the art it was
        fitted from and it is 8x18px bigger. Falls back to BOX only if the outline
        failed to load, which is also the only case where the raster IS the egg. */
-    geom(){ const R=ringFrame(), B=OUTBOX||BOX; return {
+    geom(){ const B=RIVE.box, R=RIVE.ring; return {
       stage:{w:720,h:560},
-      egg:{x:EGGX+B.x0, y:EGGY+B.y0, w:B.x1-B.x0, h:B.y1-B.y0},
+      egg:{x:B.x0, y:B.y0, w:B.x1-B.x0, h:B.y1-B.y0},
       ring:{x:R.x, y:R.y, r:R.r} } },
     /* one read per frame for the host: the clock, and how far through the break */
     state(){ const S=brkSpans();
@@ -1377,7 +1545,9 @@ const HERODEF=()=>({pick:'', at:22, pop:14});
 let HE=HERODEF();
 let showRing=true;
 let brk={on:0, t:0, rot0:0};
-const BRK={hold:.46, fall:.50, settle:.80};
+/* the split is at `hold`; from there the scene's `break` runs 0..1 over
+   fall + settle (RIVE.dur, 1.0 s), so LANDED (S.c) is the frame the shells rest */
+const BRK={hold:.46, fall:.62, settle:.38};
 function brkSpans(){ const a=BRK.hold, b=a+BRK.fall, c=b+BRK.settle; return {a,b,c} }
 function halfC(h){ return (HALF[h+'C'])||{x:181,y:216} }
 /* ---------- broken edge up, round side down ----------
@@ -2759,6 +2929,7 @@ function fitPixels(){
   PIXR=r;
   stageC.width=Math.round(720*r); stageC.height=Math.round(560*r);
   sizeEggCanvases();   // the egg composites at the same resolution the stage does
+  riveFit();           // and so does the scene
   return PIXR;
 }
 function setPixelRatio(){ return fitPixels() }   // kept: the host may nudge it
@@ -2781,7 +2952,9 @@ function frame(ts){
     advanceFace(dt);            // so trying a face on in the library fades too
   }
   draw(); if(!EMBED)drawStrip();
-  if(!INKED){ INKED=true; INKCBS.splice(0).forEach(f=>{ try{f()}catch(e){console.error(e)} }) }
+  // the egg is on the canvas when ITS PNG IS (RVREADY, see riveMount), not when this
+  // loop first runs; without a Rive egg at all (a failed load) there is nothing to wait for
+  if(!INKED&&(RVREADY||!RV)){ INKED=true; INKCBS.splice(0).forEach(f=>{ try{f()}catch(e){console.error(e)} }) }
   requestAnimationFrame(frame);
 }
 function simRun(elapsed,dt){       // deterministic replay from the top, for capture
@@ -2839,17 +3012,17 @@ function shadow(g,cx,w){
   g.beginPath(); g.arc(0,0,w*.52,0,7); g.fill(); g.restore();
 }
 function drawBreak(){
-  const b=brkPose();
-  if(!b.split){
-    const P=breakPivot(), m=new DOMMatrix();
-    m.translateSelf(EGGX+P.x,EGGY+P.y); m.scaleSelf(swellZ(brk.t));
-    m.translateSelf(-P.x,-P.y);
-    ctx.setTransform(m);
-    paintEggAt(ctx,ckAt());
+  const S=brkSpans();
+  riveCss(null);                       // the wobble is over: the break owns the frame
+  if(brk.t<S.a){
+    riveGone(0);
+    // the hold: a whole, fully cracked egg sitting still (no swell: the scene's
+    // shells keep their size, so the egg does not breathe before it parts)
+    riveSet(ckAt(),0);
     // The face is painted ON the shell and the seam runs between the eyes, so it
     // cannot ride one half. It goes out over the hold and is gone at the split.
     const fo=faceOut();
-    if(showFace&&fo>.004){ ctx.globalAlpha=fo; paintFace(ctx); ctx.globalAlpha=1 }
+    if(showFace&&fo>.004){ ctx.setTransform(riveArt()); ctx.globalAlpha=fo; paintFace(ctx); ctx.globalAlpha=1 }
     ctx.setTransform(1,0,0,1,0,0);
     /* ⚠️ NO SEAM ON A CLOSED EGG. This used to cross-dissolve the two cut halves
        in over the back half of the hold, to take the jump out of the split. It
@@ -2865,37 +3038,21 @@ function drawBreak(){
        cut follows the artist's crack to within a third of a line width. */
     return;
   }
-  const S=brkSpans(), down=clamp((brk.t-brkSpans().a)/BRK.fall,0,1);
-  if(down>.6){
-    const L=LANDED(), G=landedGeom();
-    ctx.globalAlpha=(down-.6)/.4;
-    shadow(ctx,L.cup.x,G.cb.w*G.z); shadow(ctx,L.lid.x,G.lb.w*G.z);
-    ctx.globalAlpha=1;
-  }
-  ctx.setTransform(halfMat('cup',b.cup));
-  if(HALF.cup)ctx.drawImage(HALF.cup,0,0);
-  ctx.setTransform(halfMat('lid',b.lid));
-  if(HALF.lid)ctx.drawImage(HALF.lid,0,0);
-  // and the one that came out of it, above them, over the space it left
+  // the split and everything after it is the scene's: the shells part, topple
+  // (or lean and flop, patterns 2 and 4) and land either side of the box
+  const b=clamp((brk.t-S.a)/RIVE.dur,0,1);
+  riveSet(1, b);
+  // landed, settled, gone: the character is what is left in the plate
+  riveGone(b<1?0:clamp((brk.t-S.a-RIVE.dur-RIVE.settle)/RIVE.gone,0,1));
+  // and the one that came out of it, IN the box the shells left (Andjroo, 2026-09-12:
+  // BETWEEN the shells, one ground line), scaled to fit it
   const hp=heroPose(), him=heroImg(), hb=HBOX[heroId()];
   if(hp&&him&&hb){
-    const G=landedGeom(), m=new DOMMatrix();
-    m.translateSelf(G.hx,G.hy); m.scaleSelf(G.hz*hp.z);
-    m.translateSelf(-(hb.x0+hb.x1)/2,-(hb.y0+hb.y1)/2);
+    const H=RIVE.hole, hz=Math.min(H.w/(hb.x1-hb.x0), H.h/(hb.y1-hb.y0)), m=new DOMMatrix();
+    m.translateSelf(H.x, H.y+H.h/2); m.scaleSelf(hz*hp.z);
+    m.translateSelf(-(hb.x0+hb.x1)/2,-hb.y1);
     ctx.setTransform(m); ctx.drawImage(him,0,0);
   }
-  ctx.setTransform(1,0,0,1,0,0);
-  // Fragments last. Safe now only because chipRest() hangs them BELOW the floor line
-  // the character stands on -- while they were lifted above it, "last" meant "over
-  // the character", which is exactly what Andjroo reported.
-  for(const c of chipPose()){
-    const im=CHIPCV[c.i]; if(!im)continue;
-    const m=new DOMMatrix();
-    m.translateSelf(c.x,c.y); m.rotateSelf(c.rot); m.scaleSelf(c.z);
-    m.translateSelf(-im.width/2,-im.height/2);
-    ctx.setTransform(m); ctx.globalAlpha=c.a; ctx.drawImage(im,0,0);
-  }
-  ctx.globalAlpha=1;
   ctx.setTransform(1,0,0,1,0,0);
   drawRing();
 }
@@ -2921,10 +3078,12 @@ function draw(){
   ctx.setTransform(1,0,0,1,0,0);
   // embedded, the stage is a transparent sheet — the host owns the background,
   // and the badge circle it gets clipped into is the host's too
-  if(EMBED){ctx.clearRect(0,0,720,560)}
-  else if(bgMode===0){ctx.fillStyle='#CFE3DB';ctx.fillRect(0,0,720,560)}
-  else if(bgMode===1){ctx.fillStyle='#fff';ctx.fillRect(0,0,720,560)}
-  else{for(let y=0;y<560;y+=16)for(let x=0;x<720;x+=16){ctx.fillStyle=((x+y)/16)%2?'#e7e7ee':'#f6f6fa';ctx.fillRect(x,y,16,16)}}
+  ctx.clearRect(0,0,720,560);
+  // the egg is on the canvas UNDER this one, so the tuning page's background is
+  // the wrapper's, not paint on the stage
+  if(!EMBED){ const bg=bgMode===0?'#CFE3DB':bgMode===1?'#fff':
+      'repeating-conic-gradient(#e7e7ee 0 25%,#f6f6fa 0 50%) 0 0/32px 32px';
+    const es=$('eggStage'); if(es.dataset.bg!==bg){ es.dataset.bg=bg; es.style.background=bg } }
 
   if(brk.on&&tab==='faces'){
     drawBreak();
@@ -2942,9 +3101,12 @@ function draw(){
   const sy=1+stretch, sx=1-stretch*0.85;
   const tx=(s.sld/100)*46*s.en, ty=-(s.lift/100)*26*Math.abs(s.en);
 
-  ctx.setTransform(eggMat(P,tx,ty,s.rot,sx,sy));
-  paintEggAt(ctx,ckAt());       // the crack is ON the shell, so it rocks with it
-  if(showFace)paintFace(ctx);
+  // the crack is ON the shell, so it rocks with it: the scene draws the egg with
+  // its crack at ckAt(), the wobble rides the Rive canvas, the face the same matrix
+  riveSet(ckAt(),0); riveGone(null);
+  const wm=riveWobble(P,tx,ty,s.rot,sx,sy);
+  riveCss(wm);
+  if(showFace){ ctx.setTransform(wm.multiply(riveArt())); paintFace(ctx) }
   ctx.setTransform(1,0,0,1,0,0);
 
   if(showPivot){
@@ -3655,6 +3817,8 @@ function buildPatRow(){
 function setPattern(i){
   if(!CRK||!CRK.patterns)return;
   CK.pat=clamp(i|0,0,CRK.patterns.length-1);
+  // the egg is the scene's artboard for this pattern
+  if(RV&&RVPAT!==i+1&&riveArtboards().includes(i+1))riveMount(i+1);
   // the break follows the crack, so everything downstream of the path is stale
   buildHalves(); buildChips();
   brk.on=0; brk.t=0;

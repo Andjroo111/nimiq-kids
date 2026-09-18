@@ -69,6 +69,9 @@ export const jobGroups = () => groups;
 let iconByEmoji = new Map();
 const bareEmoji = (e) => String(e ?? "").replace(/️/g, "");
 
+/** The drawn icon's url for an emoji, or null when nobody has drawn that one. */
+export const faceUrl = (emoji) => iconByEmoji.get(bareEmoji(emoji)) ?? null;
+
 /** A row's face: the drawn icon when one exists, otherwise the emoji itself. Nobody has
  *  drawn every emoji a parent can type, and an emoji is a perfectly good fallback. */
 export function face(row, fallback = "🧽") {
@@ -96,7 +99,10 @@ export async function loadBoard(kidId) {
     iconByEmoji.size ? null : fetch("/api/task-icons").then((r) => r.json()).catch(() => null),
   ]);
   if (cat) groups = cat.groups ?? [];
-  if (art?.icons) iconByEmoji = new Map(art.icons.map((i) => [bareEmoji(i.emoji), i.url]));
+  // `faces` (2026-09-18) is the picker's list plus the routine headers and the goal, step and
+  // savings defaults; an older server answers with `icons` alone and the map is just shorter.
+  const faces = art?.faces ?? art?.icons;
+  if (faces) iconByEmoji = new Map(faces.map((i) => [bareEmoji(i.emoji), i.url]));
   // Not awaited and not in the Promise.all above: the schedule section reads better with the
   // answer, and must not wait for it to draw the work this screen is actually for. It repaints
   // itself when the probe lands, and does nothing at all if it has already run this session.

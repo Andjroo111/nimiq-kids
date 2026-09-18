@@ -13,20 +13,20 @@
 }
 
 :root {
-  --navy: #1F2348;
-  --ink-50: rgba(31, 35, 72, 0.5);
-  --ink-40: rgba(31, 35, 72, 0.4);
-  --ink-07: rgba(31, 35, 72, 0.07);
-  --hairline: rgba(31, 35, 72, 0.12);
+  --navy: var(--paint-line);
+  --ink-50: rgba(28, 27, 19, 0.5);
+  --ink-40: rgba(28, 27, 19, 0.4);
+  --ink-07: rgba(28, 27, 19, 0.07);
+  --hairline: rgba(28, 27, 19, 0.12);
   --card-shadow: 0 4px 28px rgba(0, 0, 0, 0.09);
 }
 
-html { background: #F4F4F4; }
+html { background: var(--paint-paper); }
 body {
   font-family: 'Mulish', 'Muli', system-ui, -apple-system, sans-serif !important;
   font-size: 15px;
   color: var(--navy);
-  background: #F4F4F4;
+  background: var(--paint-paper);
   margin: 0;
   min-height: 100dvh;
   display: flex; flex-direction: column; align-items: center;
@@ -53,10 +53,10 @@ h1, h2, h3 { margin: 0; text-wrap: balance; }
 
 .app { width: 100%; max-width: 460px; flex: 1; display: flex; flex-direction: column; min-height: 100dvh; }
 
-/* ---- Header (navy radial, fleet chrome) ---- */
+/* ---- Header (white on paper, a hairline under it, fleet chrome in the line) ---- */
 .phdr {
-  background-image: radial-gradient(100% 100% at bottom right, #260133, #1F2348);
-  color: #fff;
+  background: #fff; box-shadow: 0 1px 0 var(--hairline);
+  color: var(--paint-line);
   padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
   position: sticky; top: 0; z-index: 20;
 }
@@ -106,17 +106,17 @@ h1, h2, h3 { margin: 0; text-wrap: balance; }
 .pbadge {
   position: absolute; top: 2px; right: calc(50% - 22px);
   min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px;
-  background: #D94432; color: #fff; font-size: 10px; font-weight: 800;
+  background: var(--paint-coral); color: #fff; font-size: 10px; font-weight: 800;
   display: grid; place-items: center;
 }
 .pbadge[hidden] { display: none; }
 
 /* ---- Section labels (short grey uppercase, the allowed brand eyebrow) ---- */
-/* Ink measured off the wallet's own "TOTAL BALANCE": #64687F on the #F4F4F4 page.
-   This was --ink-40, which lands at #9FA0B0 — visibly paler than the reference and
+/* Ink measured off the wallet's own "TOTAL BALANCE": rgba(28, 27, 19, 0.64) on the var(--paint-paper) page.
+   This was --ink-40, which lands at rgba(28, 27, 19, 0.4) — visibly paler than the reference and
    ~2.6:1, under AA at 12px. The measured value is 5.6:1. */
 .sec-label {
-  font-size: 12px; font-weight: 700; color: #64687F;
+  font-size: 12px; font-weight: 700; color: rgba(28, 27, 19, 0.64);
   text-transform: uppercase; letter-spacing: 1.2px; padding: 0 4px;
 }
 
@@ -133,13 +133,13 @@ h1, h2, h3 { margin: 0; text-wrap: balance; }
 .card { background: #fff; border-radius: 10px; box-shadow: var(--card-shadow); }
 /* Surfaces, geometry and label ink are MEASURED off the real wallet home, not chosen:
    references/screenshots/wallet-app/logged-in/home-overview-mobile.png sampled at 2x.
-     page  #F4F4F4   group #E7E7E9   row #DBDBDF
+     page  var(--paint-paper)   group rgba(28, 27, 19, 0.10)   row rgba(28, 27, 19, 0.16)
      group radius 9.5 -> 10px (the brand app-card tier), row radius 5 -> 6px
      row inset from the group edge 12px, row height 64px
-   The wallet's own surface carries a faint gradient (its row reads #DBDBDF at the left
-   edge and #D8D8DC at the right), so these match the sampled left edge; the whole scale
+   The wallet's own surface carries a faint gradient (its row reads rgba(28, 27, 19, 0.16) at the left
+   edge and rgba(28, 27, 19, 0.16) at the right), so these match the sampled left edge; the whole scale
    sits within 3/255 of the reference across the card. */
-.group { background: #E7E7E9; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+.group { background: rgba(28, 27, 19, 0.10); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
 .group-title {
   display: flex; align-items: center; gap: 8px; padding: 8px 10px 2px;
   font-size: 13px; font-weight: 700; color: var(--ink-50);
@@ -155,7 +155,7 @@ h1, h2, h3 { margin: 0; text-wrap: balance; }
    the 44px identicon gives the reference's 64px row. */
 .row {
   display: flex; align-items: center; gap: 12px; width: 100%;
-  background: #DBDBDF; border: none; border-radius: 6px; padding: 10px 14px;
+  background: rgba(28, 27, 19, 0.16); border: none; border-radius: 6px; padding: 10px 14px;
   text-align: left; color: var(--navy); font-size: 15px;
   transition: transform 0.2s cubic-bezier(0.25, 0, 0, 1);
 }
@@ -186,7 +186,7 @@ button.row:active, .row-tap:active { transform: translateY(1px); }
    grows the row and pushes the sub-line under the amounts. */
 .row-sub { font-size: 12px; font-weight: 600; color: var(--ink-50); margin-top: 1px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.row-sub.staked { color: #21BCA5; }
+.row-sub.staked { color: var(--paint-grass); }
 .row-amounts { text-align: right; flex-shrink: 0; }
 .row-amounts .amount { font-weight: 700; }
 .row-amounts .fiat-amount { display: block; font-size: 12px; font-weight: 600; color: var(--ink-50); margin-top: 1px; }
@@ -269,11 +269,11 @@ button.row:active, .row-tap:active { transform: translateY(1px); }
   display: flex; align-items: center; gap: 12px; padding: 14px 16px;
   background: var(--ink-07); box-shadow: none; border-radius: 8px;
 }
-.stake-panel .staking-icon { width: 40px; height: 40px; flex-shrink: 0; color: #21BCA5; }
+.stake-panel .staking-icon { width: 40px; height: 40px; flex-shrink: 0; color: var(--paint-grass); }
 .stake-main { flex: 1; min-width: 0; }
 .stake-label { font-size: 13px; font-weight: 700; color: var(--ink-50); }
 .stake-value { font-weight: 700; font-size: 16px; }
-.stake-sub { font-size: 12px; font-weight: 600; color: #21BCA5; margin-top: 1px; }
+.stake-sub { font-size: 12px; font-weight: 600; color: var(--paint-grass); margin-top: 1px; }
 .stake-sub.pending { color: var(--ink-50); }
 
 /* Tablet lock card */
@@ -291,7 +291,7 @@ button.row:active, .row-tap:active { transform: translateY(1px); }
 /* What each paired tablet is DOING, on the family home (#305).
    A roster row in the vocabulary of the kids above it, because it is the same kind of tap:
    see a thing, then act on it. The urgent one wears the app's EXISTING "needs you" red, the
-   same #D94432 as the approvals badge and .addr-warn, rather than a colour of its own — a
+   same var(--paint-coral) as the approvals badge and .addr-warn, rather than a colour of its own — a
    kid stuck in front of a locked screen IS a pending approval, and it taps through to that
    exact card. The left rail is .addr-warn's idiom for the same reason.
    22px glyph: a lock is 9x12 and letterboxes into the 30x27 tile taller than the bell beside
@@ -302,17 +302,17 @@ button.row:active, .row-tap:active { transform: translateY(1px); }
    on for three days. Two rows painting the same idea from two selectors is how they drift.
    The sub-line rule below is the general one now: .scr-stale is the only carve-out, and the
    approvals strip has no stale sub-line to be caught by it. */
-.row.urgent { box-shadow: inset 3px 0 0 #D94432; }
-.row.urgent .hex-tile { color: #D94432; }
+.row.urgent { box-shadow: inset 3px 0 0 var(--paint-coral); }
+.row.urgent .hex-tile { color: var(--paint-coral); }
 /* GENERALISED again (#414): a kid's own roster row now carries the tablet's sentence, so the
    red and its one exception have to reach any urgent row, not just .scr-row. The exception is
    the point — a tablet we have not heard from stays grey, because reddening it would say the
    staleness is the thing that needs the parent when the line above it is. */
-.row.urgent .row-sub:not(.scr-stale) { color: #D94432; }
+.row.urgent .row-sub:not(.scr-stale) { color: var(--paint-coral); }
 /* "3 days ago" on a card nobody has ruled on. The timestamp is already the right place to say
    it — it is the fact that changed — so this reddens what is there rather than adding a badge
    the card has no room for. */
-.ap-when.is-stale { color: #D94432; font-weight: 700; }
+.ap-when.is-stale { color: var(--paint-coral); font-weight: 700; }
 /* WRAPS, where every other .row-sub in this app truncates. That rule exists because a second
    line there would push the sub-line under the amounts column — and these rows have no
    amounts. The sentence IS the row's content: at 390px "Waiting for you to say yes to Morning
@@ -346,7 +346,7 @@ button.row:active, .row-tap:active { transform: translateY(1px); }
 .tx-wrap .icon-tile svg { width: 18px; height: 18px; }
 .tx-wrap .icon-tile.gold svg { width: 22px; height: 20px; }
 .tx-wrap .transaction { margin: 0 -6px; }
-.tx-wrap .icon-tile.green { background: rgba(33, 188, 165, 0.12); color: #21BCA5; }
+.tx-wrap .icon-tile.green { background: rgba(27, 152, 94, 0.12); color: var(--paint-grass); }
 
 /* ---- Deposit ---- */
 .dep-card { padding: 22px 18px; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
@@ -386,8 +386,8 @@ button.row:active, .row-tap:active { transform: translateY(1px); }
   transition: transform 0.2s cubic-bezier(0.25, 0, 0, 1), box-shadow 0.2s cubic-bezier(0.25, 0, 0, 1);
 }
 .pill-btn svg { width: 14px; height: 14px; }
-.pill-btn.blue { color: #fff; background-image: radial-gradient(100% 100% at bottom right, #265DD7, #0582CA); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
-.pill-btn.navy { color: #fff; background-image: radial-gradient(100% 100% at bottom right, #260133, #1F2348); }
+.pill-btn.blue { color: #fff; background-color: var(--paint-blurple); background-image: none; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+.pill-btn.navy { color: #fff; background-color: var(--paint-line); background-image: none; }
 .pill-btn.ghost { color: var(--navy); background: var(--ink-07); }
 .pill-btn:hover { transform: translateY(-2px); }
 .pill-btn:active { transform: translateY(1px); }
@@ -436,19 +436,19 @@ select.nq-input { appearance: none; background: none; }
 .app-toggle .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tgl {
   width: 42px; height: 26px; border-radius: 999px; border: none; position: relative;
-  background: rgba(31, 35, 72, 0.16); transition: background 0.2s cubic-bezier(0.25, 0, 0, 1);
+  background: rgba(28, 27, 19, 0.16); transition: background 0.2s cubic-bezier(0.25, 0, 0, 1);
 }
 .tgl::after {
   content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px;
   border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: transform 0.2s cubic-bezier(0.25, 0, 0, 1);
 }
-.tgl.on { background: #21BCA5; }
+.tgl.on { background: var(--paint-grass); }
 .tgl.on::after { transform: translateX(16px); }
 
 /* ---- Sheet ---- */
 .scrim {
-  position: fixed; inset: 0; background: rgba(31, 35, 72, 0.6);
+  position: fixed; inset: 0; background: rgba(28, 27, 19, 0.6);
   display: none; align-items: flex-end; justify-content: center; z-index: 50;
 }
 .scrim.show { display: flex; }
@@ -469,7 +469,7 @@ select.nq-input { appearance: none; background: none; }
 
 /* ---- Photo viewer ---- */
 .photo-view {
-  position: fixed; inset: 0; background: rgba(31, 35, 72, 0.85);
+  position: fixed; inset: 0; background: rgba(28, 27, 19, 0.85);
   display: none; align-items: center; justify-content: center; z-index: 60;
 }
 .photo-view.show { display: flex; }
@@ -536,14 +536,14 @@ select.nq-input { appearance: none; background: none; }
 .onb-step-title { font-size: 15px; font-weight: 700; color: var(--navy); }
 .onb-step-sub { font-size: 13px; font-weight: 600; color: var(--ink-50); line-height: 1.35; }
 .onb-step .pill-btn { margin-top: 6px; }
-.onb-invited { color: var(--gold, #EC991C); font-weight: 700; font-size: 14px; }
-.onb-connected { color: #21BCA5; font-weight: 700; font-size: 14px; margin-top: 4px; }
+.onb-invited { color: var(--paint-yolk); font-weight: 700; font-size: 14px; }
+.onb-connected { color: var(--paint-grass); font-weight: 700; font-size: 14px; margin-top: 4px; }
 .onb-hint { color: var(--ink-50); font-size: 12px; }
 .onb-privacy { color: var(--ink-50); font-size: 12px; max-width: 300px; }
 /* Links are bold navy, never underlined (rule 21); padded up to a 36px tap target. */
 .onb-link { border: 0; background: none; color: var(--navy); font: 700 14px Mulish, system-ui, sans-serif;
   cursor: pointer; padding: 11px 8px; transition: color 0.2s cubic-bezier(0.25, 0, 0, 1); }
-.onb-link:hover { color: #0582CA; }
+.onb-link:hover { color: var(--paint-blurple); }
 .onb-code { text-align: center; letter-spacing: 6px; font-variant-numeric: tabular-nums; }
 
 /* the big pairing code shown on the signed-in phone */
@@ -593,13 +593,13 @@ select.nq-input { appearance: none; background: none; }
 .bx-fan-row .stk .stk-emoji { font-size: 17px; line-height: 24px; display: block; text-align: center; }
 .bx-fan-row .stk .stk-fallback {
   display: grid; place-items: center; width: 100%; height: 100%;
-  font-size: 12px; font-weight: 800; color: var(--navy); background: #FFF2C7; border-radius: 50%;
+  font-size: 12px; font-weight: 800; color: var(--navy); background: rgba(254, 213, 108, 0.35); border-radius: 50%;
 }
 /* A kid's photo sticker, seen from the parent's phone. The picture lives in the tablet's own
    storage (#282), so this side always draws the stand-in — never a broken image. */
 .bx-fan-row .stk .stk-away {
   display: grid; place-items: center; width: 100%; height: 100%;
-  border-radius: 50%; background: #F4F5F9; color: var(--ink-50);
+  border-radius: 50%; background: var(--paint-paper); color: var(--ink-50);
 }
 .bx-fan-row .stk .stk-away svg { width: 58%; height: 58%; display: block; }
 .bx-row-p.is-off .bx-fan-row { opacity: 0.55; }
@@ -607,10 +607,10 @@ select.nq-input { appearance: none; background: none; }
 .bx-row-title { font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bx-row-sub { font-size: 12px; font-weight: 600; color: var(--ink-50); margin-top: 1px; }
 /* A NIM amount a parent set on a practice before #127 removed the field, and which nothing
-   pays. Nimiq red, the same #D94432 .addr-warn uses, because it is the app's one colour for
+   pays. Nimiq red, the same var(--paint-coral) .addr-warn uses, because it is the app's one colour for
    "this is not what you think it is" — and a second grey line under the weekly count would
    read as more detail rather than as a correction. */
-.bd-unpaid { color: #D94432; }
+.bd-unpaid { color: var(--paint-coral); }
 .bx-row-lock { color: var(--ink-40); flex-shrink: 0; display: inline-flex; padding: 0 12px; }
 .bx-empty { padding: 6px 0; }
 .bx-shelf-p.is-off .bx-shelf-hd-p h3, .bx-shelf-p.is-off .bx-shelf-ic,
@@ -627,19 +627,19 @@ select.nq-input { appearance: none; background: none; }
   transition: transform 140ms cubic-bezier(0.25, 0, 0, 1), box-shadow 250ms cubic-bezier(0.25, 0, 0, 1);
 }
 .glyph-opt:active { transform: scale(0.94); }
-.glyph-opt.on { box-shadow: inset 0 0 0 2px #0582CA; background: rgba(5, 130, 202, 0.08); }
+.glyph-opt.on { box-shadow: inset 0 0 0 2px var(--paint-blurple); background: rgba(84, 101, 238, 0.08); }
 .box-glyph { display: inline-flex; align-items: center; justify-content: center; }
 .box-glyph svg { width: 100%; height: 100%; display: block; }
 .bx-kind { gap: 8px; padding-top: 0; }
 .bx-kind .pill-btn { flex: 1; }
-.bx-kind .pill-btn.on { color: #fff; background-image: radial-gradient(100% 100% at bottom right, #265DD7, #0582CA); }
+.bx-kind .pill-btn.on { color: #fff; background-color: var(--paint-blurple); background-image: none; }
 
 /* A transaction row that links to its own record on the block explorer. It is the same
    row as any other, so the only signal it needs is that it responds to a press; a badge
    or an icon here would compete with the amount, which is what the row is actually for. */
 .tx-wrap .transaction.has-receipt { cursor: pointer; border-radius: 6px; }
 .tx-wrap .transaction.has-receipt:active { background: var(--ink-07); }
-.tx-wrap .transaction.has-receipt:focus-visible { outline: 2px solid #0CA6FE; outline-offset: -2px; }
+.tx-wrap .transaction.has-receipt:focus-visible { outline: 2px solid var(--paint-blurple); outline-offset: -2px; }
 
 /* Gift amount presets: three equal taps rather than a number field. */
 .give-row { display: flex; gap: 8px; margin: 4px 0 12px; }
@@ -651,8 +651,8 @@ select.nq-input { appearance: none; background: none; }
    purpose, and it is built out of the same .set-card primitives as every other card rather
    than a new component: the accent bar and the monospace address are the only two things
    that differ, and both are carrying information. */
-.addr-warn { box-shadow: inset 3px 0 0 #D94432, var(--card-shadow); }
-.addr-warn .set-head h3 { color: #D94432; }
+.addr-warn { box-shadow: inset 3px 0 0 var(--paint-coral), var(--card-shadow); }
+.addr-warn .set-head h3 { color: var(--paint-coral); }
 .addr-line {
   font-family: 'Fira Mono', 'Menlo', monospace;
   font-size: 13px; line-height: 1.5; word-break: break-all;
@@ -670,11 +670,11 @@ select.nq-input { appearance: none; background: none; }
 .jp-search {
   width: 100%; box-sizing: border-box; font-size: 15px; font-family: inherit;
   padding: 10px 14px; border: none; border-radius: 4px; background: #fff; color: var(--navy);
-  box-shadow: inset 0 0 0 1.5px rgba(31, 35, 72, 0.1);
+  box-shadow: inset 0 0 0 1.5px rgba(28, 27, 19, 0.1);
   transition: box-shadow 0.2s cubic-bezier(0.25, 0, 0, 1);
 }
 .jp-search::placeholder { color: var(--ink-40); }
-.jp-search:focus { outline: none; box-shadow: inset 0 0 0 1.5px #0582CA; }
+.jp-search:focus { outline: none; box-shadow: inset 0 0 0 1.5px var(--paint-blurple); }
 .jp-grid {
   display: grid; gap: 12px;
   /* The picker is the tallest thing on the sheet. Without a cap it pushes the name, the
@@ -691,13 +691,14 @@ select.nq-input { appearance: none; background: none; }
   transition: box-shadow 250ms cubic-bezier(0.25, 0, 0, 1);
 }
 .jp-emoji { font-size: 20px; line-height: 1; flex: none; }
+.jp-face { width: 26px; height: 26px; object-fit: contain; flex: none; display: block; }
 /* Two lines, then ellipsis: a translated title runs longer than the English it was
    measured against (German especially), and a tile clipped mid-word names nothing. */
 .jp-name {
   font-size: 13px; font-weight: 700; line-height: 1.25;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-.jp-tile.is-on { background: rgba(5, 130, 202, 0.08); box-shadow: inset 0 0 0 2px #0582CA; }
+.jp-tile.is-on { background: rgba(84, 101, 238, 0.08); box-shadow: inset 0 0 0 2px var(--paint-blurple); }
 .jp-none { font-size: 13px; font-weight: 600; color: var(--ink-50); padding: 8px 0; }
 
 /* ---- Phone pings (#124) ---- */
@@ -723,8 +724,8 @@ select.nq-input { appearance: none; background: none; }
    red or amber, matching the affordable-price pill in the kid's Box, because a prize a kid
    is waiting for is a good thing that has not happened yet, not an alert. */
 .bx-row-waiting {
-  flex: none; font-size: 12px; font-weight: 800; color: #8c6b00;
-  background: rgba(233, 178, 19, 0.16); border-radius: var(--r-pill, 999px); padding: 4px 10px;
+  flex: none; font-size: 12px; font-weight: 800; color: var(--paint-line);
+  background: rgba(254, 213, 108, 0.16); border-radius: var(--r-pill, 999px); padding: 4px 10px;
 }
 
 /* The one screen where the app volunteers arithmetic: a payout the kid's own spending has
@@ -739,7 +740,7 @@ select.nq-input { appearance: none; background: none; }
 .net-row { display: flex; justify-content: space-between; gap: 16px; font-size: 14.5px; font-weight: 700; }
 .net-row > span:last-child { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .net-row.net-spent { color: var(--ink-50); }
-.net-row.net-total { border-top: 1px solid rgba(31, 35, 72, 0.12); padding-top: 10px; font-size: 16px; }
+.net-row.net-total { border-top: 1px solid rgba(28, 27, 19, 0.12); padding-top: 10px; font-size: 16px; }
 
 /* The batch connect sheet's roster: who this one wallet check is for, one line each
    (public/parent/views-connect.js). The list is there so the COUNT in the button has faces
@@ -764,7 +765,7 @@ select.nq-input { appearance: none; background: none; }
 .gup-lbl { font-weight: 700; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gup-you { font-weight: 600; color: var(--ink-40); }
 .gup-sub { font-size: 12px; color: var(--ink-50); font-weight: 600; }
-.gup-sub--on { display: flex; align-items: center; gap: 4px; color: #21BCA5; }
+.gup-sub--on { display: flex; align-items: center; gap: 4px; color: var(--paint-grass); }
 .gup-sub--on svg { width: 14px; height: 14px; }
 /* A grown-up who cannot pay yet is not an error state — the household covers them, which is
    exactly what happened before they arrived. Stated, not alarmed. */

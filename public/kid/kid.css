@@ -11,19 +11,56 @@
 }
 
 :root {
-  --navy: #1F2348;
-  --purple: #260133;
-  --blue: #0582CA;
-  --blue-2: #265DD7;
-  --green: #21BCA5;
-  --green-2: #41A38E;
-  --gold: #E9B213;
-  --orange: #EC991C;
-  --red: #D94432;
-  --card: #ffffff;
-  --ink: #1F2348;
-  --muted: rgba(31, 35, 72, 0.5);
+  /* THE LEGACY CHROME TOKENS READ THE PAINT SET, BY ROLE (2026-09-18, after the parent app,
+     PR #519). Every screen that said navy, blue, green, gold or red keeps saying it and gets
+     the line, blurple, grass, yolk or coral: the names are the roles the screens were already
+     using. The two shades of each (blue-2, green-2, orange) were the far stop of a radial;
+     the paint set is flat, so both stops are the same paint and every radial below is one
+     fill. Nimiq navy and gold stay only on the hex logo (icons.js goldHexIcon), the built-in
+     scene gradients further down are ART and keep their own sky. */
+  --navy: var(--paint-line);
+  --purple: var(--paint-line);
+  --blue: var(--paint-blurple);
+  --blue-2: var(--paint-blurple);
+  --green: var(--paint-grass);
+  --green-2: var(--paint-grass);
+  --gold: var(--paint-yolk);
+  --orange: var(--paint-yolk);
+  --red: var(--paint-coral);
+  --card: var(--paint-white);
+  --ink: var(--paint-line);
+  --muted: rgba(28, 27, 19, 0.5);
   --r-pill: 500px;
+
+  /* ---- THE PAINT SET, as the duo contract (WP1, 2026-09-18) ---------------
+     Andjroo, 2026-09-18: "I like the design system ones." The four paints locked
+     2026-09-08 in brand-voice-research/DESIGN-SYSTEM.md, one job each, the same
+     seven hexes as ~/.claude/brands.json nimiq.kids. This map SUPERSEDES the
+     09-13 "default Nimiq map" call: the duo components (vendor/duo) read these
+     on :root and write no hue of their own. Nimiq navy and gold stay on the
+     hex logo only; the tokens above this block are the legacy chrome and are
+     NOT part of the paint set.
+     ⚠️ No --duo-edge here, ever. The lip is derived at the point of use, the
+     face with 20% black (duo-ui): blurple 5465EE -> 4351BE, grass 1B985E ->
+     167A4B, yolk FED56C -> CBAA56. Hand-picking one breaks the derivation.
+     ⚠️ The yolk carries the LINE as its label, never white (1.4:1). The
+     .is-prize rule below is that one exception; blurple 4.7:1, grass 3.7:1
+     and coral 3.4:1 hold white at 3:1 (WCAG large-text / UI floor). */
+  --paint-blurple: #5465EE;   /* action: buttons, the active rung, the band */
+  --paint-grass:   #1B985E;   /* done: a climbed rung, success */
+  --paint-yolk:    #FED56C;   /* prize: NIM, the gift, the boss */
+  --paint-coral:   #DD675D;   /* alert: waiting, errors, the delete arming */
+  --paint-line:    #1C1B13;   /* text and every drawn line */
+  --paint-paper:   #F4F4E8;   /* the ground */
+  --paint-white:   #FFFFFF;
+  --duo-face:      var(--paint-blurple);
+  --duo-face-bg:   none;
+  --duo-done:      var(--paint-grass);
+  --duo-done-bg:   none;
+  --duo-prize:     var(--paint-yolk);
+  --duo-prize-bg:  none;
+  --duo-paper:     var(--paint-white);
+  --duo-paper-ink: var(--paint-line);
 
   /* ---- the kid-app token set --------------------------------------------
      Four stylesheets had each re-typed the same decisions by hand: nine card
@@ -65,15 +102,15 @@
 
      --sh-card is deliberately left alone: it still dresses the wallet, the
      thermometer and the top chrome, and this ladder is the board's. */
-  --lift-ring: 0 0 0 1px rgba(31, 35, 72, 0.08);
+  --lift-ring: 0 0 0 1px rgba(28, 27, 19, 0.08);
   /* rung 6 is the FLOATING CHROME, not part of the board's ladder. The name pill, the battery
      and the back button are fixed: the board scrolls UNDER them, so they have to read as above
      the highest thing on it (the money card, rung 5) rather than level with it. */
-  --lift-6: 0 33px 64px rgba(0, 0, 0, 0.275), 0 8px 6px rgba(31, 35, 72, 0.243), var(--lift-ring);
-  --lift-5: 0 28px 55px rgba(0, 0, 0, 0.243), 0 7px 5px rgba(31, 35, 72, 0.220), var(--lift-ring);
-  --lift-4: 0 23px 46px rgba(0, 0, 0, 0.212), 0 6px 4px rgba(31, 35, 72, 0.196), var(--lift-ring);
-  --lift-3: 0 18px 37px rgba(0, 0, 0, 0.180), 0 5px 3px rgba(31, 35, 72, 0.173), var(--lift-ring);
-  --lift-1: 0 8px 19px rgba(0, 0, 0, 0.118), 0 2px 2px rgba(31, 35, 72, 0.125), var(--lift-ring);
+  --lift-6: 0 33px 64px rgba(0, 0, 0, 0.275), 0 8px 6px rgba(28, 27, 19, 0.243), var(--lift-ring);
+  --lift-5: 0 28px 55px rgba(0, 0, 0, 0.243), 0 7px 5px rgba(28, 27, 19, 0.220), var(--lift-ring);
+  --lift-4: 0 23px 46px rgba(0, 0, 0, 0.212), 0 6px 4px rgba(28, 27, 19, 0.196), var(--lift-ring);
+  --lift-3: 0 18px 37px rgba(0, 0, 0, 0.180), 0 5px 3px rgba(28, 27, 19, 0.173), var(--lift-ring);
+  --lift-1: 0 8px 19px rgba(0, 0, 0, 0.118), 0 2px 2px rgba(28, 27, 19, 0.125), var(--lift-ring);
 
   /* motion — --nimiq-ease already ships on html{} from the legacy stylesheet */
   --ease: var(--nimiq-ease, var(--ease));
@@ -83,12 +120,12 @@
   --press-scale: 0.96;
 
   /* ink ladder + fills */
-  --ink-70: rgba(31, 35, 72, 0.7);
-  --ink-50: rgba(31, 35, 72, 0.5);
-  --ink-30: rgba(31, 35, 72, 0.3);
-  --fill-5: rgba(31, 35, 72, 0.05);
-  --fill-6: rgba(31, 35, 72, 0.06);
-  --fill-10: rgba(31, 35, 72, 0.1);
+  --ink-70: rgba(28, 27, 19, 0.7);
+  --ink-50: rgba(28, 27, 19, 0.5);
+  --ink-30: rgba(28, 27, 19, 0.3);
+  --fill-5: rgba(28, 27, 19, 0.05);
+  --fill-6: rgba(28, 27, 19, 0.06);
+  --fill-10: rgba(28, 27, 19, 0.1);
 
   /* type */
   --fs-display: 40px;
@@ -134,6 +171,10 @@
 @media (min-width: 768px) {
   :root { --fs-page-title: 38px; --fs-section-hd: 22px; }
 }
+/* The yolk's label is the line, never white: 12.3:1 against 2.1:1. A locked prize is grey
+   and keeps the component's lock ink. */
+.duo-button.is-prize,
+.duo-node.is-prize:not(.is-locked) { --duo-ink: var(--paint-line); }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; }
@@ -214,8 +255,8 @@ img { max-width: 100%; }
 @keyframes screen-in { from { opacity: 0; transform: scale(0.985); } to { opacity: 1; transform: none; } }
 
 .bg-meadow { background: linear-gradient(180deg, #AEE3FF 0%, #DFF7E8 52%, #A9E6A0 100%); }
-.bg-ocean  { background: linear-gradient(180deg, #7FD4FF 0%, #4FC3E8 45%, #21BCA5 100%); }
-.bg-space  { background: radial-gradient(130% 110% at 50% 110%, #3A1C5C 0%, #260133 55%, #1F2348 100%); }
+.bg-ocean  { background: linear-gradient(180deg, #7FD4FF 0%, #4FC3E8 45%, var(--paint-grass) 100%); }
+.bg-space  { background: radial-gradient(130% 110% at 50% 110%, #3A1C5C 0%, var(--paint-line) 55%, var(--paint-line) 100%); }
 .bg-city   { background: linear-gradient(180deg, #FFE3A9 0%, #FFB98A 55%, #F58C7F 100%); }
 /* THE ONE PLACE THE SCENE IS SIZED, for every screen in the app. This class and
    the artwork both land on #kid-app (setScreen applies bgFor()'s two halves
@@ -245,15 +286,15 @@ img { max-width: 100%; }
 .mega-btn {
   min-height: 96px; min-width: 300px; padding: 18px 40px;
   border-radius: var(--r-pill);
-  background-image: radial-gradient(100% 100% at bottom right, var(--blue-2), var(--blue));
+  background-color: var(--blue); background-image: none;
   color: #fff; font-size: 36px; font-weight: 800; letter-spacing: 0.3px;
   box-shadow: var(--sh-cta);
   transition: transform var(--t-press) var(--ease), background-color var(--t-ui) var(--ease), color var(--t-ui) var(--ease);
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
 }
-.mega-btn.green { background-image: radial-gradient(100% 100% at bottom right, var(--green-2), var(--green)); box-shadow: var(--sh-cta); }
-.mega-btn.blue { background-image: radial-gradient(100% 100% at bottom right, var(--blue-2), var(--blue)); }
-.mega-btn.gold { background-image: radial-gradient(100% 100% at bottom right, var(--orange), var(--gold)); box-shadow: var(--sh-cta); }
+.mega-btn.green { background-color: var(--green); background-image: none; box-shadow: var(--sh-cta); }
+.mega-btn.blue { background-color: var(--blue); background-image: none; }
+.mega-btn.gold { background-color: var(--gold); background-image: none; box-shadow: var(--sh-cta); }
 /* The second answer on a two-answer sheet. Same pill, same height, no colour and
    no lift: the wallet's own secondary is a flat neutral pill, and "Not yet" must
    not compete with the answer that finishes the job. DECLARED ABOVE :disabled on
@@ -338,7 +379,7 @@ img { max-width: 100%; }
   padding: 26px 18px; min-height: 220px; transition: transform var(--t-press) var(--ease);
 }
 .game-icon { width: 108px; height: 108px; border-radius: var(--r-tile); object-fit: contain; }
-.game-icon-fallback { display: grid; place-items: center; font-size: 76px; background: rgba(31, 35, 72, 0.06); }
+.game-icon-fallback { display: grid; place-items: center; font-size: 76px; background: rgba(28, 27, 19, 0.06); }
 .game-label {
   max-width: 100%; font-size: 26px; font-weight: 800; color: var(--navy); text-align: center;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -349,13 +390,14 @@ img { max-width: 100%; }
 .task { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; padding: 26px 30px 46px; gap: 12px; }
 .task-head { display: flex; align-items: center; gap: 20px; margin-top: 8px; padding: 0 90px; }
 .task-emoji { font-size: 74px; line-height: 1; }
+.task-face { width: 84px; height: 84px; object-fit: contain; display: block; }
 .task-title { font-size: 46px; font-weight: 800; color: var(--navy); text-align: center; }
 .egg-stage { flex: 1; width: 100%; display: grid; place-items: center; min-height: 0; }
 .egg-stage :is(.egg-rig, .maker-rig, .pola-rig) { max-width: min(66vw, 480px); }
 .task-clock { font-size: 88px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--navy); line-height: 1; }
-.time-bar { width: min(78vw, 560px); height: 26px; border-radius: var(--r-pill); background: rgba(31, 35, 72, 0.14); overflow: hidden; }
+.time-bar { width: min(78vw, 560px); height: 26px; border-radius: var(--r-pill); background: rgba(28, 27, 19, 0.14); overflow: hidden; }
 .bg-dark .time-bar { background: rgba(255, 255, 255, 0.2); }
-.time-bar i { display: block; height: 100%; border-radius: var(--r-pill); background: linear-gradient(90deg, var(--gold), var(--orange)); transition: width var(--t-ui) var(--ease); }
+.time-bar i { display: block; height: 100%; border-radius: var(--r-pill); background: var(--gold); transition: width var(--t-ui) var(--ease); }
 .task-actions { min-height: 110px; display: grid; place-items: center; padding-top: 10px; }
 
 /* ---------- waiting screen ---------- */
@@ -372,7 +414,7 @@ img { max-width: 100%; }
 .w-actions { display: flex; flex-direction: column; gap: 22px; }
 
 /* ---------- PIN pad ---------- */
-.pin-screen { background: linear-gradient(180deg, #F4F4F4, #E8E9F2); }
+.pin-screen { background: var(--paint-paper); }
 .pinpad { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 40px; }
 .pinpad.shake { animation: shake 0.45s ease; }
 @keyframes shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-16px); } 40% { transform: translateX(14px); } 60% { transform: translateX(-10px); } 80% { transform: translateX(8px); } }
@@ -384,13 +426,13 @@ img { max-width: 100%; }
   height: 128px; border-radius: var(--r-tile); font-size: 46px; font-weight: 800; color: var(--navy);
   background: var(--card); box-shadow: var(--sh-card); transition: transform var(--t-press) var(--ease);
 }
-.pin-grid button.ok { background-image: radial-gradient(100% 100% at bottom right, var(--green-2), var(--green)); color: #fff; }
+.pin-grid button.ok { background-color: var(--green); background-image: none; color: #fff; }
 .pin-grid button .k-icon { font-size: var(--ic-l); margin: 0 auto; }
 
 /* ---------- +NIM celebration overlay ---------- */
 .kid-overlay {
   position: fixed; inset: 0; z-index: 50; display: none;
-  background: rgba(31, 35, 72, 0.6);
+  background: rgba(28, 27, 19, 0.6);
 }
 .kid-overlay.show { display: grid; place-items: center; }
 .celebrate-box { position: relative; display: flex; flex-direction: column; align-items: center; gap: 24px; }
@@ -433,7 +475,7 @@ img { max-width: 100%; }
 
 /* ---------- bottom sheet (studio + free timer) ---------- */
 .kid-scrim {
-  position: fixed; inset: 0; z-index: 40; background: rgba(31, 35, 72, 0.45);
+  position: fixed; inset: 0; z-index: 40; background: rgba(28, 27, 19, 0.45);
   opacity: 0; pointer-events: none; transition: opacity var(--t-ui) var(--ease); display: flex; align-items: flex-end; justify-content: center;
 }
 .kid-scrim.show { opacity: 1; pointer-events: auto; }
@@ -452,35 +494,35 @@ img { max-width: 100%; }
 .sheet-close {
   position: absolute; top: 50%; left: 0; transform: translateY(-50%);
   width: 68px; height: 68px; border-radius: 50%;
-  background: rgba(31, 35, 72, 0.08); font-size: 30px; font-weight: 800; color: var(--navy);
+  background: rgba(28, 27, 19, 0.08); font-size: 30px; font-weight: 800; color: var(--navy);
   display: grid; place-items: center;
 }
 .sheet-name { font-size: 34px; font-weight: 800; color: var(--navy); text-align: center; }
 .sheet-sub {
   margin: -14px 0 0; max-width: 30ch; text-align: center;
-  font-size: 22px; font-weight: 600; color: rgba(31, 35, 72, 0.45); line-height: 1.35;
+  font-size: 22px; font-weight: 600; color: rgba(28, 27, 19, 0.45); line-height: 1.35;
 }
 
 .mode-row { display: flex; gap: 22px; }
 .mode-btn {
   width: 128px; height: 104px; border-radius: var(--r-tile); font-size: 52px;
-  background: rgba(31, 35, 72, 0.06); display: grid; place-items: center;
+  background: rgba(28, 27, 19, 0.06); display: grid; place-items: center;
   border: 4px solid transparent;
 }
-.mode-btn.on { border-color: transparent; box-shadow: inset 0 0 0 3px var(--blue); background: rgba(5, 130, 202, 0.10); }
+.mode-btn.on { border-color: transparent; box-shadow: inset 0 0 0 3px var(--blue); background: rgba(84, 101, 238, 0.10); }
 
 .tile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; justify-items: center; }
 .tile {
   width: 132px; height: 132px; border-radius: var(--r-tile); overflow: hidden;
-  background: rgba(31, 35, 72, 0.06); display: grid; place-items: center;
+  background: rgba(28, 27, 19, 0.06); display: grid; place-items: center;
   border: 4px solid transparent; font-size: 44px; position: relative;
 }
 .tile img { width: 100%; height: 100%; object-fit: cover; }
 .tile.on { border-color: transparent; box-shadow: inset 0 0 0 3px var(--blue); }
 /* top-right: bottom-right lands the badge on the .timer-tile-label */
-.tile.on::after { content: "✓"; position: absolute; right: 6px; top: 6px; width: 40px; height: 40px; border-radius: 50%; background-image: radial-gradient(100% 100% at bottom right, var(--blue-2), var(--blue)); color: #fff; font-size: 24px; font-weight: 800; display: grid; place-items: center; }
+.tile.on::after { content: "✓"; position: absolute; right: 6px; top: 6px; width: 40px; height: 40px; border-radius: 50%; background-color: var(--blue); background-image: none; color: #fff; font-size: 24px; font-weight: 800; display: grid; place-items: center; }
 .tile.preview { opacity: 0.85; }
-.tile.camera { border: 4px dashed rgba(31, 35, 72, 0.25); background: transparent; color: var(--muted); font-size: 38px; font-weight: 800; cursor: pointer; display: grid; place-items: center; }
+.tile.camera { border: 4px dashed rgba(28, 27, 19, 0.25); background: transparent; color: var(--muted); font-size: 38px; font-weight: 800; cursor: pointer; display: grid; place-items: center; }
 .bg-tile span { font-size: 52px; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25)); }
 .bg-tile { background-size: cover; background-position: center; }
 
@@ -509,12 +551,12 @@ img { max-width: 100%; }
 .me-row-kids .identicon img { width: 100%; height: 100%; }
 .me-face-more {
   font-style: normal; font-size: 20px; font-weight: 800;
-  color: rgba(31, 35, 72, 0.45);
+  color: rgba(28, 27, 19, 0.45);
 }
 .me-section { width: 100%; display: flex; flex-direction: column; gap: 14px; min-height: 0; }
 .me-lbl {
   margin: 0; font-size: 22px; font-weight: 800;
-  color: rgba(31, 35, 72, 0.45); letter-spacing: 0.2px;
+  color: rgba(28, 27, 19, 0.45); letter-spacing: 0.2px;
 }
 /* No fade. It was there to hint at a scroll, but the grid lays out three whole
    rows and the empty slots below the real scenes already say "more goes here" —
@@ -554,12 +596,12 @@ img { max-width: 100%; }
    quiet: they are not buttons, they are the shape of what is coming. */
 .me-bgs .bg-slot {
   background: transparent; box-shadow: none;
-  border: 3px dashed rgba(31, 35, 72, 0.22);
+  border: 3px dashed rgba(28, 27, 19, 0.22);
   display: grid; place-items: center;
 }
 /* The one that IS a button. Louder than its neighbours because it is the only
    slot a kid can do anything with. */
-.me-bgs .bg-slot-add { border-color: rgba(5, 130, 202, 0.45); color: var(--blue); }
+.me-bgs .bg-slot-add { border-color: rgba(84, 101, 238, 0.45); color: var(--blue); }
 .bg-slot-ic { font-size: var(--ic-l); }
 /* The sheet itself rides higher than the studio's 78dvh, because this one is
    the scene picker and a kid should see several rows of scenes at once. svh,
@@ -583,8 +625,8 @@ img { max-width: 100%; }
 .sound-hd, .k-section-hd, .stkp-hd {
   font-size: var(--fs-label); font-weight: var(--fw-title); color: var(--ink-50);
 }
-.sound-row { display: flex; align-items: center; gap: 14px; background: rgba(31, 35, 72, 0.05); border-radius: var(--r-card); padding: 10px 14px; border: 3px solid transparent; }
-.sound-row.on { border-color: transparent; box-shadow: inset 0 0 0 3px var(--blue); background: rgba(5, 130, 202, 0.10); }
+.sound-row { display: flex; align-items: center; gap: 14px; background: rgba(28, 27, 19, 0.05); border-radius: var(--r-card); padding: 10px 14px; border: 3px solid transparent; }
+.sound-row.on { border-color: transparent; box-shadow: inset 0 0 0 3px var(--blue); background: rgba(84, 101, 238, 0.10); }
 .sound-play { width: 76px; height: 76px; border-radius: 50%; background: var(--card); box-shadow: var(--sh-card); font-size: 30px; display: grid; place-items: center; }
 .sound-play.playing { background: var(--green); color: #fff; }
 .sound-play.mute { box-shadow: none; background: transparent; }

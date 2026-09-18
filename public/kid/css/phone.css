@@ -99,6 +99,7 @@
   .task { padding: var(--kid-corner-band) var(--s4) 30px; gap: 10px; }
   .task-head { padding: 0 56px; gap: 10px; }
   .task-emoji { font-size: 40px; }
+  .task-face { width: 48px; height: 48px; }
   .task-title { font-size: clamp(22px, 6.5vw, 30px); }
   .egg-stage :is(.egg-rig, .maker-rig, .pola-rig) { max-width: min(60vw, 340px); }
   .task-clock { font-size: clamp(44px, 14vw, 64px); }

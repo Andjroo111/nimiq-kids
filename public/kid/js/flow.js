@@ -272,7 +272,9 @@ async function renderTask(ctx) {
     <div class="task">
       <button class="back-btn" id="task-back">${arrowIcon("left")}</button>
       <div class="task-head">
-        <span class="task-emoji">${esc(ctx.task.emoji ?? "⭐")}</span>
+        ${ctx.task.iconUrl
+          ? `<img class="task-face" src="${esc(ctx.task.iconUrl)}" alt="" draggable="false" />`
+          : `<span class="task-emoji">${esc(ctx.task.emoji ?? "⭐")}</span>`}
         <h2 class="task-title">${esc(ctx.task.title)}</h2>
       </div>
       <div class="egg-stage"><div id="egg-host"></div></div>

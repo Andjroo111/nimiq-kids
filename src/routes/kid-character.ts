@@ -1,7 +1,8 @@
-// The kid character picker: the two endpoints the first-login choice rides on.
+// The kid character picker: the two endpoints the first-login choice rides on, and the hero.
 //
 //   GET  /api/kids/:id/character-choices  -> { setId, choices: [{ index, address }], shufflesLeft }
 //   POST /api/kids/:id/character          { setId, index } -> { child }
+//   PATCH /api/kids/:id/hero              { hero } -> { child }
 //
 // These go through `childMoneyGate`, not `requireParent`, and that is the deliberate difference
 // from src/routes/kid-address.ts next door. The gate is what makes a kid-authed pick safe: a
@@ -19,6 +20,7 @@ import { childMoneyGate } from "./families";
 import {
   claimCharacter, issueCharacterSet, MAX_SETS_PER_CHILD, type CharacterRefusal,
 } from "../kid-character";
+import { HERO_IDS, isHeroId } from "../kid-hero";
 
 export const kidCharacterRoutes = new Hono();
 
@@ -89,4 +91,30 @@ kidCharacterRoutes.post("/kids/:id/character", async (c) => {
       address: child.address, addressSource: child.address_source,
     },
   }, 201);
+});
+
+/**
+ * The kid's character (the onboarding climb, 2026-09-18): one of the heroes in src/kid-hero.ts,
+ * or null to clear it.
+ *
+ * Same gate as the identicon above and for the same reason: on the shared tablet the device
+ * bearer must be unlocked AS THIS KID, so a sibling cannot pick for them. What differs is the
+ * door: the identicon is one-way because it is an address, the hero is art and may be picked
+ * again whenever the kid likes.
+ *
+ * An ABSENT `hero` is a 400 rather than a clear, the rule `PATCH /children/:id/lang` holds:
+ * a client that forgot the field would otherwise put a kid back at the top of the climb.
+ */
+kidCharacterRoutes.patch("/kids/:id/hero", async (c) => {
+  const gate = await gated(c);
+  if (!gate.ok) return c.json(gate.body, gate.status as 401 | 403 | 404);
+
+  const body = await c.req.json().catch(() => ({}));
+  if (!body || typeof body !== "object" || !("hero" in body)) return c.json({ error: "hero_required" }, 400);
+  const raw = (body as { hero?: unknown }).hero;
+  const hero = raw === null || raw === "" ? null : raw;
+  if (hero !== null && !isHeroId(hero)) return c.json({ error: "unknown_hero", allowed: HERO_IDS }, 400);
+
+  repo.setChildHero(gate.child.id, hero);
+  return c.json({ child: { id: gate.child.id, label: gate.child.label, hero } });
 });

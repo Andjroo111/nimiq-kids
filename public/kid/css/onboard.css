@@ -1,0 +1,160 @@
+/* nimiq.kids kid app — the kid's CLIMB (onboard.js, character.js, hero.js, place.js): the
+   screens a kid sees the first time the tablet is theirs, on the Duolingo mechanics. The tiles
+   are the vendored duo-node, the buttons the vendored duo-button (/kid/vendor/duo), and both
+   read the --duo-* contract; NO HUE IS WRITTEN HERE. WP1 lands the map on :root.
+
+   The page composition is the connect screen's (connect.css): light body, one centred column,
+   generous air. Nobody has picked a scene yet, so there is no scene, until the place screen
+   previews one. Sized 390-first, the tablet scale-up at the foot.
+
+   Own file: kid.css and connect.css both sit near the 800-line guard. */
+
+/* ---- the screen ----
+   ⚠️ `min-height: 0` on the root and on the card is load-bearing (the .gp / #401 trap): as
+   flex items they default to min-height:auto, which floors them at their content, and 21
+   hero tiles are taller than a phone. Without it the screen grows past the viewport and the
+   pinned button scrolls away; with it the overflow lands in .ob-body, which scrolls. */
+/* The ground is the paint set's paper once WP1 maps it; the connect screen's page grey until. */
+.k-climb { background: var(--paint-paper, #F8F8F8); }
+/* The battery corner floats over every screen (chrome.css), so the top reserves its band. */
+.ob {
+  position: relative; flex: 1; min-height: 0;
+  display: flex; flex-direction: column; align-items: center;
+  padding: var(--kid-corner-band) 16px calc(16px + env(safe-area-inset-bottom));
+}
+.ob-card {
+  width: 100%; max-width: 420px; flex: 1; min-height: 0;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.ob-head { text-align: center; flex: none; }
+.ob-title {
+  margin: 0; font-size: 28px; font-weight: 800; line-height: 1.15;
+  color: var(--duo-paper-ink, var(--navy)); text-wrap: balance;
+}
+.ob-sub { margin: 8px 0 0; font-size: 17px; line-height: 1.35; color: var(--muted); text-wrap: balance; }
+
+/* What scrolls. HUGS its content (`flex: 0 1 auto`, the slab's rule in scene.css) so the
+   button sits under nine faces rather than at the foot of an empty screen, and gives when 21
+   heroes are taller than the phone: the give lands here as a scroll, not in the screen.
+   `overflow-x: hidden` because a pressed tile's lip overhangs its box and a sideways scroll
+   on a column a kid drags with a thumb is a screen that squirms. */
+.ob-body {
+  flex: 0 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden;
+  padding: 6px 4px 12px;
+}
+.ob-note { margin: 12px 0 0; text-align: center; font-size: 15px; color: var(--muted); }
+
+/* The button row, under the grid. One button takes the column; on the place screen SKIP
+   is the paper one and gives the width to THAT ONE. */
+.ob-foot { flex: none; display: flex; gap: 12px; align-items: center; padding-top: 4px; }
+.duo-button.is-block { display: flex; width: 100%; }
+.ob-foot .duo-button { flex: 1; width: auto; }
+.ob-place .ob-foot .duo-button.is-secondary { flex: 0 0 auto; padding: 0 22px; }
+
+/* ---- the animation slots (the shared Rive contract, /js/lib/rive-mount.js) ----
+   `.anim` is hidden while blank, so a screen costs nothing until Andjroo fills data-riv. The
+   still beside a slot (the emoji, the hero PNG) steps aside once the slot has a canvas. */
+.anim:empty { display: none; }
+.ob-anim canvas { display: block; width: 100%; height: 100%; }
+/* The stage above the Hi title: the `hi` slot, or the kid's own emoji until it lands. */
+.ob-stage {
+  flex: none; display: grid; place-items: center;
+  min-height: 200px; margin-top: 8px;
+}
+/* The opener's trio (WP4): three slots in a row, the still under them steps aside once any
+   slot has a canvas. `:has()` because the still follows the ROW, not a slot. */
+.ob-cast { display: flex; justify-content: center; align-items: flex-end; gap: 0; width: 100%; }
+.ob-cast:empty { display: none; }
+/* Each character is drawn small inside its 1024 square (room for its move and its prop), so
+   the three take the whole column: a third each, square. */
+.ob-cast .ob-anim { flex: 1 1 0; max-width: 200px; aspect-ratio: 1; height: auto; margin: 0 -14px; }
+.ob-stage:has(.ob-anim:not(:empty)) .ob-stage-emoji { display: none; }
+.ob-stage-emoji { font-size: 120px; line-height: 1; }
+/* the drawn stand-in (heroArtFor): the hero PNG is 640 tall on a transparent ground */
+.ob-stage-hero { height: 200px; width: auto; display: block; }
+/* The hero slots in a foot row: the picked hero (screen 3), the hero on the scene (screen 4). */
+.ob-foot .ob-anim { flex: none; width: 120px; height: 120px; margin: 0 -12px 0 -8px; }
+.ob-foot .ob-anim:not(:empty) + .ob-hero-stand { display: none; }
+.ob-hi .ob-card { justify-content: center; }
+.ob-hi .ob-body { flex: 0 0 24px; }
+
+/* ---- the tiles: hexagons on a lattice ----
+   Three across, always: nine faces are a deliberate three by three (decided 2026-08-27) and
+   the 21 heroes read as a wall of the same thing. An auto-fit would quietly become 4+5 on a
+   wide tablet, which is not a grid a four-year-old reads as "these nine". */
+.ob-grid {
+  display: grid; grid-template-columns: repeat(3, var(--duo-node-size));
+  justify-content: center; column-gap: 18px; row-gap: 10px;
+  --duo-node-size: 104px; --duo-node-lip: 8px;
+  /* The host's action colour, CAPTURED HERE where --duo-face is still the root's, because a
+     tile below overrides --duo-face to paper and a picked tile has to find the action one
+     again. Custom properties resolve per element, so this line is what carries it down. */
+  --ob-action: var(--duo-face);
+  --ob-action-bg: var(--duo-face-bg);
+}
+/* A tile at rest is PAPER with a line edge, the secondary button's dressing on the node, so
+   the picture inside it is the colour on the screen. The picked one turns to the action face,
+   and its edge is derived from that face the way every duo edge is (face with 20% black). */
+.ob-tile {
+  --duo-face: var(--duo-paper);
+  --duo-face-bg: none;
+  --duo-edge: var(--duo-line, color-mix(in srgb, var(--duo-paper-ink) 14%, var(--duo-paper)));
+}
+.ob-tile.is-picked {
+  --duo-face: var(--ob-action);
+  --duo-face-bg: var(--ob-action-bg);
+  --duo-edge: color-mix(in srgb, var(--duo-face) 80%, #000);
+}
+/* The art inside a face, at the 72% the node reserves, IN PIXELS OFF THE NODE SIZE: the face
+   is a <button> laid out as a grid, and Chromium wraps a button's content in an anonymous box
+   where a percentage height of a child resolves to auto. A tall hero (the bunny is 178x320)
+   then took its width's height and stood out of the hexagon by half. */
+.ob-tile .duo-node-face > img {
+  width: calc(var(--duo-node-size) * 0.72); height: calc(var(--duo-node-size) * 0.9 * 0.72);
+}
+/* The identicon: it is already a hexagon, so it sits a little larger than the art, and the
+   node's own rule does not reach it (it is a div). */
+.ob-tile .ob-iqon {
+  width: calc(var(--duo-node-size) * 0.78); height: calc(var(--duo-node-size) * 0.9 * 0.78);
+  pointer-events: none;
+}
+.ob-tile .ob-iqon img { width: 100%; height: 100%; display: block; }
+/* A scene fills its face edge to edge, masked to the hexagon: a photo at 72% inside a
+   white hexagon wastes the picture, and the picture is the whole tile. */
+.ob-tile .duo-node-face > img.ob-scene {
+  width: var(--duo-node-size); height: calc(var(--duo-node-size) * 0.9); object-fit: cover;
+  -webkit-mask: var(--duo-hex) center / 100% 100% no-repeat;
+  mask: var(--duo-hex) center / 100% 100% no-repeat;
+}
+
+/* ---- the place screen previews the tapped scene behind the card ---- */
+.k-climb.bg-image .ob-card > .ob-head,
+.ob.is-previewing .ob-head {
+  background: rgba(255, 255, 255, 0.86); border-radius: var(--r-card); padding: 10px 14px;
+}
+.ob.is-previewing .ob-body { background: rgba(255, 255, 255, 0.42); border-radius: var(--r-sheet); }
+/* The kid's hero standing at the foot of the place screen, on the ground line of whatever
+   they tapped. Placeholder for the riv (it waits; the bands parallax on swipe). */
+.ob-hero-stand { flex: none; height: 64px; width: auto; align-self: flex-end; margin-bottom: 8px; }
+
+/* ---- the me sheet's re-pick row ---- */
+.me-hero-art { flex: none; height: 44px; width: auto; }
+
+/* ---------- tablet scale-up (>=768px keeps the 390 design, bigger) ---------- */
+@media (min-width: 768px) {
+  .ob { padding: calc(env(safe-area-inset-top, 0px) + 40px) 32px 32px; }
+  .ob-card { max-width: 560px; gap: 24px; }
+  .ob-title { font-size: 40px; }
+  .ob-sub { font-size: 22px; margin-top: 12px; }
+  .ob-note { font-size: 19px; }
+  .ob-grid { --duo-node-size: 150px; --duo-node-lip: 11px; column-gap: 28px; row-gap: 16px; }
+  .ob-foot { gap: 16px; }
+  .ob-foot .duo-button { --duo-height: 64px; font-size: 19px; }
+  .ob-stage { height: 300px; }
+  .ob-cast .ob-anim { max-width: 220px; }
+  .ob-stage-emoji { font-size: 180px; }
+  .ob-stage-hero { height: 300px; }
+  .ob-foot .ob-anim { width: 140px; height: 140px; }
+  .ob-hero-stand { height: 96px; }
+  .me-hero-art { height: 56px; }
+}

@@ -34,6 +34,10 @@ export interface PackDef {
    *  sells its MEMBERS for `priceLuna`, and the boss only ever comes from finishing the set
    *  on a ladder. A theme with `priceLuna: 0` is ladder-only. */
   theme?: boolean;
+  /** The pack's stickers are drawn (lineless, /assets/stickers/<id>.png) although it is not a
+   *  theme. The starter pack since 2026-09-18: its ten emoji were the last raw emoji a kid
+   *  could place on a calendar day. */
+  art?: boolean;
   /** The app WALLPAPERS finishing this theme unlocks, each `/assets/backgrounds/<id>.jpg`.
    *
    *  ⚠️ Andjroo, 2026-08-04, on where the background lives: "It's gonna be a background that the
@@ -68,20 +72,20 @@ export interface StickerDef {
 export const STICKER_ART_SHIPPED = true;
 
 /** Generated art lives under /assets/stickers/<id>.png, keyed off the sticker id minus its
- *  `stk-` prefix. Only the THEME stickers have a file (the lineless packs); the five emoji packs
- *  for sale keep drawing their emoji, so their rows carry a null `asset_url` and `stickerFace`
- *  falls through. Null for everything while the flag is off. */
+ *  `stk-` prefix. The THEME stickers and the starter pack (`art`) have a file (the lineless
+ *  packs); the retired emoji packs keep drawing their emoji, so their rows carry a null
+ *  `asset_url` and `stickerFace` falls through. Null for everything while the flag is off. */
 export const stickerAssetUrl = (id: string): string | null =>
   STICKER_ART_SHIPPED && hasStickerArt(id) ? `/assets/stickers/${id.replace(/^stk-/, "")}.png` : null;
 const hasStickerArt = (id: string): boolean => {
   const s = STICKERS.find((x) => x.id === id);
-  return !!s && STICKER_PACKS.some((p) => p.id === s.packId && p.theme);
+  return !!s && STICKER_PACKS.some((p) => p.id === s.packId && (p.theme || p.art));
 };
 
 const NIM = 100_000;
 
 export const STICKER_PACKS: PackDef[] = [
-  { id: "pack-starter", title: "Starter stickers", priceLuna: 0, sort: 0, aboutUsd: 0 },
+  { id: "pack-starter", title: "Starter stickers", priceLuna: 0, sort: 0, aboutUsd: 0, art: true },
   // The five emoji packs for sale (space, ocean, party, animals) left the shelf 2026-09-17
   // (Andjroo: "the sticker packs use an old icon ... these should be the same ocean space
   // dragons and robot packs"). Their rows stay in `sticker_packs` inactive and their stickers
@@ -119,7 +123,9 @@ export const STICKER_PACKS: PackDef[] = [
  *  calendar day. Emoji with a lot of internal detail (a party popper, a wave)
  *  turn to mush that small, so the set leans on strong silhouettes. */
 export const STICKERS: StickerDef[] = [
-  // Starter — free, granted to every kid on their first read.
+  // Starter — free, granted to every kid on their first read. Drawn 2026-09-18 (Andjroo's
+  // picks, brand-voice-research lineless/packs/starter-0918.txt); the dino is the hatch T-rex
+  // as drawn, the unicorn and the smiley keep the family face, the rest have none.
   { id: "stk-star", packId: "pack-starter", label: "Star", emoji: "⭐" },
   { id: "stk-heart", packId: "pack-starter", label: "Heart", emoji: "❤️" },
   { id: "stk-rainbow", packId: "pack-starter", label: "Rainbow", emoji: "🌈" },

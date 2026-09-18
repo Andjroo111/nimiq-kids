@@ -52,7 +52,7 @@
   transition: transform 140ms cubic-bezier(0.25, 0, 0, 1), box-shadow 250ms cubic-bezier(0.25, 0, 0, 1);
 }
 .bd-day:active { transform: scale(0.94); }
-.bd-day.on { color: #fff; background-image: radial-gradient(100% 100% at bottom right, #265DD7, #0582CA); }
+.bd-day.on { color: #fff; background-color: var(--paint-blurple); background-image: none; }
 
 /* A sheet's actions fill the row. `.set-card .btn-row .pill-btn { flex: 1 }` only reaches
    buttons inside a settings CARD, so in a sheet a lone Save shrink-wrapped and sat against
@@ -69,14 +69,14 @@
 .bd-set { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
 .bd-set-slot {
   width: 34px; height: 34px; border-radius: 8px;
-  border: 1.5px dashed var(--ink-30, rgba(31,35,72,.3));
+  border: 1.5px dashed var(--ink-30, rgba(28, 27, 19, .3));
   display: grid; place-items: center; flex: none;
 }
-.bd-set-slot.is-on { border-style: solid; border-color: transparent; background: rgba(33,188,165,.1); }
+.bd-set-slot.is-on { border-style: solid; border-color: transparent; background: rgba(27, 152, 94, .1); }
 .bd-set-slot img { width: 100%; height: 100%; object-fit: contain; display: block; }
 /* The prize sits apart from the five it is won with, and says so with a gap and a gold well. */
-.bd-set-boss { margin-left: 10px; border-color: var(--gold, #E9B213); }
-.bd-set-boss.is-on { background: rgba(233,178,19,.16); }
+.bd-set-boss { margin-left: 10px; border-color: var(--paint-yolk); }
+.bd-set-boss.is-on { background: rgba(254, 213, 108, .16); }
 
 /* The chooser. A theme is picked by its ART -- "Dragons" tells a parent nothing that a row of
    six dragons does not tell them better, and this is the only place the sticker art appears at
@@ -84,10 +84,10 @@
 .bd-themes { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 2px; }
 .bd-theme-pick {
   display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
-  padding: 8px 10px; border-radius: 10px; background: var(--fill-5, rgba(31,35,72,.05));
+  padding: 8px 10px; border-radius: 10px; background: var(--fill-5, rgba(28, 27, 19, .05));
   border: 2px solid transparent; font-weight: 700; font-size: 15px;
 }
-.bd-theme-pick.on { border-color: var(--blue-2, #265DD7); background: rgba(38,93,215,.08); }
+.bd-theme-pick.on { border-color: var(--blue-2, var(--paint-blurple)); background: rgba(84, 101, 238, .08); }
 .bd-theme-art { display: flex; gap: 2px; flex: none; }
 .bd-theme-art img { width: 30px; height: 30px; object-fit: contain; display: block; }
 .bd-theme-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -106,7 +106,7 @@
    The schedule sits UNDER the steps on the routine's card, behind a hairline: it is the same
    routine, and a second card would say it was a second thing. The rule at the top of this file
    holds -- rows are `.bx-row-p`, so a window reads at exactly the weight a step does. */
-.bd-locks { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--ink-07, rgba(31,35,72,.07)); }
+.bd-locks { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--ink-07, rgba(28, 27, 19, .07)); }
 .bd-lock-hd { padding-top: 0; }
 .bd-lock-ic { font-size: 20px; width: 34px; text-align: center; flex: none; }
 
@@ -120,7 +120,7 @@
    sheet that says what the switches above it will actually DO, and it changes as they move. */
 .bd-lock-echo {
   margin: 10px 0 2px; padding: 10px 12px; border-radius: 10px;
-  background: rgba(38,93,215,.08); color: var(--navy); font-size: 14px; font-weight: 600;
+  background: rgba(84, 101, 238, .08); color: var(--navy); font-size: 14px; font-weight: 600;
   line-height: 1.35; min-height: 20px;
 }
 
@@ -130,7 +130,7 @@
    is the thing a parent is actually reading, so it should not be a separate tap-dead zone. */
 .bd-toggle {
   display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 10px;
-  padding: 12px 14px; border: 1.5px solid rgba(31,35,72,.14); border-radius: 12px;
+  padding: 12px 14px; border: 1.5px solid rgba(28, 27, 19, .14); border-radius: 12px;
   background: transparent; text-align: left; cursor: pointer;
   transition: border-color .15s, background .15s;
 }
@@ -140,13 +140,13 @@
 .bd-toggle-sub { font-size: 12.5px; font-weight: 600; color: var(--ink-40); }
 .bd-toggle-dot {
   flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%;
-  border: 2px solid rgba(31,35,72,.2); background: transparent;
+  border: 2px solid rgba(28, 27, 19, .2); background: transparent;
   transition: border-color .15s, background .15s, box-shadow .15s;
 }
-.bd-toggle.on { border-color: rgba(38,93,215,.45); background: rgba(38,93,215,.06); }
+.bd-toggle.on { border-color: rgba(84, 101, 238, .45); background: rgba(84, 101, 238, .06); }
 .bd-toggle.on .bd-toggle-dot {
   border-color: transparent;
-  background-image: radial-gradient(100% 100% at bottom right, #265DD7, #0582CA);
+  background-color: var(--paint-blurple); background-image: none;
   box-shadow: inset 0 0 0 3px #fff;
 }
 
@@ -156,3 +156,25 @@
    column. `contain`, because these are cut square with the ink inset and cropping one
    would eat the navy outline the whole art family shares. */
 .bx-item-art-p { width: 28px; height: 28px; object-fit: contain; flex: none; display: block; }
+
+/* ---- the ladder as the kid's climb (views-board-goals.js climb, 2026-09-18) ----
+   The vendored duo-path on the paint-set map (paint.css), read-only: climbed, prize under the
+   banner, rung one at the bottom. Sized for the card's column inside a 390 phone: a 56px wave
+   keeps a 70px node and its ring inside the card. The caption under each node is what the
+   parent needs and the kid does not (the name, the price, the state); the bubble stays the
+   active rung's, as on the tablet. */
+.pg-path { padding: 8px 4px 12px; margin-top: 4px; --duo-node-size: 60px; --duo-node-lip: 7px; --duo-ring-gap: 9px; --duo-path-pitch: 18px; --duo-path-amp: 56px; --duo-bubble-room: 46px; }
+.pg-path .duo-node.is-prize { --duo-node-size: 72px; --duo-node-lip: 8px; }
+.pg-path .duo-path-head { margin-bottom: 34px; padding: 12px 16px; }
+.pg-path .duo-path-title { font-size: 17px; }
+.pg-step { display: grid; justify-items: center; gap: 4px; }
+/* a ring overhangs the node by its gap and width; the caption under an active or waiting rung
+   steps down that much so the two never touch */
+.pg-path .duo-node.is-active + .pg-cap, .pg-path .duo-node.is-waiting + .pg-cap { margin-top: 14px; }
+.pg-cap { display: grid; justify-items: center; text-align: center; max-width: 156px; font-size: 12px; line-height: 1.25; color: var(--ink-50); font-weight: 600; }
+.pg-cap b { color: var(--navy); font-size: 13px; font-weight: 700; }
+.pg-path .duo-node-bubble { width: max-content; max-width: 180px; white-space: normal; text-align: center; line-height: 1.25; }
+/* every rung is the parent's to edit (the row's one action): the component parks pointer
+   events on locked, waiting and done faces for the kid, and the prize has no sheet */
+.pg-path .duo-node .duo-node-face { pointer-events: auto; cursor: pointer; }
+.pg-path .duo-node.is-prize .duo-node-face { pointer-events: none; cursor: default; }

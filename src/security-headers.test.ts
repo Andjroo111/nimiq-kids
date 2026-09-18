@@ -41,8 +41,10 @@ test("nothing may be injected as a base or an object", () => {
 test("connect-src names every host and no more", () => {
   // The bound on where an injected script could post a stolen bearer token. It is only worth
   // anything while it stays short, so this fails when a host is added without a reason.
+  // riv.nimiq.kids (2026-09-18): the marketing page's characters are .riv files fetched by the
+  // Rive runtime from Andjroo's own host; a GET of public art, CORS *, nothing posted.
   expect(directive("connect-src"))
-    .toBe("connect-src 'self' https://hub.nimiq.com https://bot.nimiq.tech");
+    .toBe("connect-src 'self' https://hub.nimiq.com https://bot.nimiq.tech https://riv.nimiq.kids");
 });
 
 test("fonts and stylesheets come from this origin only", () => {
@@ -66,8 +68,20 @@ test("script-src still carries unsafe-inline, and that is the debt to pay off", 
   // Stated rather than assumed. The portal, demo, invite and marketing pages are
   // server-rendered with inline <script> blocks; moving them into files is what earns its
   // removal, and this test is where the next reader learns the keyword is deliberate.
-  expect(directive("script-src")).toBe("script-src 'self' 'unsafe-inline'");
+  expect(directive("script-src")).toBe("script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'");
   expect(directive("default-src")).toBe("default-src 'self'");
+});
+
+test("wasm can compile, and eval still cannot", () => {
+  // The egg timer's frame and egg are a Rive runtime, which is WebAssembly: without this
+  // keyword the app draws the timer with no egg in it and says so only in the console.
+  // ⚠️ TOKENS, NOT SUBSTRINGS. "'wasm-unsafe-eval'" contains "'unsafe-eval'", so a
+  // `not.toContain` on the whole policy passes hardest when the policy is at its most open.
+  const tokens = directive("script-src").split(" ");
+  expect(tokens).toContain("'wasm-unsafe-eval'");
+  expect(tokens).not.toContain("'unsafe-eval'");
+  // the runtime's CDN fallback stays refused; the local wasm is what is allowed to run
+  expect(directive("connect-src")).not.toContain("jsdelivr");
 });
 
 test("no third-party analytics origin is allowed anywhere in the policy", () => {

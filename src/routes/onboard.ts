@@ -28,6 +28,10 @@ import { allow, resetRateLimits } from "../rate-limit";
 import { pairAttemptAllowed, pairGuessBudgetSpent, recordPairGuessMiss } from "../pair-brake";
 import { refuseHouseholdWrite } from "./members";
 import * as memberRepo from "../repo-members";
+import * as goalsRepo from "../repo-goals";
+import { goalTemplate, goalTitleKey, goalStepKey } from "../goal-templates";
+import { catEn } from "../locales/catalog";
+import * as stickersRepo from "../repo-stickers";
 
 export { resetRateLimits };
 
@@ -90,12 +94,38 @@ async function familyWalletAddress(): Promise<string> {
 export const ONBOARD_MAX_PER_IP_HOUR = Number(process.env.HATCH_ONBOARD_PER_IP_HOUR ?? 3);
 export const ONBOARD_MAX_PER_DAY = Number(process.env.HATCH_ONBOARD_PER_DAY ?? 200);
 
+/** The first goal, as the parent climb sends it (WP2, corrected 2026-09-18): the theme pack
+ *  the parent picked as the prize (data only, the path draws the gift mark) and a GOAL TEMPLATE
+ *  (src/goal-templates.ts), a skill in steps. Andjroo: a goal is not a chore. The first cut had
+ *  the goal's rungs be the three starter chores, which fused the everyday loop (jobs on the
+ *  board, done today, paid) with the ladder (steps to manage, a prize on top). Now the board
+ *  gets its three everyday jobs AND the kid gets a ladder whose rungs are the template's steps.
+ *  The SLOT prices nothing here: every step pays the template's own modest amount. */
+/** Kept for the copy sheet's preview banner; a ladder built here carries the TEMPLATE's key. */
+export const ONBOARD_GOAL_TITLE_KEY = "cat.goal.first";
+type OnboardGoal = { packId: string | null; template: string };
+function readGoal(raw: unknown): { goal: OnboardGoal | null; error?: string } {
+  if (raw === undefined || raw === null) return { goal: null };
+  if (typeof raw !== "object") return { goal: null, error: "goal_invalid" };
+  const g = raw as { packId?: unknown; template?: unknown };
+  const packId = g.packId ? String(g.packId) : null;
+  if (packId && !stickersRepo.isThemePack(packId)) return { goal: null, error: "unknown_theme" };
+  if (!goalTemplate(g.template)) return { goal: null, error: "goal_template_invalid" };
+  return { goal: { packId, template: String(g.template) } };
+}
+
 /**
  * POST /api/onboard — the judge path. Body:
- *   { parentLabel, kidLabel, kidEmoji?, address?, ref? }
+ *   { parentLabel, kidLabel, kidEmoji?, address?, ref?, goal? }
  * Creates family (mode 'family') + first kid + sample chores, mints the parent
  * bearer token (returned ONCE — the client stores it the way core.js expects),
  * and marks the inviter's referral joined when a valid ?ref code rides along.
+ *
+ * With `goal: { packId, template }` (the parent climb's step 5) the same POST ALSO creates the
+ * kid's FIRST GOAL: one ladder, climbed in order, its rungs the template's steps. The three
+ * sample chores land on the board either way: they are the everyday loop, the goal is the
+ * other thing. Atomic with the family, so a household never exists half-onboarded, and still
+ * one call under the brake. No `goal` keeps today's board for the judge route.
  */
 onboardRoutes.post("/onboard", async (c) => {
   const body = await c.req.json().catch(() => ({}));
@@ -120,6 +150,8 @@ onboardRoutes.post("/onboard", async (c) => {
   // See familyWalletAddress: under parent custody there is no hot-wallet fallback, because
   // a family whose `parent_address` is the instance wallet cannot sign for itself.
   if (custodyMode() === "parent" && !rawAddress) return c.json({ error: "address_required" }, 400);
+  const { goal, error: goalError } = readGoal(body.goal);
+  if (goalError) return c.json({ error: goalError }, 400);
   // Under SERVER custody the family wallet MUST be the instance hot wallet, and a caller-supplied
   // address is ignored. A kid's Treasure Box buy pays into `parent_address` (signed with the kid's
   // key) while a coupon-reject refund pays out of the hot wallet; the per-family budget nets the
@@ -152,10 +184,21 @@ onboardRoutes.post("/onboard", async (c) => {
   // demo seeder and the chore-creation route use, so a starter chore is worth what an
   // identical hand-made one would be.
   const rate = await nimUsd();
+  // The everyday loop: three jobs on the board, whether or not a goal rides along.
   const chores = SAMPLE_CHORES.map((s) => {
     const j = job(s.job);
     return repo.createChore(fam.id, kid.id, j.en, usdToWholeNimLuna(s.rewardUsd, rate), j.emoji, { titleKey: jobKey(j.id) });
   });
+  // The other thing: a ladder of the template's steps, climbed in order, the prize on top.
+  // The title is the template's own (Ride the bike), a catalog key so the tablet translates it.
+  const tpl = goal ? goalTemplate(goal.template)! : null;
+  const en = (key: string) => (catEn as Record<string, string>)[key] ?? key;
+  const ladder = tpl ? goalsRepo.createGoal(fam.id, kid.id, en(goalTitleKey(tpl.id)),
+    { emoji: tpl.emoji, ordered: true, titleKey: goalTitleKey(tpl.id), packId: goal!.packId }) : null;
+  const rungs = ladder && tpl ? Array.from({ length: tpl.steps }, (_, i) =>
+    goalsRepo.addRung(ladder.id, en(goalStepKey(tpl.id, i + 1)), {
+      emoji: tpl.emoji, rewardLuna: usdToWholeNimLuna(tpl.rewardUsd, rate), titleKey: goalStepKey(tpl.id, i + 1),
+    })) : [];
 
   const token = newToken();
   // The household was created a few lines up, so its owner is this parent, by construction.
@@ -173,6 +216,10 @@ onboardRoutes.post("/onboard", async (c) => {
     chores: chores.map((ch) => ({
       id: ch.id, title: ch.title, titleKey: ch.title_key, emoji: ch.emoji, rewardLuna: ch.reward_luna,
     })),
+    ...(ladder ? { goal: {
+      id: ladder.id, title: ladder.title, titleKey: ladder.title_key, packId: ladder.pack_id, template: tpl!.id,
+      rungs: rungs.map((r) => ({ id: r.id, title: r.title, titleKey: r.title_key, emoji: r.emoji, rewardLuna: r.reward_luna })),
+    } } : {}),
   }, 201);
 });
 

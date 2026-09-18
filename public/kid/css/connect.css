@@ -21,7 +21,7 @@
 .k-connect-screen {
   /* The Nimiq page body. Not pure white: white is the CARD, and a white card on
      a white page has no page left. */
-  background: #F8F8F8;
+  background: var(--paint-paper);
 
   /* Stand on top of the keyboard rather than under it. `.screen` is
      `position: fixed; inset: 0`, and iOS does NOT shrink the layout viewport when the
@@ -72,7 +72,7 @@
 .k-connect-sub {
   margin: 12px auto 0; max-width: 34ch;
   font-size: 17px; font-weight: 600; line-height: 1.4;
-  color: rgba(31, 35, 72, 0.5); text-align: center; text-wrap: pretty;
+  color: rgba(28, 27, 19, 0.5); text-align: center; text-wrap: pretty;
 }
 
 /* The one lit element. The registry box is sized for Keyguard's 51rem card
@@ -80,7 +80,7 @@
    are left alone. */
 .k-connect-box { width: 100%; }
 /* The prompt is the box's `.nq-text-s`: 14px, 600, white. White on the light end
-   of the light-blue gradient (#0582CA) is 4.16:1 — under WCAG AA's 4.5 for
+   of the light-blue gradient (var(--paint-blurple)) is 4.16:1 — under WCAG AA's 4.5 for
    normal text, which `nq lint` flags. Raising it to 19px/700 puts it over the
    large-text threshold (18.66px bold), where AA asks 3:1 and 4.16 clears it.
    It is also just the right size for a reader who is four: this line is the
@@ -134,11 +134,11 @@
    and for the same reason. Nothing is invented and nothing is imported from
    another screen:
 
-     rest   rgba(31,35,72,0.06)   account-list's `a.account-entry:hover`
-     press  rgba(31,35,72,0.12)   `.nq-button-s:active` in nimiq-style
+     rest   rgba(28, 27, 19, 0.06)   account-list's `a.account-entry:hover`
+     press  rgba(28, 27, 19, 0.12)   `.nq-button-s:active` in nimiq-style
 
-   An earlier pass reached for the wallet HOME's greys instead (page #F4F4F4,
-   group #E7E7E9, row #DBDBDF) and it came out far too heavy (Andjroo: "too dark,
+   An earlier pass reached for the wallet HOME's greys instead (page var(--paint-paper),
+   group rgba(28, 27, 19, 0.10), row rgba(28, 27, 19, 0.16)) and it came out far too heavy (Andjroo: "too dark,
    it doesn't look like the actual wallet"). Those values are correct where they
    were measured and wrong here: the wallet steps DOWN from an already-grey page,
    about 13 per step, so a row is one step from its surroundings. Dropped onto a
@@ -147,11 +147,11 @@
    hex, and 6% navy is exactly that step from white.
 
    Radius, padding and margins stay the component's throughout. */
-.k-roster-list .account-entry { background: rgba(31, 35, 72, 0.06); }
+.k-roster-list .account-entry { background: rgba(28, 27, 19, 0.06); }
 /* Only the fill is stated here. The press itself is the app's own — kid.css
    scales every tappable thing on :active with the shared spring, and this row is
    already in that list. */
-.k-roster-list .account-entry:active { background: rgba(31, 35, 72, 0.12); }
+.k-roster-list .account-entry:active { background: rgba(28, 27, 19, 0.12); }
 .k-roster-list .identicon { width: 64px; height: 64px; flex: none; }
 .k-roster-list .identicon img { width: 100%; height: 100%; }
 .k-roster-list .identicon-and-label { gap: 16px; }
@@ -209,10 +209,10 @@
   /* The roster's own rest fill, for the same reason it exists there: a tablet has
      no hover, so a tile that paints nothing until pressed reads as decoration
      rather than a control. */
-  background: rgba(31, 35, 72, 0.06);
+  background: rgba(28, 27, 19, 0.06);
   cursor: pointer;
 }
-.k-charpick .k-char-tile:active { background: rgba(31, 35, 72, 0.12); }
+.k-charpick .k-char-tile:active { background: rgba(28, 27, 19, 0.12); }
 .k-charpick .k-char-iqon { width: 100%; height: 100%; }
 .k-charpick .k-char-iqon img { width: 100%; height: 100%; display: block; }
 

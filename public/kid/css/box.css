@@ -40,7 +40,7 @@
 /* The chest and the word are ONE thing, so they share one white capsule — the
    same answer .k-page-title already gives Grow, the amount pad and the scanner.
    Both were bare on the scene here, and on Space that is navy ink on a navy sky:
-   measured rgb(31,35,72) against no background at all, so the title and the
+   measured rgb(28, 27, 19) against no background at all, so the title and the
    glyph were both effectively gone. An opaque pill reads the same on all four
    scenes, so no .bg-dark flip is wanted — and adding one would paint white on
    white, which is the trap this app has already hit twice. */
@@ -130,7 +130,7 @@
 }
 .bx-price {
   font-size: 13px; font-weight: 800; color: var(--ink-70);
-  background: rgba(233, 178, 19, 0.16); border-radius: var(--r-pill); padding: 4px 11px;
+  background: rgba(254, 213, 108, 0.16); border-radius: var(--r-pill); padding: 4px 11px;
 }
 /* What the NIM is worth, SHOWN rather than baked into the catalogue, so it
    stays true as the rate moves. It reads through the same fmtFiat() the money
@@ -147,13 +147,13 @@
 .bx-buy-title { font-size: 21px; font-weight: 800; color: var(--navy); text-align: center; }
 .bx-buy-cost { font-size: 16px; font-weight: 800; color: var(--navy); }
 .bx-buy-fiat { font-size: 14px; font-weight: 700; color: var(--ink-50); margin-top: -6px; }
-.bx-buy-left { font-size: 14px; font-weight: 700; color: rgba(31, 35, 72, 0.5); }
+.bx-buy-left { font-size: 14px; font-weight: 700; color: rgba(28, 27, 19, 0.5); }
 
 /* the chest-opening entry moment (an EVENT, not a pulse) */
 .box-enter .bx-chest { animation: bx-pop 0.7s cubic-bezier(0.41, 0.34, 0.26, 1.55); }
 .box-enter .bx-chest::after {
   content: ""; position: absolute; inset: -16px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(233, 178, 19, 0.45), transparent 70%);
+  background: radial-gradient(circle, rgba(254, 213, 108, 0.45), transparent 70%);
   animation: bx-burst 0.9s ease-out forwards; pointer-events: none;
 }
 .box-enter .bx-shelf { animation: bx-rise 0.55s var(--ease) backwards; }
@@ -253,14 +253,14 @@
 /* Waiting on a grown-up is the state a kid checks this screen FOR, so it is the one that
    is not grey. Gold, the same "this is yours, it is coming" colour the affordable price
    pill already uses; a red or an amber alert colour would read as something gone wrong. */
-.bx-prize.is-pending_parent .bx-prize-state { color: #8c6b00; }
+.bx-prize.is-pending_parent .bx-prize-state { color: var(--paint-line); }
 .bx-prize.is-fulfilled { opacity: 0.7; }
 
 /* On the TILE: how many of this item are already queued. A coupon has no owned state and
    is re-buyable on purpose, so without this a second tap spent the money again in silence. */
 .bx-waiting {
-  font-size: 11.5px; font-weight: 800; color: #8c6b00;
-  background: rgba(233, 178, 19, 0.16); border-radius: var(--r-pill); padding: 3px 9px;
+  font-size: 11.5px; font-weight: 800; color: var(--paint-line);
+  background: rgba(254, 213, 108, 0.16); border-radius: var(--r-pill); padding: 3px 9px;
 }
 
 /* ---------- SETS YOU CAN COLLECT (#400) ----------
@@ -275,7 +275,7 @@
   background: rgba(255, 255, 255, 0.86);
   font-size: var(--fs-small);
   font-weight: 700;
-  color: rgba(31, 35, 72, 0.6);
+  color: rgba(28, 27, 19, 0.6);
 }
 /* A column, not the .bx-row carousel the priced shelves use: a set card is a wide row (name,
    the strip of what is in it, and the ask), and five of those side by side would clip exactly

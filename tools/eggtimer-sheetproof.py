@@ -71,10 +71,18 @@ async def run():
         print(f"[{ENG}] centring: header + sub + section labels centred on all four")
 
         # the marker: tapped item, and PAINTED PROUD of its tile
-        for sid, sel, tap in [("shReminder", "#remGrid", 6), ("shEgg", "#eggGrid", 9)]:
+        for sid, sel, want in [("shReminder", "#remGrid", 6), ("shEgg", "#eggGrid", 9)]:
             await pg.evaluate(f"TIMER.sheet('{sid}')")
             await pg.wait_for_timeout(650)
             tiles = pg.locator(f"{sel} .pick[data-hero], {sel} .pick[data-rem]")
+            # ⚠️ THE INDEX IS LIFTED FROM THE GRID, NOT PINNED. The reminder list is
+            # Andjroo's to edit and it went from twelve tiles to five on 2026-09-17; a
+            # hard 6 made this assert about a tile that no longer exists, which reads as
+            # a broken sheet rather than as a shorter list. Any tile but the first proves
+            # the same thing, so take the last one when the grid is small.
+            n = await tiles.count()
+            assert n >= 2, f"{sid}: {n} tiles, nothing to tap"
+            tap = min(want, n - 1)
             await tiles.nth(tap).scroll_into_view_if_needed()
             await pg.wait_for_timeout(200)
             await tiles.nth(tap).click()

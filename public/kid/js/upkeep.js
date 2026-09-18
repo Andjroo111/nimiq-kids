@@ -104,9 +104,14 @@ function goalCard(g) {
   const set = g.theme ? `<span class="gl-set-mini">${
     g.theme.slots.map((s) => `<span class="gl-dot ${s.owned ? "is-on" : ""}"></span>`).join("")
   }${g.theme.boss ? `<span class="gl-dot gl-dot-boss ${g.theme.boss.owned ? "is-on" : ""}"></span>` : ""}</span>` : "";
+  // THE PICTURE IS NEVER THE OS'S EMOJI (2026-09-18, Andjroo saw old art on the demo: the
+  // seeded "Ride the bike" drew a 🚲 nobody has drawn). A ladder with a theme shows what it is
+  // collecting, the pack's egg, the same art the path's prize wears; without one, the drawn
+  // icon for its emoji; and when nobody drew that emoji, the ladder icon rather than the emoji.
+  const picture = { ...g, iconUrl: g.theme?.eggUrl ?? g.iconUrl ?? "/assets/icons/ladder.png" };
   return `
     <button class="ch-task ch-goal ${g.done ? "is-met" : ""}" data-goal="${esc(g.id)}">
-      ${jobIcon(g, "🪜")}
+      ${jobIcon(picture, "🪜")}
       <span class="ch-task-main">
         <span class="ch-task-title">${esc(rowTitle(g))}</span>
         <span class="ch-task-meta">

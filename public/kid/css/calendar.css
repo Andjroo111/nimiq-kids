@@ -123,10 +123,10 @@
   line-height: 1;
 }
 .cal-day b { font-size: 13px; font-weight: var(--fw-title); color: var(--ink-70); }
-.cal-day.is-part { background: rgba(5, 130, 202, 0.08); }
-.cal-day.is-full { background: rgba(33, 188, 165, 0.14); }
+.cal-day.is-part { background: rgba(84, 101, 238, 0.08); }
+.cal-day.is-full { background: rgba(27, 152, 94, 0.14); }
 .cal-day.is-full b { color: var(--green-2); }
-.cal-day.is-today { background: rgba(5, 130, 202, 0.1); }
+.cal-day.is-today { background: rgba(84, 101, 238, 0.1); }
 .cal-day.is-today b { color: var(--blue-2); }
 /* Days belonging to the months either side of this one. The NUMBER fades, so the
    month boundary still reads at a glance; the STICKER does not. Fading the whole

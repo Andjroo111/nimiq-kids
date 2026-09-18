@@ -98,12 +98,13 @@ export function addressGrid(addr) {
     .join("")}</div>`;
 }
 
-// ---- QR (registry recipe: qr-creator pinned 1.0.0 + the Nimiq gradient fill) ----
+// ---- QR (registry recipe: qr-creator pinned 1.0.0; the fill is the paint set's action,
+// flat, since 2026-09-18: the set has no gradients) ----
 
 const NIMIQ_QR_FILL = {
   type: "radial-gradient",
   position: [1, 1, 0, 1, 1, Math.sqrt(2)],
-  colorStops: [[0, "#265DD7"], [1, "#0582CA"]],
+  colorStops: [[0, "#5465EE"], [1, "#5465EE"]],
 };
 
 export function renderQr(canvas, text, size = 400) {

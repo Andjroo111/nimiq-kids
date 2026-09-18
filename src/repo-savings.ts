@@ -10,6 +10,7 @@
 // are one number rather than three roundings of it.
 
 import { getDb } from "./db";
+import { iconUrlForEmoji } from "./task-icons";
 
 // Same two-liner repo-goals.ts and repo.ts carry: there is no ids module in this tree.
 const uid = () => crypto.randomUUID();
@@ -28,6 +29,8 @@ export interface SavingsTarget {
 
 /** What a screen draws. `pct` is clamped, `remainingLuna` floors at zero. */
 export interface SavingsView {
+  /** The drawn face for `target.emoji`, or null. */
+  iconUrl: string | null;
   target: SavingsTarget;
   balanceLuna: number;
   remainingLuna: number;
@@ -124,11 +127,15 @@ export function markReached(id: string, at = now()): boolean {
  * same reason in the other direction: "you need -12 NIM" is not a sentence.
  */
 export function targetView(target: SavingsTarget, balanceLuna: number): SavingsView {
+  // The drawn face for the target's emoji (src/task-icons), null when nobody has drawn it, in
+  // which case the thermometer keeps showing the emoji itself.
+  const iconUrl = iconUrlForEmoji(target.emoji);
   const pct = target.target_luna > 0
     ? Math.min(100, Math.floor((balanceLuna / target.target_luna) * 100))
     : 0;
   return {
     target,
+    iconUrl,
     balanceLuna,
     remainingLuna: Math.max(0, target.target_luna - balanceLuna),
     pct,

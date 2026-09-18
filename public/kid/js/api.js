@@ -19,6 +19,7 @@ const send = async (method, p, body) => (await fetch(p, {
 })).json();
 const post = (p, body) => send("POST", p, body);
 const put = (p, body) => send("PUT", p, body);
+const patch = (p, body) => send("PATCH", p, body);
 const del = (p) => send("DELETE", p);
 
 export const api = {
@@ -138,6 +139,8 @@ export const api = {
   characterChoices: (childId) => get(`/api/kids/${encodeURIComponent(childId)}/character-choices`),
   /** Claim one of them. The body carries the offer id and an INDEX, never an address. */
   chooseCharacter: (childId, body) => post(`/api/kids/${encodeURIComponent(childId)}/character`, body),
+  // The kid's character (the climb's screen 3, re-pickable from the me sheet). Art, not money.
+  setHero: (childId, hero) => patch(`/api/kids/${encodeURIComponent(childId)}/hero`, { hero }),
   sendNim: (childId, body) => post(`/api/kids/${encodeURIComponent(childId)}/send`, body),
   /** A scanned address: queues for a parent's OK, never moves funds here. */
   sendScanned: (childId, toAddress, valueLuna) =>

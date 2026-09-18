@@ -29,7 +29,7 @@
    against dark art, and the whole edge against white art. */
 #kid-app.bg-image, #kid-app.bg-meadow, #kid-app.bg-ocean,
 #kid-app.bg-space, #kid-app.bg-city {
-  --sh-card: 0 8px 56px rgba(0, 0, 0, 0.111), 0 0 0 1px rgba(31, 35, 72, 0.08);
+  --sh-card: 0 8px 56px rgba(0, 0, 0, 0.111), 0 0 0 1px rgba(28, 27, 19, 0.08);
 }
 
 /* ---------- the bare label ("Today") ---------- */
@@ -144,11 +144,11 @@
   flex: 0 1 auto; min-height: 0; display: flex; flex-direction: column;
   border-radius: var(--r-sheet); padding: var(--s3);
   background: rgba(255, 255, 255, 0.42);
-  box-shadow: 0 30px 48px -18px rgba(31, 35, 72, 0.42), 0 6px 5px rgba(31, 35, 72, 0.16);
-  --lift-5: 0 5px 4px rgba(31, 35, 72, 0.16), 0 14px 22px -8px rgba(31, 35, 72, 0.18), var(--lift-ring);
-  --lift-4: 0 4px 3px rgba(31, 35, 72, 0.14), 0 11px 18px -8px rgba(31, 35, 72, 0.15), var(--lift-ring);
-  --lift-3: 0 3px 2px rgba(31, 35, 72, 0.12), 0 8px 14px -8px rgba(31, 35, 72, 0.13), var(--lift-ring);
-  --lift-1: 0 2px 2px rgba(31, 35, 72, 0.10), 0 5px 10px -6px rgba(31, 35, 72, 0.11), var(--lift-ring);
+  box-shadow: 0 30px 48px -18px rgba(28, 27, 19, 0.42), 0 6px 5px rgba(28, 27, 19, 0.16);
+  --lift-5: 0 5px 4px rgba(28, 27, 19, 0.16), 0 14px 22px -8px rgba(28, 27, 19, 0.18), var(--lift-ring);
+  --lift-4: 0 4px 3px rgba(28, 27, 19, 0.14), 0 11px 18px -8px rgba(28, 27, 19, 0.15), var(--lift-ring);
+  --lift-3: 0 3px 2px rgba(28, 27, 19, 0.12), 0 8px 14px -8px rgba(28, 27, 19, 0.13), var(--lift-ring);
+  --lift-1: 0 2px 2px rgba(28, 27, 19, 0.10), 0 5px 10px -6px rgba(28, 27, 19, 0.11), var(--lift-ring);
 }
 
 /* ⚠️ AND EVERY CHILD ASKS FOR ITS CONTENT. This is the one rule that makes a hugging slab
@@ -208,7 +208,7 @@
 /* the heading owns a line of its own, so it stops reading as the first row of
    the list underneath it */
 .ch-group.is-open > .ch-group-hd {
-  border-bottom: 1px solid rgba(31, 35, 72, 0.16);
+  border-bottom: 1px solid rgba(28, 27, 19, 0.16);
   margin: 0 var(--s2) var(--s1);
 }
 
@@ -226,7 +226,7 @@
 }
 /* the tray. A recess, not another card: no shadow, a tint the jobs sit on. */
 .ch-group.is-open > .ch-tasks {
-  background: rgba(31, 35, 72, 0.045);
+  background: rgba(28, 27, 19, 0.045);
   border-radius: calc(var(--r-card) - 2px);
   padding: var(--s2); gap: var(--s2); margin: 0;
 }
@@ -326,7 +326,7 @@
 .k-connect-card { box-shadow: var(--lift-5); }
 
 .k-roster-list {
-  background: rgba(31, 35, 72, 0.045);
+  background: rgba(28, 27, 19, 0.045);
   border-radius: var(--r-card);
   padding: var(--s2);
 }

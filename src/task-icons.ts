@@ -9,11 +9,16 @@
 // That means every routine and chore that already exists upgrades to real art
 // with no migration, and an emoji nobody has drawn yet still renders as itself.
 //
-// NO ICON ART SHIPS RIGHT NOW (2026-09-15, with the stickers: sticker-catalog.ts has the
-// story). The table below stays because it is what the picker offers and what a job STORES
-// (its emoji); only the picture behind each row is gone, so every card draws its emoji, the
-// same path a parent's own emoji always took. Flip `TASK_ICON_ART_SHIPPED` when the files
-// are back under public/assets/icons/<id>.png.
+// THE ART IS THE LINELESS SET (2026-09-18): 42 of 42 rows drawn under the lineless lock in
+// brand-voice-research lineless/packs/task-icons (picked by Andjroo 2026-09-17, one hue each,
+// no face), cut to public/assets/icons/<id>.png by tools/art/cut-lineless.py --only taskicons
+// from tools/art/lineless-list.json `taskIcons`. From 2026-09-15 to 09-18 no icon shipped and
+// every card drew its emoji; that path is still the fallback for an emoji nobody has drawn.
+// dogbowl (🐶), plant (🪴) and towel (🛁) were rows here until 2026-09-18 with no job pointing
+// at them (the dog one, the seedling and the shower won); nothing was drawn for them and the
+// kid's add-a-job picker lists every row WITH its url, so an undrawn row is a broken image.
+// A parent typing one of those emoji still gets the emoji. broom serves Vacuum and dustpan
+// serves Sweep, so draw what the job says, never the row's noun.
 
 export interface TaskIcon {
   id: string;
@@ -31,15 +36,12 @@ export const TASK_ICONS: TaskIcon[] = [
   { id: "broom", emoji: "🧹", label: "Sweep" },
   { id: "teddy", emoji: "🧸", label: "Toys" },
   { id: "plate", emoji: "🍽️", label: "Dishes" },
-  { id: "dogbowl", emoji: "🐶", label: "Feed the pet" },
   { id: "laundry", emoji: "🧺", label: "Laundry" },
-  { id: "plant", emoji: "🪴", label: "Plants" },
   { id: "trash", emoji: "🗑️", label: "Bins" },
   { id: "pajamas", emoji: "🩳", label: "Pyjamas" },
   { id: "backpack", emoji: "🎒", label: "School bag" },
   { id: "piano", emoji: "🎹", label: "Piano" },
   { id: "shoes", emoji: "👟", label: "Shoes" },
-  { id: "towel", emoji: "🛁", label: "Bath" },
 
   // Batch 2 (2026-08-01). The first sixteen covered thirteen of the forty-two jobs in
   // src/title-catalog.ts, so twenty-nine catalog tiles fell back to their raw emoji — on
@@ -79,13 +81,30 @@ export const TASK_ICONS: TaskIcon[] = [
   { id: "laptop", emoji: "💻", label: "Coding" },
 ];
 
+/**
+ * THE FACES THAT ARE NOT JOB TILES (2026-09-18). A routine's own header (🌅 ☀️ 🌙), and the
+ * defaults a goal (🪜), a practice step (🎵) and a savings target (🎯) are born with, all drew
+ * their raw emoji on both apps because nothing had been drawn for them. Same lineless cut,
+ * same folder, same resolver, and deliberately NOT in TASK_ICONS: the kid's add-a-job strip
+ * lists every row there, and a sunrise is not a chore. `/api/task-icons` sends these under
+ * `faces` so the parent board can draw them; `icons` stays the picker's list.
+ */
+export const FACE_ICONS: TaskIcon[] = [
+  { id: "sunrise", emoji: "🌅", label: "Morning" },
+  { id: "sun", emoji: "☀️", label: "Afternoon" },
+  { id: "bedtime", emoji: "🌙", label: "Bedtime" },
+  { id: "ladder", emoji: "🪜", label: "Goal" },
+  { id: "note", emoji: "🎵", label: "Step" },
+  { id: "target", emoji: "🎯", label: "Saving for" },
+];
+
 /** Whether the drawn icons are in the tree. title-catalog.test.ts gates on it. */
-export const TASK_ICON_ART_SHIPPED = false;
+export const TASK_ICON_ART_SHIPPED = true;
 
 export const taskIconUrl = (id: string): string | null =>
   TASK_ICON_ART_SHIPPED ? `/assets/icons/${id}.png` : null;
 
-const BY_EMOJI = new Map(TASK_ICONS.map((i) => [i.emoji, i]));
+const BY_EMOJI = new Map([...TASK_ICONS, ...FACE_ICONS].map((i) => [i.emoji, i]));
 
 /** The drawn icon for a task's emoji, or null when nobody has drawn that one —
  *  in which case the client keeps showing the emoji itself. */

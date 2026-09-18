@@ -9,20 +9,20 @@
   /* -- palette (kawaii: bold dark outline, mint machine, sunny sticker) -- */
   --maker-body: #9FE0DC;
   --maker-hopper: #FFD66E;
-  --maker-base: #2E2E48;
-  --maker-slot: #1F2348;
+  --maker-base: var(--paint-line);
+  --maker-slot: var(--paint-line);
   --maker-window: #FFFFFF;
-  --maker-outline: #2E2E48;
+  --maker-outline: var(--paint-line);
   --maker-outline-w: 5px;
   --maker-sticker-base: #FFFFFF;
   --maker-sticker-fill: #FFE9A8;
-  --maker-foil: #E9B213;
+  --maker-foil: var(--paint-yolk);
   --maker-gleam: rgba(255, 255, 255, 0.75);
-  --maker-dial-track: rgba(46, 46, 72, 0.18);
-  --maker-dial: #21BCA5;
+  --maker-dial-track: rgba(28, 27, 19, 0.18);
+  --maker-dial: var(--paint-grass);
   --maker-cheek: #FFB3C7;
-  --maker-face: #2E2E48;
-  --maker-shadow: rgba(31, 35, 72, 0.14);
+  --maker-face: var(--paint-line);
+  --maker-shadow: rgba(28, 27, 19, 0.14);
   --maker-question: #B5B8CE;
 
   /* -- motion -- */

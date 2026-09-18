@@ -23,9 +23,11 @@
 // glyph rather than a broken image. `src/store-art.test.ts` is what stops the opposite failure:
 // a name in this map with no file behind it.
 //
-// NO STORE ART SHIPS RIGHT NOW (2026-09-15, pulled with the stickers; sticker-catalog.ts has
-// the story). The maps stay so the slugs are on record; `storeArtUrl` answers null for every
-// row while `STORE_ART_SHIPPED` is false, and both renderers draw their glyph.
+// THE ART IS THE LINELESS SET (2026-09-18): one sky tablet with a clock serves all three
+// minute tiles (the label carries the minutes), the dinner plate is the timer's eat plate
+// reused, the moon is a plain blurple crescent with no zzz so it does not read as bedtime.
+// Cut by tools/art/cut-lineless.py --only storeart from tools/art/lineless-list.json
+// `storeArt`. From 2026-09-15 to 09-18 nothing shipped and both renderers drew their glyph.
 
 /** Screen-time minutes to the file drawn for them. */
 const BY_MINUTES: Record<number, string> = {
@@ -42,7 +44,7 @@ const BY_ICON: Record<string, string> = {
 };
 
 /** Whether the five drawn tiles are in the tree. store-art.test.ts gates on it. */
-export const STORE_ART_SHIPPED = false;
+export const STORE_ART_SHIPPED = true;
 
 /** Every file this module can name, for the on-disk gate. */
 export const STORE_ART_SLUGS: string[] = [

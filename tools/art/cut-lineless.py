@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Cut the lineless Midjourney art into the four shapes the app ships.
 
-    python3 tools/art/cut-lineless.py <lineless-dir> [--only heroes|stickers|icons|backgrounds]
+    python3 tools/art/cut-lineless.py <lineless-dir> [--only heroes|stickers|icons|taskicons|faceicons|storeart|backgrounds]
 
 `<lineless-dir>` is `lineless/` from the brand-voice-research repo (the Mini,
 branch mj-hunt-0915): `frames/` (the 21 egg-hatch characters), `packs/<pack>/`
@@ -18,6 +18,10 @@ Writes:
                                                             inscribed circle (see
                                                             tools/recut-stickers.py)
   public/kid/timer/icons/<slug>.png + icons/index.json      256 box, ink-normalised
+  public/assets/icons/<id>.png                              the 42 job-tile icons, same box,
+                                                            plus the faceIcons (routine headers
+                                                            and the three default faces)
+  public/assets/store/<slug>.png                            the five Treasure Box tiles, 512 box
   public/assets/backgrounds/<id>.jpg                        1600 square, q86
   public/kid/timer/bg/<id>.jpg                              the same file, the rig's copy
 
@@ -153,9 +157,29 @@ def to_circle_canvas(im, box, margin=0.04):
     canvas.paste(im, (int(round(side / 2 - c[0])), int(round(side / 2 - c[1]))), im)
     return resize_rgba(canvas, box, box)
 
-def cut_icon(path, box=256, ink=0.40):
+def drop_shadow_blobs(im):
+    """A detached shadow puddle that the colour seed missed (the duster, 2026-09-18: a
+    lavender ellipse 8% of the object, so the 3% sparkle rule kept it). Any blob that is not
+    the object, light and near-grey, goes; a real second part of an icon has colour."""
+    a = np.asarray(im).astype(np.float32)
+    alpha = a[:, :, 3] > 24
+    lab, n = ndimage.label(alpha)
+    if n < 2: return im
+    sizes = ndimage.sum(alpha, lab, range(1, n + 1))
+    main = int(np.argmax(sizes)) + 1
+    rgb = a[:, :, :3]
+    for i in range(1, n + 1):
+        if i == main: continue
+        px = rgb[lab == i]
+        chroma = float((px.max(1) - px.min(1)).mean()); light = float(px.min(1).mean())
+        if chroma <= 48 and light >= 180:
+            a[lab == i, 3] = 0
+    return Image.fromarray(a.astype(np.uint8), "RGBA")
+
+def cut_icon(path, box=256, ink=0.40, shadow_blobs=False):
     im, reach = cut_character(path, drop_puddle=True)
     if im is None: return None, reach, 0.0
+    if shadow_blobs: im = drop_shadow_blobs(im)
     n = float((np.asarray(im)[:, :, 3] > 24).sum())
     s = np.sqrt(ink * box * box / max(n, 1.0))
     s = min(s, box / im.width, box / im.height)
@@ -197,6 +221,12 @@ def main():
             for e in pack["stickers"] + ([pack["egg"]] if pack.get("egg") else []):
                 im, reach = cut_character(frame_path(src, "stickers", e))
                 assert im is not None, e
+                # the starter star (2026-09-18) kept a detached puddle the colour seed missed,
+                # the same case as the duster; a sticker never has a light grey second part.
+                # ⚠️ This also takes a detached white highlight streak off the ocean fish and
+                # the robot boss; those files were kept as first cut, so a full --only stickers
+                # rerun will show them changed by a streak. Andjroo picked them as drawn.
+                im = drop_shadow_blobs(im)
                 to_circle_canvas(im, 512).save(os.path.join(sd, f"{e['id']}.png"), optimize=True)
                 report.append(("sticker", e["id"], reach))
 
@@ -209,6 +239,38 @@ def main():
             made.append({"slug": e["slug"], "fill": round(fill, 3), "reach": round(reach, 3)})
             report.append(("icon", e["slug"], reach))
         json.dump({"version": 1, "box": 256, "icons": made}, open(os.path.join(idir, "index.json"), "w"), indent=1)
+
+    if want("taskicons"):
+        # The 42 job-tile icons (src/task-icons.ts): the same cut as the timer's reminder
+        # icons, into the path iconUrlForEmoji resolves. The id IS the contract: a file named
+        # anything else never renders (the icon-art brief, 2026-09-17).
+        td = os.path.join(ROOT, "public/assets/icons"); os.makedirs(td, exist_ok=True)
+        for e in LIST["taskIcons"]:
+            pad, reach, fill = cut_icon(frame_path(src, "taskicons", e), shadow_blobs=True)
+            assert pad is not None, e
+            pad.save(os.path.join(td, f"{e['id']}.png"), optimize=True)
+            report.append(("taskicon", e["id"], reach))
+
+    if want("faceicons"):
+        # The faces that are not job tiles (2026-09-18): the three routine headers and the goal,
+        # practice-step and savings defaults. Same cut and the same folder as the job tiles,
+        # resolved by src/task-icons.ts FACE_ICONS, and never offered by the add-a-job picker.
+        td = os.path.join(ROOT, "public/assets/icons"); os.makedirs(td, exist_ok=True)
+        for e in LIST["faceIcons"]:
+            pad, reach, fill = cut_icon(frame_path(src, "faceicons", e), shadow_blobs=True)
+            assert pad is not None, e
+            pad.save(os.path.join(td, f"{e['id']}.png"), optimize=True)
+            report.append(("faceicon", e["id"], reach))
+
+    if want("storeart"):
+        # The five Treasure Box tiles src/store-art.ts names (#404), at 512 because the kid's
+        # shelf draws them at 72 on a tablet and the parent's manager at 28.
+        sd = os.path.join(ROOT, "public/assets/store"); os.makedirs(sd, exist_ok=True)
+        for e in LIST["storeArt"]:
+            pad, reach, fill = cut_icon(frame_path(src, "storeart", e), box=512, shadow_blobs=True)
+            assert pad is not None, e
+            pad.save(os.path.join(sd, f"{e['slug']}.png"), optimize=True)
+            report.append(("storeart", e["slug"], reach))
 
     if want("backgrounds"):
         bd = os.path.join(ROOT, "public/assets/backgrounds"); os.makedirs(bd, exist_ok=True)

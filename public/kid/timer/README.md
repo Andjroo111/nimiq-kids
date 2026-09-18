@@ -16,25 +16,23 @@ why: `~/gdkc/data/anim-demo/NEXT-SESSION-SPEED.md`.
 (set → run → hatch → back), and v0.59.0 (PR #45) fixed its boot: no unstyled flash, one
 arrival instead of three, and the dial's selection band centred on the time.
 
-⚠️ **THIS DIRECTORY IS VENDORED FROM `~/gdkc/data/anim-demo`.** That is where the timer is
-authored and where its verification harness lives. A change made here and not made there
-diverges silently. Copy in one direction only — **and scrub the name**, because that repo
-is private and this one is public:
+⚠️ **THIS DIRECTORY IS THE SOURCE NOW, NOT A VENDORED COPY (flipped 2026-09-18).** From
+2026-08-01 to 2026-09-15 the timer was authored in `~/gdkc/data/anim-demo` and copied here
+with a name scrub. Since PR #487 every change (#487 #500 #502 #504 #505 #506) has been made
+HERE, and anim-demo fell six PRs behind without anyone noticing. On 2026-09-18 `index.html`,
+`wiggle.html` and the four `rive-kit/` files this app added were copied BACK into anim-demo
+(commit `5cd5c39` on `art/unicorn-themes`), and that repo's HANDOFF.md now says it is the
+archive. **Never copy from anim-demo into this directory again**: its `individual-pngs/` and
+`sfx/` are a different generation, and its html would revert whatever landed here since.
+Edit here, commit here, and `nq lint` the served URL. If a change is worth keeping in the
+archive, the copy runs the other way:
 ```bash
-D=<this worktree>/public/kid/timer
 cd ~/gdkc/data/anim-demo
-sed 's/Andjroo/Andjroo/g' timer.html  > $D/index.html
-sed 's/Andjroo/Andjroo/g' wiggle.html > $D/wiggle.html
-grep -c Andjroo $D/index.html $D/wiggle.html    # must be 0 0
+sed 's/Andjroo/<first name>/g' <this worktree>/public/kid/timer/index.html  > timer.html
+sed 's/Andjroo/<first name>/g' <this worktree>/public/kid/timer/wiggle.html > wiggle.html
 ```
-⚠️ A plain `cp` puts Andjroo's first name back into a public repo. The two copies differ in
-**exactly** that one substitution and nothing else, so `diff <(sed …) $D/…` is a complete
-check that they are in sync.
-
-⚠️ **VENDOR IMMEDIATELY BEFORE COMMITTING HERE**, not merely at some point beforehand. In
-the v0.59.0 session a rig change was made *after* the vendor step and the app shipped a
-copy one change behind — the one-way trap running in the direction the warning above does
-not describe.
+(`Andjroo` is the public spelling; anim-demo is private and carries the first name, which
+this tree must never contain, PR #498.)
 
 ⚠️ **`index.html`'s `const BUILD='…'` LINE IS AN INTERFACE.** `src/timer-build.ts` scans
 this file for it with a regex to mint the token every asset under `/kid/timer/` is stamped

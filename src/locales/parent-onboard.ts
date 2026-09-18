@@ -6,24 +6,29 @@
 // Same rules as its siblings: English is authoritative, the other four mirror its keys
 // exactly (the parity test walks the MERGED set), sentence case, no periods on titles,
 // no em/en dashes.
+//
+// The stepped climb (WP2) keeps its strings in parent-climb.ts and rides in here as a spread,
+// so parent.ts gains no import line.
 
+import { climbEn, climbEs, climbDe, climbFr, climbPt } from "./parent-climb";
 
 export const onbEn = {
-  "papp.onbTitle": "Welcome to NIMIQ.kids",
+  ...climbEn,
+  "papp.onbTitle": "Chores that pay real money",
   "papp.onbSub": "Chores become real allowance. You fund it and approve every payout.",
   "papp.onbInvited": "A family you know invited you to NIMIQ.kids.",
   "papp.onbParentName": "What do the kids call you?",
   "papp.onbKidName": "Your first kid's nickname",
   "papp.onbConnect": "Connect your wallet",
   "papp.onbConnected": "Wallet connected",
-  "papp.onbConnectHint": "Optional right now. You can top up any time later.",
+  "papp.onbConnectHint": "You can do this later from Top up.",
   // PARENT CUSTODY ONLY, and the reason these exist at all: on such an instance the parent's
   // own wallet is the sender of every payout, so `onbConnectHint` above is simply false there
   // and nothing can be created without an address. The step is stated BEFORE the name fields,
   // because a requirement discovered at the end of a form is a dead end, which is exactly what
   // it was: two names, one tap, HTTP 400, "try again". Same plain register as famWalletSub in
   // parent-address.ts — this is the same wallet, said earlier.
-  "papp.onbWalletStep": "First, connect the wallet that pays",
+  "papp.onbWalletStep": "Connect the wallet your kids get paid from",
   "papp.onbWalletStepSub": "Your kids get paid from this wallet.",
   "papp.onbNeedWallet": "Connect your wallet first. It is the one your kids get paid from",
   // The onboarding brake, in words (#242). Both used to arrive as "That didn't go through.
@@ -43,8 +48,8 @@ export const onbEn = {
   "papp.onbCreating": "Setting things up",
   "papp.onbNeedNames": "Add both names first",
   "papp.onbWelcome": "Your family is ready",
-  "papp.onbPrivacy": "No accounts for kids, no ads, no tracking. Nicknames only.",
-  "papp.onbHaveCode": "Already set up? Enter a pairing code",
+  "papp.onbPrivacy": "No accounts for kids, no ads, no tracking. Just a name for the screen.",
+  "papp.onbHaveCode": "I have a code",
   "papp.pairTitle": "Type your 6 digit code",
   "papp.pairSub": "A code read out to you, or from Settings on a phone you're signed in on.",
   "papp.pairCode": "6-digit code",
@@ -61,15 +66,16 @@ export const onbEn = {
 };
 
 export const onbEs: typeof onbEn = {
-  "papp.onbTitle": "Bienvenido a NIMIQ.kids",
+  ...climbEs,
+  "papp.onbTitle": "Tareas que pagan dinero de verdad",
   "papp.onbSub": "Las tareas se vuelven paga real. Tú la financias y apruebas cada pago.",
   "papp.onbInvited": "Una familia que conoces te ha invitado a NIMIQ.kids.",
   "papp.onbParentName": "¿Cómo te llaman los peques?",
   "papp.onbKidName": "El apodo de tu primer peque",
   "papp.onbConnect": "Conecta tu cartera",
   "papp.onbConnected": "Cartera conectada",
-  "papp.onbConnectHint": "Opcional por ahora. Puedes recargar más tarde.",
-  "papp.onbWalletStep": "Primero, conecta la cartera que paga",
+  "papp.onbConnectHint": "Puedes hacerlo más tarde desde Recargar.",
+  "papp.onbWalletStep": "Conecta la cartera desde la que cobran tus peques",
   "papp.onbWalletStepSub": "Tus peques cobran de esta cartera.",
   "papp.onbNeedWallet": "Conecta primero tu cartera. Es la que paga a tus peques",
   "papp.onbTooMany": "Demasiadas familias nuevas ahora. Inténtalo en una hora",
@@ -78,8 +84,8 @@ export const onbEs: typeof onbEn = {
   "papp.onbCreating": "Preparándolo todo",
   "papp.onbNeedNames": "Añade los dos nombres primero",
   "papp.onbWelcome": "Tu familia está lista",
-  "papp.onbPrivacy": "Sin cuentas para peques, sin anuncios, sin rastreo. Solo apodos.",
-  "papp.onbHaveCode": "¿Ya está configurado? Introduce un código de emparejamiento",
+  "papp.onbPrivacy": "Sin cuentas para peques, sin anuncios, sin rastreo. Solo un nombre para la pantalla.",
+  "papp.onbHaveCode": "Tengo un código",
   "papp.pairTitle": "Escribe tu código de 6 dígitos",
   "papp.pairSub": "Un código que te dictan, o el de Ajustes en un teléfono donde ya entraste.",
   "papp.pairCode": "Código de 6 dígitos",
@@ -96,15 +102,16 @@ export const onbEs: typeof onbEn = {
 };
 
 export const onbDe: typeof onbEn = {
-  "papp.onbTitle": "Willkommen bei NIMIQ.kids",
+  ...climbDe,
+  "papp.onbTitle": "Aufgaben, die echtes Geld bringen",
   "papp.onbSub": "Aus Aufgaben wird echtes Taschengeld. Du finanzierst es und gibst jede Zahlung frei.",
   "papp.onbInvited": "Eine Familie, die du kennst, hat dich zu NIMIQ.kids eingeladen.",
   "papp.onbParentName": "Wie nennen dich die Kinder?",
   "papp.onbKidName": "Der Spitzname deines ersten Kindes",
   "papp.onbConnect": "Wallet verbinden",
   "papp.onbConnected": "Wallet verbunden",
-  "papp.onbConnectHint": "Gerade optional. Aufladen geht auch später.",
-  "papp.onbWalletStep": "Zuerst die Wallet verbinden, die bezahlt",
+  "papp.onbConnectHint": "Das geht später unter Aufladen.",
+  "papp.onbWalletStep": "Verbinde die Wallet, aus der deine Kinder bezahlt werden",
   "papp.onbWalletStepSub": "Deine Kinder werden aus dieser Wallet bezahlt.",
   "papp.onbNeedWallet": "Verbinde zuerst deine Wallet. Aus ihr werden deine Kinder bezahlt",
   "papp.onbTooMany": "Gerade zu viele neue Familien. Versuche es in einer Stunde",
@@ -113,8 +120,8 @@ export const onbDe: typeof onbEn = {
   "papp.onbCreating": "Wird eingerichtet",
   "papp.onbNeedNames": "Erst beide Namen eintragen",
   "papp.onbWelcome": "Deine Familie ist startklar",
-  "papp.onbPrivacy": "Keine Konten für Kinder, keine Werbung, kein Tracking. Nur Spitznamen.",
-  "papp.onbHaveCode": "Schon eingerichtet? Kopplungscode eingeben",
+  "papp.onbPrivacy": "Keine Konten für Kinder, keine Werbung, kein Tracking. Nur ein Name für den Bildschirm.",
+  "papp.onbHaveCode": "Ich habe einen Code",
   "papp.pairTitle": "Gib deinen 6 stelligen Code ein",
   "papp.pairSub": "Ein Code, den man dir vorliest, oder aus den Einstellungen auf einem angemeldeten Handy.",
   "papp.pairCode": "6-stelliger Code",
@@ -131,15 +138,16 @@ export const onbDe: typeof onbEn = {
 };
 
 export const onbFr: typeof onbEn = {
-  "papp.onbTitle": "Bienvenue sur NIMIQ.kids",
+  ...climbFr,
+  "papp.onbTitle": "Des corvées payées en vrai argent",
   "papp.onbSub": "Les tâches deviennent de l'argent de poche. Tu le finances et valides chaque paiement.",
   "papp.onbInvited": "Une famille que vous connaissez vous a invité sur NIMIQ.kids.",
   "papp.onbParentName": "Comment les enfants vous appellent-ils ?",
   "papp.onbKidName": "Le surnom de votre premier enfant",
   "papp.onbConnect": "Connecter votre portefeuille",
   "papp.onbConnected": "Portefeuille connecté",
-  "papp.onbConnectHint": "Optionnel pour l'instant. Vous pourrez recharger plus tard.",
-  "papp.onbWalletStep": "D'abord, connectez le portefeuille qui paie",
+  "papp.onbConnectHint": "Vous pourrez le faire plus tard depuis Recharger.",
+  "papp.onbWalletStep": "Connectez le portefeuille qui paie vos enfants",
   "papp.onbWalletStepSub": "Tes enfants sont payés depuis ce portefeuille.",
   "papp.onbNeedWallet": "Connectez d'abord votre portefeuille. C'est celui qui paie vos enfants",
   "papp.onbTooMany": "Trop de nouvelles familles. Réessayez dans une heure",
@@ -148,8 +156,8 @@ export const onbFr: typeof onbEn = {
   "papp.onbCreating": "Mise en place",
   "papp.onbNeedNames": "Ajoutez d'abord les deux noms",
   "papp.onbWelcome": "Votre famille est prête",
-  "papp.onbPrivacy": "Pas de comptes pour les enfants, pas de pubs, pas de pistage. Que des surnoms.",
-  "papp.onbHaveCode": "Déjà configuré ? Saisir un code d'appairage",
+  "papp.onbPrivacy": "Pas de comptes pour les enfants, pas de pubs, pas de pistage. Juste un nom à l'écran.",
+  "papp.onbHaveCode": "J'ai un code",
   "papp.pairTitle": "Tapez votre code à 6 chiffres",
   "papp.pairSub": "Un code qu'on te dicte, ou celui des Réglages sur un téléphone déjà connecté.",
   "papp.pairCode": "Code à 6 chiffres",
@@ -166,15 +174,16 @@ export const onbFr: typeof onbEn = {
 };
 
 export const onbPt: typeof onbEn = {
-  "papp.onbTitle": "Boas-vindas ao NIMIQ.kids",
+  ...climbPt,
+  "papp.onbTitle": "Tarefas que pagam dinheiro de verdade",
   "papp.onbSub": "As tarefas viram mesada a sério. Financias e aprovas cada pagamento.",
   "papp.onbInvited": "Uma família que você conhece convidou você para o NIMIQ.kids.",
   "papp.onbParentName": "Como as crianças chamam você?",
   "papp.onbKidName": "O apelido do seu primeiro filho",
   "papp.onbConnect": "Conectar sua carteira",
   "papp.onbConnected": "Carteira conectada",
-  "papp.onbConnectHint": "Opcional por agora. Dá para recarregar depois.",
-  "papp.onbWalletStep": "Primeiro, conecte a carteira que paga",
+  "papp.onbConnectHint": "Dá para fazer depois em Carregar.",
+  "papp.onbWalletStep": "Conecte a carteira de onde seus filhos recebem",
   "papp.onbWalletStepSub": "Os teus filhos recebem desta carteira.",
   "papp.onbNeedWallet": "Conecte sua carteira primeiro. É dela que suas crianças recebem",
   "papp.onbTooMany": "Famílias novas demais agora. Tente de novo em uma hora",
@@ -183,8 +192,8 @@ export const onbPt: typeof onbEn = {
   "papp.onbCreating": "Preparando tudo",
   "papp.onbNeedNames": "Adicione os dois nomes primeiro",
   "papp.onbWelcome": "Sua família está pronta",
-  "papp.onbPrivacy": "Sem contas para crianças, sem anúncios, sem rastreio. Só alcunhas.",
-  "papp.onbHaveCode": "Já configurado? Digite um código de pareamento",
+  "papp.onbPrivacy": "Sem contas para crianças, sem anúncios, sem rastreio. Só um nome para o ecrã.",
+  "papp.onbHaveCode": "Tenho um código",
   "papp.pairTitle": "Escreve o teu código de 6 dígitos",
   "papp.pairSub": "Um código que te ditam, ou o das Definições num telemóvel onde já entraste.",
   "papp.pairCode": "Código de 6 dígitos",

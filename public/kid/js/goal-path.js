@@ -15,8 +15,9 @@
 // parent's approval exactly as handing in a chore does; the server refuses anything else
 // (`rungClaimable`), so wiring only the open node is manners rather than the fence.
 
-import { $, esc, t, setScreen, bgFor, rowTitle, fmtNimWhole, parentName } from "./util.js";
+import { $, esc, t, setScreen, bgFor, rowTitle, fmtNimWhole, parentName, state } from "./util.js";
 import { arrowIcon, checkIcon } from "./icons.js";
+import { animSlot, mountAnims } from "./climb-shell.js";
 
 /** The verbatim Nimiq hexagon, 20:18 (nimiq-ui rule 22), drawn twice on the active rung:
  *  the groove and the fluid of the tunnel. `pathLength=100` makes the dash a percentage. */
@@ -40,17 +41,27 @@ const giftIcon = () => `<svg viewBox="0 0 11 12" aria-hidden="true"><path fill="
 
 /** One rung. The bubble carries the rung's TITLE (the point of a kids step) and, under it,
  *  what the rung pays; the component only shows it on the active node. The tunnel's fluid is
- *  how far up the ladder the kid has got: a rung is yes-or-no, the climb is not. */
+ *  how far up the ladder the kid has got: a rung is yes-or-no, the climb is not.
+ *
+ *  Rung ONE, while it is the open one, says START above its title (the kid onboarding climb,
+ *  2026-09-18): the Duolingo entry word, in the same bubble, one tap contract. The title stays
+ *  because it is what the rung asks (decided 09-13); START is a kicker over it, never instead. */
 function rungNode(r, n, progress) {
   const cls = NODE_CLASS[r.state] ?? "is-locked";
   const active = r.state === "open";
   const pay = active && r.rewardLuna > 0
     ? `<span class="gp-bubble-pay">+${fmtNimWhole(r.rewardLuna)} NIM</span>` : "";
+  const start = active && n === 1 ? `<span class="gp-bubble-start">${esc(t("app.kidGoalStart"))}</span>` : "";
+  // The kid's hero waits beside rung one (the climb's fifth screen): a slot on the shared Rive
+  // contract (/js/lib/rive-mount.js), filled when the hero is one of the three that move
+  // (climb-shell RIV), blank and hidden otherwise.
+  const hero = active && n === 1 ? animSlot("rung-one", { hero: state.child?.hero ?? null, cls: "gp-anim" }) : "";
   return `
     <li class="duo-path-step">
+      ${hero}
       <div class="duo-node ${cls}" data-rung="${esc(r.id)}"${active ? ` style="--duo-progress: ${progress}"` : ""}>
         ${active || r.state === "waiting" ? ring() : ""}
-        ${active ? `<span class="duo-node-bubble">${esc(rowTitle(r))}${pay}</span>` : ""}
+        ${active ? `<span class="duo-node-bubble">${start}${esc(rowTitle(r))}${pay}</span>` : ""}
         <button class="duo-node-face" type="button" aria-label="${esc(rowTitle(r))}"${active ? "" : " tabindex=\"-1\""}>
           ${rungMark(r, n)}
         </button>
@@ -135,6 +146,8 @@ export function showGoalPath(g, opts) {
     </div>`, "k-screen k-goal", bgFor());
 
   $("gp-back").onclick = () => opts.onBack();
+  // The rung-one slot; a blank slot mounts nothing, an unreachable file leaves it hidden.
+  mountAnims();
 
   // Only the OPEN rung is wired; locked, waiting, done and the prize have no pointer events.
   const face = document.querySelector(".gp .duo-node.is-active .duo-node-face");

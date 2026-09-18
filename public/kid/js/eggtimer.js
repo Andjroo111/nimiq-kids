@@ -53,6 +53,26 @@ function hush() {
   catch { /* frame gone or cross-origin: there is nothing playing either way */ }
 }
 
+/** The corner row, as this app draws it, handed to the frame. The timer cannot see the
+ *  battery pill or --kid-ident from inside its iframe, and on the tablet that pill is
+ *  72px tall in the corner the timer's own capsule uses (Andjroo, 2026-09-18: "way bigger
+ *  than the back button or the selector"). So it gets the row's height, top and gutter in
+ *  px, and whether the battery holds the right corner, and lays its chrome on that row. */
+function chromeQuery() {
+  const cs = getComputedStyle(document.documentElement);
+  const px = (v) => Math.round(parseFloat(v) || 0);
+  const probe = document.createElement("div");
+  probe.style.cssText = "position:absolute;visibility:hidden;height:var(--kid-corner-h);"
+    + "top:var(--kid-corner-top);left:var(--kid-chrome-gutter)";
+  document.body.appendChild(probe);
+  const pc = getComputedStyle(probe);
+  const h = px(pc.height), top = px(pc.top), gutter = px(pc.left);
+  probe.remove();
+  const batt = document.getElementById("kid-batt");
+  const hasBatt = !!batt && !batt.hidden;
+  return (h && top && gutter ? `&chrome=${h},${top},${gutter}` : "") + (hasBatt ? "&batt=1" : "");
+}
+
 /** Open the timer. `onBack` is what the back chevron returns to (the chart). */
 export function showEggTimer(onBack) {
   setScreen(`
@@ -61,7 +81,7 @@ export function showEggTimer(onBack) {
         ${arrowIcon("left")}
       </button>
       <iframe id="eggtimer-frame" title="${esc(t("app.kidTimerTitle"))}"
-              src="${SRC}" scrolling="no"></iframe>
+              src="${SRC}${chromeQuery()}" scrolling="no"></iframe>
     </div>`, "k-screen eggtimer-host");
 
   // ⚠️ The frame is never re-created while the kid is in here. Reloading it would
@@ -93,7 +113,7 @@ export function showJobTimer(job, handlers = {}) {
         ${arrowIcon("left")}
       </button>
       <iframe id="eggtimer-frame" title="${esc(job.title || t("app.kidTimerTitle"))}"
-              src="${SRC}&job=1" scrolling="no"></iframe>
+              src="${SRC}&job=1${chromeQuery()}" scrolling="no"></iframe>
     </div>`, "k-screen eggtimer-host");
 
   const frame = $("eggtimer-frame");

@@ -46,6 +46,10 @@ const SHELL = [
   // fetched by `new Audio()` at the moment of celebrating, so without them here an
   // offline tablet celebrates in silence until the first time it was already online.
   "/assets/sounds/celebrate.mp3", "/assets/sounds/cheer.mp3",
+  // the NIM-landed sting (util.js playAlarm) and the 21 hatch-character calls (Rive Release
+  // state, played by the host), 2026-09-18. Same argument: fetched by new Audio() at the moment.
+  "/assets/sounds/nim-landed.mp3", "/assets/sounds/nim-landed-quick.mp3",
+  "/assets/sounds/call-axolotl.mp3", "/assets/sounds/call-bee.mp3", "/assets/sounds/call-bunny.mp3", "/assets/sounds/call-cat.mp3", "/assets/sounds/call-corgi.mp3", "/assets/sounds/call-duck.mp3", "/assets/sounds/call-frog.mp3", "/assets/sounds/call-giraffe.mp3", "/assets/sounds/call-hedgehog.mp3", "/assets/sounds/call-octopus.mp3", "/assets/sounds/call-owl.mp3", "/assets/sounds/call-panda.mp3", "/assets/sounds/call-penguin.mp3", "/assets/sounds/call-pig.mp3", "/assets/sounds/call-raccoon.mp3", "/assets/sounds/call-sloth.mp3", "/assets/sounds/call-snail.mp3", "/assets/sounds/call-tiger.mp3", "/assets/sounds/call-trex.mp3", "/assets/sounds/call-turtle.mp3", "/assets/sounds/call-whale.mp3",
   "/fonts/mulish-latin-wght-normal.woff2", "/js/vendor/qrcode.js", "/manifest.webmanifest", "/icon.svg", "/favicon.svg",
   // kid tablet app (/kid/) — v3 sticker chart
   "/kid/", "/kid/kid.css",
@@ -56,6 +60,7 @@ const SHELL = [
   "/kid/css/chrome.css", "/kid/css/wallet.css", "/kid/css/no-address.css",
   "/kid/css/phone.css", "/kid/css/chart.css", "/kid/css/icons.css", "/kid/css/calendar.css", "/kid/css/scene.css",
   "/kid/css/box.css", "/kid/css/done.css", "/kid/css/goal-path.css", "/kid/css/connect.css", "/kid/css/thermo.css",
+  "/kid/css/onboard.css", "/kid/css/paint.css",
   "/kid/css/games.css", "/kid/css/coach.css", "/kid/css/landscape.css", "/kid/css/offline.css",
   "/kid/css/sticker-maker.css", "/kid/css/polaroid.css", "/kid/css/eggtimer.css",
   // THE SHARED SHELL. Untracked build output (`bun run build:shell`), served at a stamped
@@ -74,17 +79,41 @@ const SHELL = [
   "/kid/js/box.js", "/kid/js/addjob.js", "/kid/js/done.js", "/kid/js/money.js",
   "/kid/js/send.js", "/kid/js/receive.js", "/kid/js/grow.js", "/kid/js/pad.js",
   "/kid/js/approved.js", "/kid/js/calendar.js", "/kid/js/card.js", "/kid/js/character.js",
+  "/kid/js/climb-shell.js", "/kid/js/onboard.js", "/kid/js/hero.js", "/kid/js/place.js",
   "/kid/js/coach.js", "/kid/js/confetti.js", "/kid/js/eggtimer.js", "/kid/js/goal-path.js",
   "/kid/js/grow-gate.js", "/kid/js/kid-lang.js", "/kid/js/me.js", "/kid/js/polaroid.js",
   "/kid/js/practice.js", "/kid/js/scan.js", "/kid/js/sticker-maker.js",
   "/kid/js/thermo.js", "/kid/js/upkeep.js",
   "/js/lib/app-categories.js", "/js/lib/box-glyphs.js", "/js/lib/esc.js",
-  "/js/lib/job-picker.js", "/js/lib/local-photos.js", "/js/lib/phosphor.js",
+  "/js/lib/job-picker.js", "/js/lib/local-photos.js", "/js/lib/phosphor.js", "/js/lib/rive-mount.js",
   // THE LINELESS ART (2026-09-17, tools/art/lineless-list.json), ALL of it, into the unstamped
   // art cache: the 33 theme stickers and pack eggs (a ladder's set strip and prize face), the
   // 21 hatch characters (the egg's surprise), the 15 scenes (the wallpaper a kid picked). A
   // partial list was how "Feed the dog" drew a broken-image glyph offline on 2026-09-11;
   // src/sw-shell.test.ts fails when a file lands in these directories without an entry.
+  // the 42 job-tile icons (src/task-icons.ts), lineless, resolved from a tile's emoji so any
+  // of them can be asked for: all or none
+  "/assets/icons/backpack.png", "/assets/icons/bed.png", "/assets/icons/blocks.png", "/assets/icons/book.png",
+  "/assets/icons/broom.png", "/assets/icons/calculator.png", "/assets/icons/carwash.png", "/assets/icons/catbowl.png",
+  "/assets/icons/clothesstack.png", "/assets/icons/collar.png", "/assets/icons/cutlery.png", "/assets/icons/dogfood.png",
+  "/assets/icons/duster.png", "/assets/icons/dustpan.png", "/assets/icons/groceries.png", "/assets/icons/hairbrush.png",
+  "/assets/icons/laptop.png", "/assets/icons/laundry.png", "/assets/icons/litterbox.png", "/assets/icons/lunchbox.png",
+  "/assets/icons/mailbox.png", "/assets/icons/mirror.png", "/assets/icons/pajamas.png", "/assets/icons/pawbowl.png",
+  "/assets/icons/pencilpaper.png", "/assets/icons/piano.png", "/assets/icons/plate.png", "/assets/icons/rake.png",
+  "/assets/icons/recycling.png", "/assets/icons/shirt.png", "/assets/icons/shoes.png", "/assets/icons/shower.png",
+  "/assets/icons/socks.png", "/assets/icons/sponge.png", "/assets/icons/spray.png", "/assets/icons/teddy.png",
+  "/assets/icons/toothbrush.png", "/assets/icons/trash.png", "/assets/icons/tree.png", "/assets/icons/washdishes.png",
+  "/assets/icons/waterbowl.png", "/assets/icons/wateringcan.png",
+  // the faces that are not job tiles (src/task-icons.ts FACE_ICONS): routine headers, the goal,
+  // step and savings defaults
+  "/assets/icons/sunrise.png", "/assets/icons/sun.png", "/assets/icons/bedtime.png",
+  "/assets/icons/ladder.png", "/assets/icons/note.png", "/assets/icons/target.png",
+  // the five Treasure Box tiles (src/store-art.ts)
+  "/assets/store/screen-15.png", "/assets/store/screen-30.png", "/assets/store/screen-60.png",
+  "/assets/store/dinner.png", "/assets/store/moon.png",
+  "/assets/stickers/star.png", "/assets/stickers/heart.png", "/assets/stickers/rainbow.png", "/assets/stickers/smiley.png",
+  "/assets/stickers/unicorn.png", "/assets/stickers/dino.png", "/assets/stickers/paw.png", "/assets/stickers/lightning.png",
+  "/assets/stickers/flower.png", "/assets/stickers/trophy.png",
   "/assets/stickers/dragons-blurple.png", "/assets/stickers/dragons-coral.png", "/assets/stickers/dragons-egg.png",
   "/assets/stickers/dragons-gold.png", "/assets/stickers/dragons-mint.png", "/assets/stickers/dragons-pink.png",
   "/assets/stickers/dragons-sky.png", "/assets/stickers/dragons-yolk.png", "/assets/stickers/ocean-axolotl.png",
@@ -209,14 +238,24 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  // Other static assets: cache-first, refresh in background.
-  e.respondWith(
-    cacheLookup(req).then((cached) => {
-      const net = fetch(req).then((res) => {
-        if (res && res.status === 200 && url.origin === location.origin) { const copy = res.clone(); cacheFor(url.pathname).then((c) => c.put(req, copy)); }
-        return res;
-      }).catch(() => cached);
-      return cached || net;
-    }),
-  );
+  // Other static assets: cache-first ON AN EXACT HIT, refresh in background.
+  //
+  // ⚠️ A STAMP MISS IS NETWORK-FIRST, NOT A LOOSE HIT. Andjroo, 2026-09-18, on a build that
+  // had just recoloured the countdown: "I'm still seeing the old teal colour inside of the
+  // hexagon." He was: `rive-kit/eggplate.riv?v=<new stamp>` missed its exact entry, the
+  // `ignoreSearch` fallback matched the OLD stamp's copy, and cache-first served that while
+  // the new file was fetched in the background for NEXT time. So every deploy showed the
+  // previous deploy's art on the first load, on every stamped asset, and looked fine on the
+  // second. The loose match exists for the tablet that is OFFLINE after a deploy (above); on a
+  // path that can reach the network it is the wrong answer by construction, because the whole
+  // point of the stamp is that a different one names a different file.
+  e.respondWith((async () => {
+    const exact = await caches.match(req);
+    const net = fetch(req).then((res) => {
+      if (res && res.status === 200 && url.origin === location.origin) { const copy = res.clone(); cacheFor(url.pathname).then((c) => c.put(req, copy)); }
+      return res;
+    });
+    if (exact) { net.catch(() => {}); return exact; }
+    return net.catch(async () => (await caches.match(req, { ignoreSearch: true })) || Response.error());
+  })());
 });

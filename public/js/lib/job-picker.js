@@ -55,7 +55,9 @@ export function jobPickerHtml({ t, groups, searchable = true }) {
               ${g.jobs.map((j) => `
                 <button type="button" class="jp-tile" data-job="${esc(j.id)}"
                   data-name="${esc(t(j.key).toLowerCase())}" aria-pressed="false">
-                  <span class="jp-emoji" aria-hidden="true">${esc(j.emoji)}</span>
+                  ${j.iconUrl
+                    ? `<img class="jp-face" src="${esc(j.iconUrl)}" alt="" draggable="false" />`
+                    : `<span class="jp-emoji" aria-hidden="true">${esc(j.emoji)}</span>`}
                   <span class="jp-name">${esc(t(j.key))}</span>
                 </button>`).join("")}
             </div>

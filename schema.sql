@@ -79,6 +79,11 @@ CREATE TABLE IF NOT EXISTS children (
   address_proof_pubkey  TEXT,               -- signerPublicKey, hex
   address_proof_sig     TEXT,               -- signature, hex
   address_registered_at INTEGER,
+  -- The character this kid picked on the tablet (kid onboarding, 2026-09-18): one id out of
+  -- public/assets/heroes, `hero-frog` and its twenty siblings. NULL = never picked, which is
+  -- what sends a kid up the onboarding climb, so it is not defaulted. Re-pickable, unlike the
+  -- identicon: the hero is art, the identicon is an address.
+  hero          TEXT,
   created_at    INTEGER NOT NULL
 );
 -- NOTE: the unique indexes on children.account_index live in src/db.ts migrate() —

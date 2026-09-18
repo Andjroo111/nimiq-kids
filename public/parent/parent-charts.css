@@ -17,7 +17,7 @@
  * the identity.
  */
 .prg-range { display: flex; gap: 8px; margin: 0 0 14px; }
-.prg-range .pill-btn.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+.prg-range .pill-btn.on { background: var(--paint-blurple); color: #fff; border-color: var(--paint-blurple); }
 
 /* Four tiles that wrap to two-up on a phone rather than shrinking to unreadable. */
 .prg-tiles {
@@ -47,17 +47,17 @@
    stroke widths below are set in the stretched space on purpose: they are hairlines either
    way, and a vector-effect would make the dashes uneven. */
 .ch-svg { display: block; width: 100%; height: 132px; overflow: visible; }
-.ch-grid { stroke: rgba(31, 35, 72, 0.10); stroke-width: 1; }
-.ch-base { stroke: rgba(31, 35, 72, 0.18); stroke-width: 1; }
+.ch-grid { stroke: rgba(28, 27, 19, 0.10); stroke-width: 1; }
+.ch-base { stroke: rgba(28, 27, 19, 0.18); stroke-width: 1; }
 /* A day with nothing on it still gets a mark: a 2px stub on the baseline says "zero",
    where blank space says "no data", and those are different facts. */
-.ch-zero { fill: rgba(31, 35, 72, 0.16); }
+.ch-zero { fill: rgba(28, 27, 19, 0.16); }
 /* HTML, deliberately — see the note in charts.js. A dashed border and real text both
    survive the card being any width; the same two things inside the stretched SVG came out
    as ribbons. `pointer-events: none` so the rule never steals a column's hover. */
 .ch-rule {
   position: absolute; left: 0; right: 0;
-  border-top: 1px dashed rgba(31, 35, 72, 0.45);
+  border-top: 1px dashed rgba(28, 27, 19, 0.45);
   pointer-events: none;
 }
 .ch-rule span {
@@ -68,7 +68,7 @@
 .ch-col { cursor: default; }
 .ch-col:hover .ch-seg, .ch-col:focus-visible .ch-seg { filter: brightness(1.08); }
 .ch-col:focus-visible { outline: none; }
-.ch-col:focus-visible rect:first-child { fill: rgba(31, 35, 72, 0.06); }
+.ch-col:focus-visible rect:first-child { fill: rgba(28, 27, 19, 0.06); }
 /* Segments of one stack must not touch, or two fills read as one taller bar. */
 .ch-seg + .ch-seg { stroke: #fff; stroke-width: 2; paint-order: stroke; }
 

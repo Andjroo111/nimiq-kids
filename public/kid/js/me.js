@@ -17,6 +17,7 @@ import {
 import { maskIcon, plusIcon } from "./icons.js";
 import { api } from "./api.js";
 import { showLogin } from "./main.js";
+import { showHeroPicker, heroArt } from "./hero.js";
 
 // Scene pictograms for the built-in gradient tiles, which are the pre-art
 // fallback. Catalog art supersedes any of the same id.
@@ -92,6 +93,10 @@ export function openMeSheet(onChanged) {
         ${rest > 0 ? `<i class="me-face-more">+${rest}</i>` : ""}
       </span>` : ""}
     </button>
+    <button class="me-row me-hero" id="me-hero">
+      ${kid.hero ? `<img class="me-hero-art" src="${heroArt(kid.hero)}" alt="" draggable="false" />` : ""}
+      <span>${esc(t("app.kidYourHero"))}</span>
+    </button>
     <div class="me-section">
       <h3 class="me-lbl">${esc(t("app.kidBackground"))}</h3>
       <div class="tile-grid bg-grid me-bgs">${bgTiles(current)}</div>
@@ -109,6 +114,12 @@ export function openMeSheet(onChanged) {
   if (add) add.onclick = () => toast(t("app.kidMoreSoon"));
 
   document.getElementById("me-switch").onclick = () => { closeSheet(); showLogin(); };
+  // Re-pick the character (the climb's screen 3, art not money, so it is allowed again).
+  // Both ways out land on the board; `onChanged` is the board's own repaint.
+  document.getElementById("me-hero").onclick = () => {
+    closeSheet();
+    showHeroPicker(kid, { onDone: () => onChanged?.(), onBack: () => onChanged?.() });
+  };
   document.querySelectorAll(".me-bgs [data-bg]").forEach((b) => {
     b.onclick = async () => {
       const id = b.dataset.bg;

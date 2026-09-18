@@ -303,6 +303,11 @@ function migrate(db: Database) {
   addColumn("ALTER TABLE children ADD COLUMN address_proof_pubkey TEXT");
   addColumn("ALTER TABLE children ADD COLUMN address_proof_sig TEXT");
   addColumn("ALTER TABLE children ADD COLUMN address_registered_at INTEGER");
+  // The kid's picked character (kid onboarding climb, 2026-09-18). NULLABLE and not defaulted,
+  // for the reason `lang` above is: NULL means "never picked", and that is the signal the
+  // tablet reads to send a kid up the climb. A default here would silently mark every
+  // existing kid as onboarded with a hero they never chose.
+  addColumn("ALTER TABLE children ADD COLUMN hero TEXT");
   // WHICH Keyguard flow signed the stored proof. `signMessage` and `connectAccount` hash the
   // same message under different prefixes, so re-verification needs to know which, and every
   // row that predates this column was written by the signMessage path.

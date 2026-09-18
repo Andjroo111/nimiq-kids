@@ -23,7 +23,7 @@
      file — the scan takes the first match, including one inside a comment. Get it
      wrong and the token becomes `undefined-<mtime>`: still unique, so nothing looks
      broken, and the stamp quietly stops naming a build. */
-  const BUILD='tmr-965651';
+  const BUILD='tmr-e55aa5';
   window.TIMER_BUILD = BUILD;
   window.TIMER_VER = new URLSearchParams(location.search).get('v') || BUILD;
   try {
@@ -44,12 +44,38 @@
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   :root{
-    --navy:#1F2348; --teal:#21BCA5; --red:#F2554B; --amber:#E9B213;
-    --sky:#2BC4DE;                 /* the light blue the running controls are */
-    --ink:#4A4F63;                 /* the countdown digits: softer than the outline */
-    --grey:#D8DCE4;
-    /* SF Pro Rounded wherever it exists, which on Andjroo's phone is everywhere.
-       The reference's whole personality is a rounded face; system-ui is not one. */
+    /* ⚠️ THE PAINT SET IS THE BRAND'S, NOT THE TIMER'S. Andjroo, 2026-09-18: "update the
+       colours for inside of the egg timer. These are our brand colours. Everything needs to
+       be updated, including the confetti." The set is ~/.claude/brands.json `nimiq.kids`,
+       locked 2026-09-08 in brand-voice-research: four paints with a job each, one line, one
+       paper. Nothing in here names a colour of its own any more; the old names (--teal,
+       --sky, --red, --navy) are ALIASES of these so no selector had to move.
+         action  blurple  Start, pause/stop, the band, the badge, the dot, the fluid
+         done    grass    a climbed rung elsewhere in the app; nothing in here yet
+         prize   yolk     the confetti's gold
+         alert   coral    Done (Andjroo, 2026-09-18: "the ending button shouldn't be our
+                          green, it should be our coral"), errors, the delete arming
+         line             every glyph and digit, and every rim and shadow at an opacity
+         paper            the sheets, the nudges, the tiles' ground
+       ⚠️ A LIP IS THE FACE AT 80% + BLACK (duo-ui), never a grey under a coloured face:
+         blurple 5465EE -> 4351BE · grass 1B985E -> 167A4B · yolk FED56C -> CBAA56 ·
+         coral DD675D -> B1524A · paper F4F4E8 -> C3C3BA. */
+    --action:#5465EE; --action-lip:#4351BE;
+    --done:#1B985E;   --done-lip:#167A4B;
+    --prize:#FED56C;  --prize-lip:#CBAA56;
+    --alert:#DD675D;  --alert-lip:#B1524A;
+    --line:#1C1B13;   --paper:#F4F4E8; --paper-lip:#C3C3BA;
+    --muted:rgba(28,27,19,.55);    /* labels and heads: the line, quieter, on any ground */
+    --navy:var(--line); --teal:var(--action); --sky:var(--action); --red:var(--alert);
+    --amber:var(--prize);
+    /* ⚠️ THE PLATE'S OWN SIDE: the line at 30%, TRANSPARENT so it composites with whatever
+       scene is behind it (solved off a render on 2026-09-16, when three inks were doing one
+       job: the plate's transparent side, the card's opaque one, a 22% rim). Every white
+       surface wears THIS, rim and side. */
+    --rim:rgba(28,27,19,.30);
+    /* one pen for every line drawn INSIDE a surface: 3px on screen, in the line. */
+    --ink:var(--line);
+    --grey:var(--paper);
     --font:ui-rounded,'SF Pro Rounded','Hiragino Maru Gothic ProN',Mulish,system-ui,sans-serif;
   }
   /* ⚠️ WHITE, NOT #0d1020. The dark used to be the desktop letterbox either side of
@@ -69,8 +95,15 @@
      tablet showed two navy bars. #bgImg and #conf are fixed to the VIEWPORT now
      (below); this box holds only what is meant to be column-width. The white the
      run screen needs comes from `body`. */
+  /* ⚠️ NO overflow:hidden HERE. Andjroo, 2026-09-18, on the tablet: "when the shell
+     cracks, it still is outside of the viewport window. It's getting cut off, and so is
+     the shadow on the hexagon ... it looks like it's set up for a phone screen." It was:
+     this lane clipped, so on a 1024 tablet the plate's own shadow and the landed shells
+     stopped dead at the column's edges while the scene ran on behind them. The lane is
+     for WHERE things go, not for what may be seen; the viewport is the only clip, and
+     `html,body{overflow:hidden}` above is what keeps that from becoming a scroll. */
   #app{position:fixed;inset:0;margin:0 auto;max-width:430px;background:transparent;
-       overflow:hidden;isolation:isolate;z-index:1}
+       isolation:isolate;z-index:1}
 
   /* ---------- the scene: the background AND the egg, clipped as one ----------
      Andjroo, 2026-07-31: "on the main screen the background takes up the whole
@@ -93,7 +126,11 @@
      still the thing that BECOMES the disc — while leaving the rig free to throw a
      shell past the rim. `#scene` keeps overflow:hidden, which is a different job:
      the 720px iframe's box would otherwise put 41px of sideways scroll on a phone. */
-  #scene{position:absolute;inset:0;z-index:1;overflow:hidden}
+  /* ⚠️ AND NOT HERE EITHER (2026-09-18). The 41px of sideways scroll this used to guard
+     against cannot happen: #app is position:fixed and html,body are overflow:hidden, so
+     the rig's box past the column is drawn, never scrolled to. What the clip actually did
+     on a tablet was cut the landed shells off at the column's edge. */
+  #scene{position:absolute;inset:0;z-index:1}
   /* ⚠️ FIXED TO THE VIEWPORT, OUTSIDE #app, AND THE CLIP IS THEREFORE IN SCREEN
      COORDINATES. This is the whole of the tablet fix: the image is the screen, the
      controls are the column, and the two stopped being the same box. layout() adds
@@ -113,12 +150,39 @@
      itself. The set->run collapse animates the box instead of a transform. */
   #rigWrap{position:absolute;pointer-events:none;
            transition:left .52s cubic-bezier(.4,0,.2,1),top .52s cubic-bezier(.4,0,.2,1),
-                      width .52s cubic-bezier(.4,0,.2,1),height .52s cubic-bezier(.4,0,.2,1)}
+                      width .52s cubic-bezier(.4,0,.2,1),height .52s cubic-bezier(.4,0,.2,1),
+                      opacity .3s ease}
+  /* ⚠️ THE TWO HEAVY THINGS ARRIVE INVISIBLE and are switched on by their first frame.
+     Under the cover that is nothing; past the CAP (a cold 1.6 Mbps load is ~14s of
+     runtime and art now that the egg is Rive, and the cover cannot hold that long) it
+     is the difference between the hexagon and the egg fading in and popping in. */
+  #plate,#rigWrap{opacity:0}
+  #plate.ink,#rigWrap.ink{opacity:1}
   #rig{width:100%;height:100%;border:0;display:block;background:transparent}
   /* the badge's own edge, drawn over the clip so the disc has a rim like the ref */
+  /* the plate: sized and placed by layout(), under #rigWrap in #scene. On EVERY screen
+     since 2026-09-15: the set screen used to be the old product (a big faceless egg
+     with the dial on its shell) next to the plate run screen, and Andjroo saw "two
+     different timers". The plate frames the egg from the first frame now, and Start
+     changes what the white card holds, not where anything is. */
+  #plate{position:absolute;z-index:0;pointer-events:none;display:block;transition:opacity .3s ease}
+  /* the white card, behind the count row and the transport pill on run, behind the
+     spent clock and Done on the hatch: the same box on every screen */
+  /* ⚠️ THE CARD HAS AN EDGE, like the plate. The ledge's 2px spread sits 9px down, so the
+     top of the card had no line at all and met the white plate white on white. Andjroo,
+     2026-09-15: "just like how the hexagon has a little bit of an edge, it'd be nice to
+     have just a little edge on it." A 2px ring in the plate's own rim ink (navy at ~22%,
+     the PlateShadow stroke reads (188,189,200) at its side), then the ledge. */
+  /* the card is the plate's little brother: a white face, a 2px rim and a side, in the
+     plate's own ink. Its WIDTH is its contents (layoutRun), not the column, because a
+     full-bleed white slab under a hexagon reads as a different object. */
+  #runCard,#hatchCard,#setCard{position:absolute;background:#fff;border-radius:20px;
+           box-shadow:0 0 0 2px var(--rim), 0 9px 0 0 var(--rim), 0 16px 20px rgba(28,27,19,.13)}
+  #runCard,#hatchCard{z-index:3}
   #badgeRim{position:absolute;z-index:2;border-radius:50%;pointer-events:none;
-            box-shadow:0 10px 30px rgba(31,35,72,.18);opacity:0;transition:opacity .4s}
-  body.run #badgeRim,body.hatch #badgeRim{opacity:1}
+            box-shadow:0 10px 30px rgba(28,27,19,.18);opacity:0;transition:opacity .4s}
+  /* the circle badge and its rim are gone: the plate is the frame now */
+  body.run #badgeRim,body.hatch #badgeRim{opacity:0}
 
   /* ---------- screens: a crossfade, never a slide ----------
      Andjroo: "they have things come up from the bottom EXCEPT for when it
@@ -129,18 +193,31 @@
   .screen.on{opacity:1;pointer-events:auto}
 
   /* ---------- set screen ---------- */
-  /* the numbers, on the shell. The egg is BLANK here — Andjroo picked "the egg is
-     faceless while you set it, the face arrives the moment Start is pressed." */
-  #dial{position:absolute;z-index:4;pointer-events:none;text-align:center}
-  #dialTitle{font-weight:800;color:var(--teal);letter-spacing:-.3px}
-  /* ⚠️ inline-flex, not flex. #dial spans the page so the title can centre on it,
-     and a block-level #cols inherits that full width — which the selection band,
-     pinned left:0/right:0 inside it, then draws edge to edge across the phone
-     instead of across the numbers. Shrink-wrapping the columns is what keeps the
-     band inside the egg where it belongs. */
+  /* The picker and Start share ONE white card, the same box the run screen's count and
+     pill sit in (review board 2026-09-15, card 3): the picker where the count goes,
+     Start where the pause/stop pill goes. Start swaps the card's contents and nothing on
+     the screen moves. The egg is BLANK here — Andjroo picked "the egg is faceless while
+     you set it, the face arrives the moment Start is pressed." No title: the Min / Sec
+     heads say what the card is. */
+  #setCard{z-index:4;display:flex;flex-direction:column;align-items:center}
+  /* Start is placed by layoutSet at the pill's own top, so it is in the pill's slot on
+     every phone shape and not merely under the picker */
+  #setCard #start{position:absolute;left:50%;--shift:-50%}
+  /* ⚠️ inline-flex, not flex. A block-level #cols would inherit the card's full width,
+     and the selection band, pinned left:0/right:0 inside it, would draw edge to edge
+     across the card instead of across the numbers. Shrink-wrapping the columns is what
+     keeps the band on the digits. */
   #cols{display:inline-flex;align-items:flex-start;justify-content:center;position:relative;
         padding:0 16px}
-  .colhead{font-weight:800;color:#9AA0B0;text-align:center}
+  /* Min / Sec: bigger, with air under them, and a rule between them and the numbers.
+     Andjroo, 2026-09-18: "for the Min and Sec, it looks smaller than the ... we need a
+     little bit more space, a little bit bigger, and then a line separating it from the
+     numbers." The head is rowH*.6 (19px at 390x844, was 16) in a 30px slot (was 18), and
+     the rule is the line at 14%, drawn by #cols::before at --rule so it spans both columns
+     and nothing else; layoutSet writes --rule off headH so the two cannot drift. */
+  .colhead{font-weight:800;color:var(--muted);text-align:center;letter-spacing:.2px}
+  #cols::before{content:'';position:absolute;left:16px;right:16px;top:var(--rule,24px);
+                height:2px;border-radius:1px;background:rgba(28,27,19,.14)}
   .colwrap{position:relative}
   /* ⚠️ A real scroll container, not a fake one. iOS momentum and scroll-snap do the
      feel for free; a pointer-driven list has to reimplement both and never matches. */
@@ -153,8 +230,8 @@
      like the darker color solid and then a faded version for the number below it."
      The selection is a soft band behind the row, and min/sec are told apart by the
      colon sitting in it rather than by two underlines. */
-  #band{position:absolute;left:0;right:0;border-radius:14px;background:rgba(33,188,165,.22);
-        box-shadow:inset 0 0 0 2px rgba(33,188,165,.30);pointer-events:none;z-index:-1}
+  #band{position:absolute;left:0;right:0;border-radius:14px;background:rgba(84,101,238,.22);
+        box-shadow:inset 0 0 0 2px rgba(84,101,238,.30);pointer-events:none;z-index:-1}
   #colon{position:absolute;left:50%;transform:translate(-50%,-50%);font-weight:800;
          color:var(--navy);pointer-events:none}
 
@@ -171,16 +248,36 @@
      fades out, so the run screen showed no sign of the thing he had chosen and (with
      the sound off) never said it either. It is a child of #app now and layoutRun()
      parks it on the badge's shoulder. */
+  /* ⚠️ NO NAVY LINE ON IT. Andjroo, 2026-09-15: "the egg and the plus button, they have a
+     different line treatment on the outside than the rest of the stuff." They did: this
+     carried a 4px navy outline, the heaviest line on the screen, next to cards and buttons
+     that carry none. It is a control, so it wears what every other control wears: the face,
+     and a lip in the face's own colour with 20% black over it (duo-ui).
+     ⚠️ A `box-shadow` LIP CANNOT FOLLOW THIS SHAPE. The bubble is one path with a tail, so
+     the lip is a hard `drop-shadow` filter, which follows the alpha; the soft shadow is a
+     second drop-shadow on the same filter (duo-ui trap: never box-shadow a masked element).
+     ⚠️ The .set state's face is WHITE (the reminder rides inside it) and white on a cloud
+     is nothing at all, so its lip is the cards' grey rather than the teal's. */
   #plus{position:absolute;z-index:5;background:none;border:0;padding:0;cursor:pointer;
-        filter:drop-shadow(0 4px 10px rgba(31,35,72,.26));
+        --lip:6px;--edge:var(--action-lip);
+        filter:drop-shadow(0 var(--lip) 0 var(--edge)) drop-shadow(0 10px 10px rgba(28,27,19,.18));
         transition:left .52s cubic-bezier(.4,0,.2,1),top .52s cubic-bezier(.4,0,.2,1),
                    width .52s cubic-bezier(.4,0,.2,1),height .52s cubic-bezier(.4,0,.2,1),
-                   opacity .42s ease}
+                   opacity .42s ease,transform .14s ease-out,filter .14s ease-out}
+  #plus.set{--edge:var(--rim)}
+  #plus:active{transform:translateY(var(--lip));
+        filter:drop-shadow(0 0 0 var(--edge)) drop-shadow(0 6px 8px rgba(28,27,19,.16));
+        transition-duration:.05s}
+  @media (prefers-reduced-motion:reduce){ #plus:active{transform:none;filter:
+        drop-shadow(0 var(--lip) 0 var(--edge)) brightness(.92)} }
   /* Off the set screen it is a LABEL, not a control: nothing about a running
      countdown should be one tap from a modal sheet. And with no reminder chosen
      there is nothing to say, so the bare + does not follow the egg over. */
   body:not(.set) #plus{pointer-events:none}
   body:not(.set) #plus:not(.set){opacity:0}
+  /* It left the set screen for a day (2026-09-17, the capsule) and came back on
+     2026-09-18: "it should just be a plus button next to the character." A CONTROL here,
+     a LABEL on the run screen, one element. */
   #plus svg{display:block;width:100%;height:100%;overflow:visible}
   /* Andjroo, 2026-07-31: setting a reminder must not recolour the bubble, it must
      put the reminder IN it. So the bubble goes white and becomes the same little
@@ -193,82 +290,122 @@
           font-family:inherit;font-weight:800;color:#fff;letter-spacing:-.2px;padding:0}
   /* Start is the SAME teal as the selection band, the chosen tiles and the bubble.
      Andjroo, 2026-07-31 — the reference's green was a second accent doing nothing
-     the teal was not already doing. One accent, used everywhere. */
-  #start{background:var(--teal);box-shadow:0 0 0 6px #fff,0 8px 18px rgba(31,35,72,.20)}
-  #start:active{transform:translateY(2px)}
+     the teal was not already doing. One accent, used everywhere. (A sky Start, the
+     pill's own colour, was on the 2026-09-15 board and not picked.)
+     It is a flow child of #setCard, in the slot the pause/stop pill takes on run, and
+     it wears that pill's shape and ledge: same box, different word. */
+  #start{border:0;border-radius:500px;cursor:pointer;flex:none;
+         font-family:inherit;font-weight:800;color:#fff;letter-spacing:-.2px;padding:0;
+         --face:var(--teal);--edge:var(--action-lip)}
 
-  #tray{position:absolute;left:0;right:0;display:flex;justify-content:center;z-index:4}
-  .trayb{background:#fff;border:0;border-radius:50%;display:grid;place-items:center;
-         cursor:pointer;box-shadow:0 3px 10px rgba(31,35,72,.22);padding:0;position:relative}
-  .trayb .dot{position:absolute;right:2px;bottom:2px;width:14px;height:14px;border-radius:50%;
-              background:var(--teal);border:2.5px solid #fff}
+  /* egg, music and scene ride in ONE white capsule top right, on EVERY screen. It began
+     as the set screen's tray in the slot the mutes took on run (board 2026-09-15, card 3);
+     Andjroo on the built thing: "there's three things, and then it drops to two. I think
+     we should just keep it at three all the time." The mutes went: the sounds sheet
+     already has No music and No sound, so the two toggles were the same choices twice.
+     Outside the screens, like the plus bubble, so it does not fade with #scSet. */
+  /* ⚠️ THE CHROME ROW IS THE HOST'S ROW. Andjroo, 2026-09-18, on the tablets: "they have
+     their battery percentage, and that battery percentage is way bigger than the back
+     button or the selector. If there's a battery button, the egg, music, and background
+     should be centred. If there's no battery, then it should be all the way to the right."
+     The app's corner controls are all calc()s off one number (--kid-ident: 38 on a phone,
+     64 on the tablet, a 72px battery pill there), and this frame cannot see any of it, so
+     the host hands the row over in the URL: `chrome=<h>,<top>,<gutter>` and `batt=1`
+     (js/eggtimer.js). Standalone, the defaults below are the row it always had. */
+  :root{--chrome-h:44px; --chrome-top:12px; --chrome-gutter:14px}
+  #tray,#back{position:absolute;z-index:6;top:calc(env(safe-area-inset-top,0px) + var(--chrome-top));
+        height:var(--chrome-h);background:#fff;border-radius:500px;
+        box-shadow:0 0 0 2px var(--rim), 0 5px 0 0 var(--rim), 0 10px 14px rgba(28,27,19,.12)}
+  #tray{right:var(--chrome-gutter);display:flex;align-items:center;gap:2px;
+        padding:0 calc(var(--chrome-h) * .18)}
+  /* the battery has the right corner, so the three go to the middle */
+  body.batt #tray{right:auto;left:50%;transform:translateX(-50%)}
+  /* the glyphs ride the row: 28 of 44 on a phone, and the same share of a taller row */
+  .trayb svg{width:calc(var(--chrome-h) * .64);height:calc(var(--chrome-h) * .64)}
+  /* ⚠️ THE HOST DRAWS THIS IN THE APP, so it exists only when there is no host: the kid
+     app paints its own chevron at top-left over this frame, and two would be a bug. It is
+     here because the demo page is where the screen gets judged and its top-left is not
+     empty in the product (Andjroo, 2026-09-16: "we're missing our back button for the page").
+     `hidden` unless standalone; see the boot line by `HOST`. */
+  #back{left:var(--chrome-gutter);width:var(--chrome-h);border:0;padding:0;cursor:pointer;display:grid;place-items:center;
+        transform:translateY(0);transition:transform .14s ease-out,box-shadow .14s ease-out}
+  #back:active{transform:translateY(5px);
+        box-shadow:0 0 0 2px var(--rim), 0 0 0 0 var(--rim), 0 6px 8px rgba(28,27,19,.12);
+        transition-duration:.05s}
+  /* ⚠️ INERT ONCE THE TIMER HAS STARTED. Andjroo, 2026-09-18: "the pickers should be
+     inactive after the timer has started." The capsule stays where it is, so the screen
+     does not change shape, but its three seats stop taking taps and go quiet. */
+  body:not(.set) #tray{pointer-events:none}
+  body:not(.set) .trayb{opacity:.35;transition:opacity .3s}
+  .trayb{background:none;border:0;display:grid;place-items:center;cursor:pointer;
+         padding:4px;position:relative}
+  .trayb .dot{position:absolute;right:1px;bottom:1px;width:12px;height:12px;border-radius:50%;
+              background:var(--teal);border:2px solid #fff}
 
   /* ---------- run + hatch ---------- */
-  #mutes{position:absolute;right:14px;z-index:6;display:flex;gap:6px;
-         top:calc(env(safe-area-inset-top,0px) + 12px)}
-  body.set #mutes{display:none}
-  .mute{background:none;border:0;cursor:pointer;padding:4px;display:grid;place-items:center}
-
   #clockRow{position:absolute;left:0;right:0;z-index:4;display:flex;align-items:center;
             justify-content:center;gap:14px}
   #clock{font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-1px}
-  .step{border:0;border-radius:50%;background:var(--grey);color:#fff;cursor:pointer;
-        display:grid;place-items:center;padding:0;flex:none}
-  .step:active{background:#c3c8d2}
+  .step{border:0;border-radius:50%;color:#fff;cursor:pointer;
+        display:grid;place-items:center;padding:0;flex:none;
+        --face:var(--grey);--edge:var(--paper-lip);--lip:4px}
 
   #runCtl{position:absolute;left:0;right:0;z-index:4;display:flex;justify-content:center;gap:18px}
-  /* Andjroo, 2026-07-31: pause, stop and done all want a shadow underneath. It is a
-     LEDGE, not a blur — a grey slab sitting a little proud of the button on every
-     side, the way the reference's buttons sit on the page. Pressing shortens it
-     rather than removing it, so the button travels down onto its own shadow. */
-  .ctl,#done,#btnJobDone{box-shadow:0 9px 0 2px #D6DBE4, 0 15px 20px rgba(31,35,72,.14)}
-  .ctl:active,#done:active,#btnJobDone:active{transform:translateY(5px);
-       box-shadow:0 4px 0 2px #D6DBE4, 0 8px 12px rgba(31,35,72,.12)}
-  .ctl{background:var(--sky);border:0;border-radius:20px;cursor:pointer;display:grid;
+  /* ---------- THE LIP: every button is a Duolingo lip button (duo-ui) ----------
+     Andjroo, 2026-07-31: pause, stop and done all want a shadow underneath, "a LEDGE, not
+     a blur". 2026-09-15: "make these buttons a little bit more juicy ... Duolingo-esque.
+     I want them to be really pressable." So the ledge became the lip, measured off
+     duolingo.com: the face sits on a hard lip that is the SIDE of the same object, in the
+     face's own colour with 20% black over it (never a grey slab under a coloured face),
+     and a press drops the face the whole lip onto it, lip to 0, fast down (50ms) and
+     easy up (140ms). No blur under a button: the card carries the soft shadow.
+     --face / --edge are one pair per button; the edge hexes are the face at 80% + #000:
+     teal 21BCA5 -> 1A9684 · sky 2BC4DE -> 229DB2 · red F2554B -> C2443C · grey D8DCE4 -> ADB0B6.
+     Written as hexes, not color-mix(): a color-mix() with a var() inside fails at
+     computed-value time on an old WebKit and takes the whole box-shadow with it. */
+  #start,.step,.ctl,#done,#btnJobDone{
+    --lip:8px;background:var(--face);
+    transform:translate(var(--shift,0),0);box-shadow:0 var(--lip) 0 0 var(--edge);
+    transition:transform .14s ease-out,box-shadow .14s ease-out}
+  #start:active,.step:active,.ctl:active,#done:active,#btnJobDone:active{
+    transform:translate(var(--shift,0),var(--lip));box-shadow:0 0 0 0 var(--edge);
+    transition-duration:.05s}
+  @media (prefers-reduced-motion:reduce){
+    #start:active,.step:active,.ctl:active,#done:active,#btnJobDone:active{
+      transform:translate(var(--shift,0),0);box-shadow:0 var(--lip) 0 0 var(--edge);filter:brightness(.92)}}
+  .ctl{--face:var(--sky);--edge:var(--action-lip);border:0;border-radius:20px;cursor:pointer;display:grid;
        place-items:center;padding:0}
-  #done{background:var(--red)}
-  /* the run screen's primary action, wearing the hatch Done's ledge in the accent
-     Start already uses — same slot, same shape, different job. */
-  #btnJobDone{background:var(--teal)}
-  /* ---------- JOB MODE: the card above the egg ----------
-     Transcribed from public/vendor/nqp/tooltip/tooltip.css at ITS rem scale (8px):
-       padding 1.5rem -> 12px · radius .5rem -> 4px · font-size 1.75rem -> 14px
-       shadow 0 1.125rem 2.275rem -> 0 9px 18.2px · arrow 2.25x2rem -> 18x16px
-     --nimiq-blue is #1F2348, which is already this file's --navy. */
-  /* ⚠️ A BAND, NOT A POINT — top AND bottom, with the content sitting at the bottom of
-     it. The card hangs off the egg (bottom) but must never climb into the host's back
-     chevron (top), and the chevron's position depends on `env(safe-area-inset-top)`,
-     which is 0 in every headless render and ~47px on Andjroo's phone. Anchoring only
-     the bottom and letting the card grow upward is therefore a bug that CANNOT be seen
-     in a screenshot here: on a notched phone a two-line job would grow straight under
-     the chevron. Bounding the box in CSS lets env() do the arithmetic; justify-content
-     keeps a short card hugging the egg instead of floating in the middle of the band. */
-  #jobCard{position:absolute;left:0;right:0;z-index:5;pointer-events:none;
-           display:flex;flex-direction:column;align-items:center;
-           top:calc(env(safe-area-inset-top, 0px) + 66px)}
-  /* ⚠️ margin-top:auto, NOT justify-content:flex-end — they agree while the content
-     fits and disagree in exactly the case this band exists for. flex-end overflows past
-     the START edge, so a card too tall for the band grows UP through the chevron, which
-     is the one thing the floor was added to prevent (measured: 2.4px through a 113px
-     floor, and far worse for two lines). An auto margin resolves to 0 when there is no
-     spare space, so the card pins to the top of the band and overflows DOWNWARD instead
-     — onto the egg, which is art, rather than onto the back button, which is a tap
-     target. Same result whenever it fits, which is every phone without a notch. */
-  #jobCardBox{margin-top:auto}
-  /* ⚠️ WIDTH IS NOT WHAT KEEPS THIS OFF THE HOST'S BACK CHEVRON — HEIGHT IS.
-     The chevron occupies a band at the very top (app draws it at safe-area + 14px, 44
-     tall, so y 14..58). The card is anchored to the egg and grows UPWARD, so the only
-     way it reaches the chevron is by getting TALL. Narrowing it is exactly the wrong
-     lever: a narrower card wraps to more lines, gets taller, and climbs further into
-     the thing the narrowing was meant to avoid.
-     So it is wide enough for a four-word job to stay on ONE line, which is both what
-     Andjroo asked for and what keeps the card shortest. The two-line clamp on #jobName
-     is the real guarantee: it bounds the height, and a bounded height cannot reach the
-     band. Verified at 390 and 360 — see tools/eggtimer-jobflow.py, which asserts the
-     card clears both the egg and the chevron. */
+  /* pause and stop are ONE segmented pill: flush halves, a hairline between, one lip */
+  #runCtl{gap:0}
+  #runCtl .ctl{border-radius:0}
+  #runCtl .ctl:first-child{border-radius:500px 0 0 500px}
+  #runCtl .ctl:last-child{border-radius:0 500px 500px 0;border-left:2px solid rgba(255,255,255,.55)}
+  /* Done is in the pill's slot on the hatch card, the pill's shape, above the card (z 3).
+     Andjroo, 2026-09-15: "the ending frame needs to be the same where we should have
+     the controls down at the bottom, the same as everywhere else." */
+  #done{--face:var(--red);--edge:var(--alert-lip);--shift:-50%;z-index:4;left:50%;right:auto;border-radius:500px}
+  /* the run screen's primary action in the accent Start already uses — same slot, same
+     shape, different job.
+     ⚠️ ABOVE THE RUN CARD (z 3). It shares the pill's slot inside the card, and an
+     absolutely positioned button with no z-index paints under a later sibling that has
+     one: the wiring of the card on 2026-09-15 buried it, invisibly, until job mode was shot. */
+  #btnJobDone{--face:var(--teal);--edge:var(--action-lip);--shift:-50%;z-index:4;left:50%;right:auto;border-radius:500px}
+  /* ---------- JOB MODE: the job, said in the card ----------
+     The job's icon, name and length take the picker's place at the top of #setCard
+     (2026-09-15): the length is the parent's, so there is nothing to spin, and the
+     job is the one thing the card has to say. It used to be the vendored Nimiq tooltip
+     hanging above a big egg; with the plate framing the egg from the first frame there
+     is no egg-top to hang off, and the chevron clearance that needed a floor, a band
+     and a two-line clamp is not a problem a row inside a card can have.
+     The box keeps the tooltip's look, transcribed from public/vendor/nqp/tooltip/tooltip.css
+     at ITS rem scale (8px): padding 1.5rem -> 12px · radius .5rem -> 4px ·
+     font-size 1.75rem -> 14px · shadow 0 1.125rem 2.275rem -> 0 9px 18.2px.
+     --nimiq-blue is #1F2348, which is already this file's --navy. No arrow: it points
+     at nothing in here. */
+  #jobCard{display:flex;justify-content:center;width:100%;pointer-events:none}
   #jobCardBox{max-width:calc(100% - 44px);display:flex;align-items:center;gap:10px;
       padding:12px 14px;border-radius:4px;color:#fff;
-      background:radial-gradient(100% 100% at bottom right, #260133, var(--navy));
+      background:var(--line);
       box-shadow:0 9px 18.2px rgba(0,0,0,.11)}
   /* The job's REAL icon, the same asset the chart card and the done sheet draw.
      ⚠️ Hidden by its own onerror rather than left as a broken-image glyph — the app
@@ -276,27 +413,14 @@
   #jobIcon{width:30px;height:30px;object-fit:contain;flex:none}
   #jobEmoji{font-size:24px;line-height:1;flex:none}
   #jobCardText{min-width:0}
-  /* Two lines at most, so the card's height is bounded and it cannot climb into the
-     host's back chevron however long a parent names a job. */
+  /* Two lines at most, however long a parent names a job. */
   #jobName{font-weight:700;font-size:14px;line-height:1.3;letter-spacing:-.1px;
            overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;
            -webkit-box-orient:vertical;overflow:hidden}
   /* the length the parent set. Tabular, like every other number on this screen. */
   #jobTime{font-weight:700;font-size:14px;line-height:1.3;opacity:.65;
            font-variant-numeric:tabular-nums}
-  /* the triangle, masked out of the component's own SVG so it is the same shape at
-     the same 18x16, and filled with the gradient colour where it meets the box. */
-  #jobArrow{display:block;width:18px;height:16px;background:#23123e;
-      mask-image:url('data:image/svg+xml,<svg viewBox="0 0 18 16" xmlns="http://www.w3.org/2000/svg"><path d="M9 7.12c-.47 0-.93.2-1.23.64L3.2 14.29A4 4 0 0 1 0 16h18a4 4 0 0 1-3.2-1.7l-4.57-6.54c-.3-.43-.76-.64-1.23-.64z" fill="white"/></svg>');
-      -webkit-mask-image:url('data:image/svg+xml,<svg viewBox="0 0 18 16" xmlns="http://www.w3.org/2000/svg"><path d="M9 7.12c-.47 0-.93.2-1.23.64L3.2 14.29A4 4 0 0 1 0 16h18a4 4 0 0 1-3.2-1.7l-4.57-6.54c-.3-.43-.76-.64-1.23-.64z" fill="white"/></svg>');
-      /* ⚠️ mask-size MUST be stated. The component's triangle SVG carries a viewBox and
-         no width/height, so it has no intrinsic size, and the default `mask-size:auto`
-         resolves that to nothing — the element is the right 18x16 with the right fill
-         and is masked out completely. Invisible, with every property looking correct. */
-      mask-size:100% 100%;-webkit-mask-size:100% 100%;
-      mask-repeat:no-repeat;-webkit-mask-repeat:no-repeat;
-      transform:scaleY(-1)}
-  /* `hidden` loses to any display rule, and #cols and #dialTitle both carry one. */
+  /* `hidden` loses to any display rule, and #cols and #jobCard both carry one. */
   [hidden]{display:none!important}
 
   /* the pie. Ours is deliberately NOT where theirs is — Andjroo, 2026-07-31.
@@ -306,12 +430,13 @@
      the leading digit. Beside means IN the row — so the pie is re-parented into it
      and flexbox does the spacing, rather than three numbers being kept in sync. */
   #pie{z-index:5;cursor:grab;touch-action:none;flex:none;
-       filter:drop-shadow(0 3px 8px rgba(31,35,72,.22))}
+       filter:drop-shadow(0 3px 8px rgba(28,27,19,.22))}
   #pie.free{position:absolute}
   #pie.dragging{cursor:grabbing}
   #pieHost{position:absolute;inset:0;z-index:5;pointer-events:none}
   #pieHost>*{pointer-events:auto}
-  body.set #pieHost,body.hatch #pieHost,body.set #rimArc,body.hatch #rimArc{display:none}
+  /* the pie and the rim arc are the OLD countdown; the plate's tunnel is the countdown */
+  #pieHost,#rimArc{display:none}
   #rimArc{position:absolute;z-index:5;pointer-events:none}
 
   /* ⚠️ THE WHOLE SCREEN. Andjroo, 2026-07-31: "the confetti needs to be happening
@@ -337,14 +462,14 @@
      The scrim takes its own taps back when it is on, and a sheet always takes its. */
   #overlay{position:fixed;inset:0;z-index:3;pointer-events:none}
   #sheetCol{position:absolute;inset:0;margin:0 auto;max-width:430px}
-  #scrim{position:absolute;inset:0;z-index:8;background:rgba(31,35,72,.34);opacity:0;
+  #scrim{position:absolute;inset:0;z-index:8;background:rgba(28,27,19,.34);opacity:0;
          pointer-events:none;transition:opacity .3s}
   #scrim.on{opacity:1;pointer-events:auto}
   /* ⚠️ min-height, not just content. Andjroo, 2026-07-31, on the backgrounds sheet:
      "the card should slide up a little bit more." A one-row sheet is 250px tall and
      stops well short of the ones beside it, so the same gesture lands in a different
      place depending on which button opened it. The floor is what makes them agree. */
-  .sheet{position:absolute;left:0;right:0;bottom:0;z-index:9;background:#F3F5F8;
+  .sheet{position:absolute;left:0;right:0;bottom:0;z-index:9;background:var(--paper);
          pointer-events:auto;
          border-radius:22px 22px 0 0;transform:translateY(100%);
          transition:transform .38s cubic-bezier(.32,.72,0,1);
@@ -374,9 +499,12 @@
           display:grid;place-items:center}
   .sclose svg{display:block;opacity:.2;transition:opacity .3s cubic-bezier(.25,0,0,1)}
   .sclose:hover svg,.sclose:active svg{opacity:.4}
-  .ssub{padding:2px 22px 12px;font-size:16px;color:#8C93A3;font-weight:600;
+  .ssub{padding:2px 22px 12px;font-size:16px;color:var(--muted);font-weight:600;
         line-height:1.3;text-align:center;text-wrap:balance}
-  .sbody{overflow-y:auto;padding:4px 16px 16px;-webkit-overflow-scrolling:touch}
+  /* ⚠️ THE TOP PADDING IS THE BADGE'S ROOM. overflow-y:auto makes this box clip on both
+     axes, and the selected badge hangs 11px above its own tile: at the old 4px the first
+     row's badge lost its top corner, which is where the default choice sits. */
+  .sbody{overflow-y:auto;padding:16px 16px;-webkit-overflow-scrolling:touch}
   .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
   .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
   /* ⚠️ width:100% is load-bearing. A <button> keeps intrinsic sizing, so with only
@@ -397,44 +525,60 @@
      to the TOP right — clear of the label underneath, and the corner nimiq-ui puts
      a marker in. Not a ✓ glyph either: drawn, for the same reason as the ✕. */
   .cell{position:relative}
-  .pick{width:100%;aspect-ratio:1;border-radius:50%;background:#fff;border:5px solid #E3E7EE;
+  .pick{width:100%;aspect-ratio:1;border-radius:50%;background:#fff;border:5px solid rgba(28,27,19,.10);
         cursor:pointer;display:grid;place-items:center;position:relative;padding:0;overflow:hidden}
   .pick.on{border-color:var(--teal)}
-  .tick{position:absolute;top:-5px;right:-5px;width:32px;height:32px;border-radius:50%;
-        background:var(--teal);border:3px solid #F3F5F8;z-index:2;pointer-events:none;
-        display:none;place-items:center}
+  /* ⚠️ THE BADGE IS THE BRAND HEXAGON, NOT A DISC (Andjroo, 2026-09-17: "instead of a
+     circle for the check mark, can you make it a hexagon for whatever selected"). It is
+     ONE path, not a clipped box: a `clip-path` cuts the border off with the corners, and
+     the 3px halo that lifts the badge off the tile underneath is that border. So the
+     hexagon is drawn, `paint-order` puts the stroke under the fill so only its outer half
+     shows, and a round join gives the corners the plate's own softness. The box stays
+     32px and stays hung on the CELL: tools/eggtimer-sheetproof.py measures both. */
+  /* ⚠️ IT CLEARS THE CIRCLE, IT DOES NOT SIT ON IT. Andjroo, 2026-09-17: "the hexagon
+     that's cutting in ... let's not make that interact with the circle, but let's move it
+     up into the right just a little bit." Measured on the 110px tile: at -5/-5 the
+     hexagon's lower-left vertex sat 6.9px INSIDE the ring. -11 put it 2px clear and he
+     asked for a little more, so -15: 7.7px of air off its own ring, and still inside the
+     14px gutter between tiles, so it cannot touch the neighbour. The 27px badge on the
+     82px character tile takes the same number for the same reason. */
+  .tick{position:absolute;top:-15px;right:-15px;width:32px;height:32px;z-index:2;
+        pointer-events:none;display:none;place-items:center}
+  .tick svg{display:block;width:100%;height:100%;overflow:visible}
   .cell.on .tick{display:grid}
-  .grid4 .tick{width:27px;height:27px;top:-4px;right:-4px;border-width:2.5px}
+  /* the character grid's badge is smaller, and its halo comes down with it: the ring is
+     a 3-unit stroke in a 24 box now, so it scales with the badge instead of being set. */
+  .grid4 .tick{width:27px;height:27px;top:-15px;right:-15px}
   /* Delete, on a kid's own photo only. TOP-LEFT because .tick owns top-right, and on
      the CELL for the same reason the tick is: .pick clips to its circle, so a badge
      hung on the button gets dragged back inside and parks over the face. */
   .del{position:absolute;top:-5px;left:-5px;width:30px;height:30px;border-radius:50%;
-       background:#8C93A3;border:3px solid #F3F5F8;z-index:3;padding:0;cursor:pointer;
+       background:var(--muted);border:3px solid var(--paper);z-index:3;padding:0;cursor:pointer;
        display:grid;place-items:center;transition:background 120ms,transform 120ms}
   .grid4 .del{width:26px;height:26px;top:-4px;left:-4px;border-width:2.5px}
   /* Armed: the photo steps back and the badge goes red, so "one more tap ends this"
      reads without words to a child who cannot yet read the label. */
   .cell.arming .pick{opacity:.4}
-  .cell.arming .del{background:var(--red);transform:scale(1.15)}
+  .cell.arming .del{background:var(--alert);transform:scale(1.15)}
   .pick img{width:82%;height:82%;object-fit:contain}
   .artgrid .pick img{width:88%;height:88%}
   .photopick img{width:100%;height:100%;object-fit:cover}
-  .pick .off{font-size:19px;font-weight:800;color:#8C93A3}
-  .plabel{text-align:center;font-size:11.5px;font-weight:700;color:#8C93A3;margin-top:4px;
+  .pick .off{font-size:19px;font-weight:800;color:var(--muted)}
+  .plabel{text-align:center;font-size:11.5px;font-weight:700;color:var(--muted);margin-top:4px;
           text-transform:capitalize}
-  .bgpick{aspect-ratio:1;border-radius:18px;overflow:hidden;border:4px solid #E3E7EE;padding:0;
+  .bgpick{aspect-ratio:1;border-radius:18px;overflow:hidden;border:4px solid rgba(28,27,19,.10);padding:0;
           cursor:pointer;display:block;width:100%}
   .bgpick.on{border-color:var(--teal)}
   .bgpick img{width:100%;height:100%;object-fit:cover;display:block}
   /* Andjroo: "more backgrounds are coming, so add more spaces." An empty slot is the
      honest way to say that — it holds the grid's shape now and it is where the next
      one lands, rather than the row re-flowing under him when the art arrives. */
-  .bgslot{aspect-ratio:1;border-radius:18px;border:4px dashed #DDE1E9;background:#EDF0F5}
+  .bgslot{aspect-ratio:1;border-radius:18px;border:4px dashed rgba(28,27,19,.14);background:var(--paper)}
   .lane{background:#fff;border-radius:16px;padding:12px 14px;margin-bottom:12px}
   /* the same short grey uppercase section label nimiq.com and the wallet both use
      ("ENTER ADDRESS", "TOTAL BALANCE") — and they centre it, so this centres too */
   .lane h3{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
-           color:#8C93A3;margin-bottom:9px;text-align:center}
+           color:var(--muted);margin-bottom:9px;text-align:center}
   /* ⚠️ A GRID, NOT WRAPPED FLEX. Andjroo, 2026-07-31: "reorganize the sound one so
      they're uniform." Every pill was its own width — "Bell" against "Kids cheer" —
      and a centred wrap then re-centred each ragged row, so no two rows started or
@@ -443,7 +587,7 @@
      Two columns, not three: at 360px three leaves ~95px a cell and "Kids cheer"
      needs ~106px, so the widest label is exactly the one that would have broken it. */
   .opts{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
-  .opt{border:0;background:#EEF1F6;border-radius:500px;padding:11px 10px;font-family:inherit;
+  .opt{border:0;background:var(--paper);border-radius:500px;padding:11px 10px;font-family:inherit;
        font-size:14.5px;font-weight:800;color:var(--navy);cursor:pointer;text-align:center;
        width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .opt.on{background:var(--teal);color:#fff}
@@ -461,10 +605,10 @@
   #toast{position:absolute;left:50%;z-index:11;max-width:calc(100% - 36px);
          transform:translate(-50%,14px);opacity:0;pointer-events:none;
          background-color:var(--navy);
-         background-image:radial-gradient(100% 100% at bottom right,#260133,#1F2348);
+         background-image:var(--line);
          color:#fff;font-weight:800;font-size:15px;letter-spacing:-.1px;
          padding:13px 22px;border-radius:500px;white-space:nowrap;
-         box-shadow:0 10px 26px rgba(31,35,72,.30);
+         box-shadow:0 10px 26px rgba(28,27,19,.30);
          transition:opacity .26s cubic-bezier(.25,0,0,1),
                     transform .26s cubic-bezier(.25,0,0,1)}
   #toast.on{opacity:1;transform:translate(-50%,0)}
@@ -492,9 +636,13 @@
   #preboot{position:fixed;inset:0;z-index:99;background:#fff;pointer-events:none;
            transition:opacity .34s ease}
   #preboot.gone{opacity:0}
+  /* under the cover every layout pass is a snap: the box moves are the set->run collapse
+     and the plus's ride, for a kid to watch, and a load that runs layout() twice (boot,
+     then the rig's own numbers) must not be seen easing between the two. */
+  body:not(.live) #rigWrap,body:not(.live) #plus{transition:none}
 
   /* ---------- the review strip. ?clean=1 removes it for captures. ---------- */
-  #dev{position:fixed;left:0;right:0;bottom:0;z-index:12;background:rgba(31,35,72,.90);
+  #dev{position:fixed;left:0;right:0;bottom:0;z-index:12;background:rgba(28,27,19,.90);
        color:#fff;display:flex;align-items:center;gap:6px;padding:6px 8px;overflow-x:auto;
        font-size:11px;font-weight:800}
   #dev.off{display:none}
@@ -506,6 +654,13 @@
 </style>
 </head>
 <body class="set">
+
+<!-- ⚠️ FIRST IN THE BODY, and outside #app so it covers the desktop letterbox too. It
+     was last, after 169KB of markup: at 1.6 Mbps the browser painted the first chunk
+     (a full-width plus disc, the card's labels collapsed at the top) for ~150ms before
+     the cover had even arrived. Fixed to the viewport, it covers the same whether it is
+     the first child or the last; first, it is in the first packet. See the CSS. -->
+<div id="preboot"></div>
 
 <!-- ⚠️ THE BACKGROUND AND THE CONFETTI ARE OUTSIDE #app ON PURPOSE, and it is the
      tablet that made them move. #app is a 430px column; while these lived inside it
@@ -526,6 +681,10 @@
     <!-- ⚠️ the version is load-bearing. Without it Safari happily reuses a cached
          wiggle.html forever, so the page reloads and the RIG does not — which is
          exactly how three rounds of fixes can look identical on a phone. -->
+    <!-- the frame is the Nimiq hexagon as a white PLATE with the countdown cut into it
+         as a tunnel (rive-lab #99, `rive-kit/eggplate.riv`, one number `progress`).
+         Under the rig, over the scene: the scene stays full-bleed, nothing is clipped. -->
+    <canvas id="plate" width="430" height="400"></canvas>
     <div id="rigWrap"><iframe id="rig" scrolling="no" title="egg"></iframe></div>
   </div>
   <div id="badgeRim"></div>
@@ -534,15 +693,15 @@
        screen — placed by layoutSet() at the egg's shoulder and by layoutRun() at the
        badge's, so it travels with the egg instead of fading out with #scSet. -->
   <button id="plus" aria-label="add a reminder">
-    <!-- disc r32 at (50,44); the tail hangs off the arc between 105° and 160°.
-         large-arc=1 sweep=0 takes the 305° way round, i.e. everywhere the tail
-         is not, so the outline closes through the tip in one stroke. -->
+    <!-- A DISC, NO TAIL (2026-09-18: "it should just be a plus button next to the
+         character"). It was a speech bubble, disc r32 at (50,44) with a tail off the arc,
+         because what it added was something to say; he asked for a button. The disc keeps
+         its centre and its clip so the chosen icon sits exactly where it did. -->
     <svg viewBox="0 0 100 100">
       <clipPath id="discClip"><circle cx="50" cy="44" r="29.3"/></clipPath>
-      <path class="bub" d="M41.72 74.91 A32 32 0 1 0 19.93 54.94 L16.4 80.6 Z"
-            stroke="#3E4358" stroke-width="5.4" stroke-linejoin="round"/>
+      <circle class="bub" cx="50" cy="44" r="32"/>
       <path id="plusGlyph" d="M50 30v28M36 44h28" fill="none" stroke="#fff"
-            stroke-width="7.6" stroke-linecap="round"/>
+            stroke-width="5.9" stroke-linecap="round"/>
       <!-- The chosen reminder rides inside the disc, centred on (50,44).
            ⚠️ The TALLEST icon sets this box, not the average one. Sized by ink
            area, a toothbrush fills its 256 box top to bottom while a heart fills
@@ -551,6 +710,22 @@
            56 keeps the worst case inside r29.3, and the clip is the guarantee. -->
       <image id="plusIcon" x="22" y="16" width="56" height="56"
              clip-path="url(#discClip)" style="display:none"/>
+      <!-- ⚠️ THE SAME FALLBACK THE SHEET HAS, for the same reason. The grid draws the
+           monoline glyph wherever the art does not exist, so a batch that is still being
+           drawn never shows a broken image; without this the BUBBLE had no such rule and
+           a choice with no art read as nothing at all on the run screen. Andjroo took the
+           art for ten of them out on 2026-09-17 to regenerate it.
+           The glyph is authored in a 24 box and drawn in this 100 one, in the icon's own
+           56 box at (22,16): scale 2.333, so a 1.29 pen renders the 3px every other line
+           on this page is. -->
+      <!-- ⚠️ THE CLIP GOES ON THE OUTER GROUP, THE TRANSFORM ON THE INNER ONE. A clipPath
+           is in the user space of the element that wears it, so a clip and a scale on the
+           SAME element move the clip circle with the art and it cuts everything away: the
+           first build of this drew a perfectly empty white bubble. -->
+      <g id="plusDraw" clip-path="url(#discClip)" style="display:none">
+        <g id="plusDrawArt" transform="translate(22,16) scale(2.3333)" fill="none"
+           stroke="var(--line)" stroke-width="1.29" stroke-linejoin="round" stroke-linecap="round"></g>
+      </g>
     </svg>
   </button>
 
@@ -560,105 +735,128 @@
          in the top left, I think that's good with not having that for right now."
          (He had raised and retracted this once before; this is the decision.) -->
 
-    <div id="dial">
-      <div id="dialTitle">Set Timer</div>
+    <!-- the white card: the picker (or, in job mode, the job) on top, Start underneath,
+         in the box the run screen's count and pill take. See #setCard. -->
+    <div id="setCard">
       <div id="cols">
         <div id="band"></div>
         <div class="colwrap"><div class="colhead" id="hMin">Min</div><div class="col" id="colMin"></div></div>
         <div class="colwrap"><div class="colhead" id="hSec">Sec</div><div class="col" id="colSec"></div></div>
         <div id="colon">:</div>
       </div>
-    </div>
 
-    <!-- ================= JOB MODE: the job, said ABOVE the egg =================
-         Andjroo, 2026-08-01: the title and icon sat ON the egg and "just doesn't look
-         very well positioned"; the icon was the raw emoji glyph where every other
-         surface in the app draws the job's real icon asset. All three facts — icon,
-         name, and the length the PARENT set — move off the shell and into a card in
-         the space above it, and the egg gets its face back.
+      <!-- ================= JOB MODE: the job, said in the card =================
+           Andjroo, 2026-08-01: the title and icon sat ON the egg and "just doesn't look
+           very well positioned"; the icon was the raw emoji glyph where every other
+           surface in the app draws the job's real icon asset. All three facts — icon,
+           name, and the length the PARENT set — take the picker's place in the card.
 
-         ⚠️ THE CARD IS THE VENDORED NIMIQ TOOLTIP, not a lookalike. Same masked
-         triangle SVG, same radius, padding, shadow and blue-bg gradient as
-         public/vendor/nqp/tooltip/tooltip.css, which is what the copy-address toast
-         and the roadmap page already use. This file cannot LINK it — it is a
-         standalone document with its own stylesheet and no nimiq-style — so the values
-         are transcribed, and transcribed at the right scale: nimiq-style sets
-         `html{font-size:8px}`, so its 1.5rem padding is 12px here, not 24px. -->
-    <div id="jobCard" hidden>
-      <div id="jobCardBox">
-        <img id="jobIcon" alt="" draggable="false" hidden />
-        <span id="jobEmoji" hidden></span>
-        <div id="jobCardText">
-          <div id="jobName"></div>
-          <div id="jobTime"></div>
+           ⚠️ THE BOX IS THE VENDORED NIMIQ TOOLTIP'S, not a lookalike: same radius,
+           padding, shadow and blue-bg gradient as public/vendor/nqp/tooltip/tooltip.css,
+           which is what the copy-address toast and the roadmap page already use. This
+           file cannot LINK it — it is a standalone document with its own stylesheet and
+           no nimiq-style — so the values are transcribed, and transcribed at the right
+           scale: nimiq-style sets `html{font-size:8px}`, so its 1.5rem padding is 12px
+           here, not 24px. -->
+      <div id="jobCard" hidden>
+        <div id="jobCardBox">
+          <img id="jobIcon" alt="" draggable="false" hidden />
+          <span id="jobEmoji" hidden></span>
+          <div id="jobCardText">
+            <div id="jobName"></div>
+            <div id="jobTime"></div>
+          </div>
         </div>
       </div>
-      <i id="jobArrow"></i>
+
+      <button id="start">Start</button>
     </div>
 
-
-    <button class="bigbtn" id="start">Start</button>
-
-    <div id="tray">
-      <!-- ⚠️ THE EGG IN THIS GLYPH IS OUR EGG, DRAWN FROM egg-outline.json.
-           Andjroo, 2026-07-31: "the egg shape does not match ours." It did not: it was
-           a hand-authored bezier that happened to be egg-ish, so the button that opens
-           the egg sheet showed a different egg from the one on the screen behind it.
-           Both paths are replaced at boot from the same curve the rig clips its shell
-           to, so a recut of the art moves this icon with it. The `d`s below are only
-           the fallback if the fetch fails. -->
-      <button class="trayb" data-sheet="egg" aria-label="hatch surprises">
-        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#2C3149" stroke-width="1.9"
-             stroke-linejoin="round" stroke-linecap="round">
-          <path id="glyphEgg" d="M12 2.4c3.6 0 6.4 5.2 6.4 10.1A6.4 6.4 0 0 1 12 21.6a6.4 6.4 0 0 1-6.4-9.1C5.6 7.6 8.4 2.4 12 2.4z"/>
-          <path id="glyphCrack" d="M6.2 13.4l2.6-1.7 2.5 1.7 2.5-1.7 2.5 1.7"/>
-        </svg>
-        <i class="dot" id="dotEgg" style="display:none"></i>
-      </button>
-      <button class="trayb" data-sheet="music" aria-label="sounds">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="#2C3149">
-          <path d="M20 3.6 8.6 6v9.2a3.4 3.4 0 1 0 1.8 3V9.1l7.8-1.6v5.3a3.4 3.4 0 1 0 1.8 3z"/>
-        </svg>
-        <i class="dot" id="dotMusic" style="display:none"></i>
-      </button>
-      <button class="trayb" data-sheet="bg" aria-label="background">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2C3149" stroke-width="1.9"
-             stroke-linejoin="round">
-          <rect x="2.6" y="4.6" width="18.8" height="14.8" rx="3.2"/>
-          <circle cx="8.4" cy="10" r="1.7" fill="#2C3149" stroke="none"/>
-          <path d="M3.4 16.6l4.5-4a2 2 0 0 1 2.7 0l3 2.7 2-1.7a2 2 0 0 1 2.6 0l2.4 2.1"/>
-        </svg>
-      </button>
-    </div>
   </section>
 
-  <!-- the two mute icons live OUTSIDE the screens: the reference carries them
-       through the hatch too, and they are the same two controls either way -->
-  <div id="mutes">
-    <button class="mute" id="mMusic" aria-label="music"></button>
-    <button class="mute" id="mBell" aria-label="end sound"></button>
+  <button id="back" aria-label="back" hidden>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--line)" stroke-width="3"
+         stroke-linejoin="round" stroke-linecap="round"><path d="M15.2 4.8 8 12l7.2 7.2"/></svg>
+  </button>
+
+  <!-- egg, music, scene: one capsule top right, OUTSIDE the screens so it rides through
+       set, run and hatch (Andjroo, 2026-09-15: "keep it at three all the time") -->
+  <div id="tray">
+    <!-- ⚠️ THE EGG IN THIS GLYPH IS OUR EGG, DRAWN FROM egg-outline.json.
+         Andjroo, 2026-07-31: "the egg shape does not match ours." It did not: it was
+         a hand-authored bezier that happened to be egg-ish, so the button that opens
+         the egg sheet showed a different egg from the one on the screen behind it.
+         Both paths are replaced at boot from the same curve the rig clips its shell
+         to, so a recut of the art moves this icon with it. The `d`s below are only
+         the fallback if the fetch fails. -->
+    <!-- Hidden 2026-09-16 ("we can just pull that part out for right now"), back on
+         2026-09-18: "up in that navigation, we need to return the character selection.
+         Right now the kid can't pick which characters they want to come out of the egg."
+         It was hidden and not deleted for exactly this; the return was one attribute. -->
+    <button class="trayb" data-sheet="egg" aria-label="hatch surprises">
+      <!-- ⚠️ 28, LIKE ITS NEIGHBOURS. At 30 in a 24 viewBox its 1.9 stroke rendered 2.38px
+           against their 2.22, so the one glyph drawn from the real egg was also the one
+           drawn with a different pen. Every line in this capsule is 1.9 of 24 shown at 28. -->
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--line)" stroke-width="2.6"
+           stroke-linejoin="round" stroke-linecap="round">
+        <path id="glyphEgg" d="M12 2.4c3.6 0 6.4 5.2 6.4 10.1A6.4 6.4 0 0 1 12 21.6a6.4 6.4 0 0 1-6.4-9.1C5.6 7.6 8.4 2.4 12 2.4z"/>
+        <path id="glyphCrack" d="M6.2 13.4l2.6-1.7 2.5 1.7 2.5-1.7 2.5 1.7"/>
+      </svg>
+      <i class="dot" id="dotEgg" style="display:none"></i>
+    </button>
+    <!-- ⚠️ MONOLINE, like the egg and the picture beside it. It was the one SOLID glyph in
+         a capsule of outlines, which is the same complaint the plus bubble drew: two line
+         treatments in one piece of chrome. Same 1.9 stroke, same navy, no fill. -->
+    <button class="trayb" data-sheet="music" aria-label="sounds">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--line)" stroke-width="2.6"
+           stroke-linejoin="round" stroke-linecap="round">
+        <path d="M10.4 18.2V6.9l9-1.9v11.3"/>
+        <circle cx="7.6" cy="18.2" r="2.8"/><circle cx="16.6" cy="16.3" r="2.8"/>
+      </svg>
+      <i class="dot" id="dotMusic" style="display:none"></i>
+    </button>
+    <button class="trayb" data-sheet="bg" aria-label="background">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--line)" stroke-width="2.6"
+           stroke-linejoin="round">
+        <rect x="2.6" y="4.6" width="18.8" height="14.8" rx="3.2"/>
+        <circle cx="8.4" cy="10" r="1.7" fill="var(--line)" stroke="none"/>
+        <path d="M3.4 16.6l4.5-4a2 2 0 0 1 2.7 0l3 2.7 2-1.7a2 2 0 0 1 2.6 0l2.4 2.1"/>
+      </svg>
+    </button>
+    <!-- The celebration lived here for a day (2026-09-17, "move that up into that right
+         hand navigation"). Andjroo, 2026-09-18: "let's remove it from the navigation part
+         up in the right hand corner, and let's put it back down next to the character. It
+         should just be a plus button next to the character." So it is the plus again, on
+         the egg's shoulder (#plus), and this capsule is egg, music, scene. -->
   </div>
   <div id="pieHost">
     <svg id="pie" width="120" height="120" viewBox="0 0 120 120">
-      <circle cx="60" cy="60" r="52" fill="#fff" stroke="#4A4F63" stroke-width="7"/>
-      <path id="pieWedge" fill="var(--red)"></path>
+      <circle cx="60" cy="60" r="52" fill="#fff" stroke="var(--line)" stroke-width="7"/>
+      <path id="pieWedge" fill="var(--action)"></path>
       <line id="pieHand" x1="60" y1="60" x2="60" y2="12" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/>
-      <circle cx="60" cy="60" r="52" fill="none" stroke="#4A4F63" stroke-width="7"/>
+      <circle cx="60" cy="60" r="52" fill="none" stroke="var(--line)" stroke-width="7"/>
     </svg>
-    <svg id="rimArc"><circle id="rimC" fill="none" stroke="var(--red)" stroke-linecap="round"/></svg>
+    <svg id="rimArc"><circle id="rimC" fill="none" stroke="var(--action)" stroke-linecap="round"/></svg>
   </div>
 
   <!-- ================= RUN ================= -->
   <section class="screen" id="scRun">
+    <!-- the count sits BELOW the plate on its own white card, the nudges inside it and
+         pause / stop as one segmented pill in the same card (the 09-12 redraw, layout A) -->
+    <div id="runCard"></div>
+    <!-- ⚠️ MINUS LEFT, PLUS RIGHT. Andjroo, 2026-09-17: "the plus should be on the right
+         hand side, the minus should be on the left hand side." Less on the left, more on
+         the right, the way a number line runs. The ids do not move with the buttons:
+         stepUp still adds a minute. -->
     <div id="clockRow">
-      <button class="step" id="stepUp" aria-label="add a minute">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4"
-             stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      <button class="step" id="stepDn" aria-label="take a minute off">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"
+             stroke-linecap="round"><path d="M5 12h14"/></svg>
       </button>
       <div id="clock">00:00</div>
-      <button class="step" id="stepDn" aria-label="take a minute off">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4"
-             stroke-linecap="round"><path d="M5 12h14"/></svg>
+      <button class="step" id="stepUp" aria-label="add a minute">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"
+             stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
       </button>
     </div>
 
@@ -694,6 +892,7 @@
 
   <!-- ================= HATCH ================= -->
   <section class="screen" id="scHatch">
+    <div id="hatchCard"></div>
     <div id="hatchClock"></div>
     <button class="bigbtn" id="done">Done</button>
   </section>
@@ -717,8 +916,12 @@
          carried a dead "?" beside it, two carried a spacer span, and a fix to "the ✕"
          meant finding every copy. `sclose()` below is the only definition. -->
     <section class="sheet" id="shReminder">
-      <div class="shead"><h2>Add a Reminder</h2></div>
-      <div class="ssub">Remind your child what to do next when the timer ends.</div>
+      <!-- the heading followed the control. It holds Good job and Hooray as well as
+           Brush teeth, so it is named for WHEN it happens rather than for one half of
+           the list. Andjroo's words for the change: "it's not so much a reminder as it
+           is a celebration." -->
+      <div class="shead"><h2>When the timer ends</h2></div>
+      <div class="ssub">What the egg says when it hatches.</div>
       <div class="sbody"><div class="grid3" id="remGrid"></div></div>
     </section>
 
@@ -757,9 +960,6 @@
                padding:5px 10px;border-radius:500px" id="dvBuild"></span>
 </div>
 
-<!-- last, and outside #app, so it covers the desktop letterbox too. See the CSS. -->
-<div id="preboot"></div>
-
 <script type="module">
 /* ⚠️ MINTED IN THE HEAD, READ HERE. The head needs both to preload the background
    before this module exists; deriving the same strings twice is how the preload and
@@ -768,8 +968,41 @@ const BUILD=window.TIMER_BUILD;
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 const Q=new URLSearchParams(location.search);
+/* the host's chrome row, if it sent one (see #tray's note): height, top, gutter, and
+   whether a battery pill holds the right corner */
+{ const c=(Q.get('chrome')||'').split(',').map(Number);
+  if(c.length===3&&c.every(v=>v>0)){ const r=document.documentElement.style;
+    r.setProperty('--chrome-h',c[0]+'px'); r.setProperty('--chrome-top',c[1]+'px'); r.setProperty('--chrome-gutter',c[2]+'px') }
+  if(Q.get('batt')==='1')document.body.classList.add('batt'); }
 const CLEAN=Q.has('clean');
 if(CLEAN)$('dev').classList.add('off');
+/* the plate: the same vendored runtime the rig uses, its own tiny scene, one number.
+   ⚠️ STAMPED WITH VER, THE SAME STAMP THE RIG USES, for two reasons that both showed:
+   BUILD-stamped, `eggplate.riv?v=tmr-…` was served immutable for a year against a token
+   nobody bumped when the plate was recoloured (#505), which is the OTHER half of "I'm
+   still seeing the old teal" (the SW half is in sw.js). And `rive.wasm?v=<BUILD>` beside
+   the rig's `rive.wasm?v=<VER>` was the same 1.9MB fetched twice, cached twice and
+   compiled twice with no code cache in common. One URL: one fetch, one cache entry.
+   (window.TIMER_VER, not VER: that const is declared further down and this runs first.)
+   The reveal (below) waits on this scene's first frame the way it waits on the egg's,
+   so the hexagon and the egg arrive together instead of the frame popping in second. */
+let PLATE=null, plateInk;
+const plateReady=new Promise(res=>{ plateInk=res });
+(function(){
+  const V=window.TIMER_VER;
+  const t=document.createElement('script'); t.src='rive-kit/rive.js?v='+V;
+  t.onerror=()=>{ console.error('rive.js'); plateInk() };
+  t.onload=()=>{
+    rive.RuntimeLoader.setWasmUrl('rive-kit/rive.wasm?v='+V);
+    const r=new rive.Rive({canvas:$('plate'), src:'rive-kit/eggplate.riv?v='+V, artboard:'EggPlate',
+      autoplay:true, autoBind:true, layout:new rive.Layout({fit:rive.Fit.Contain}),
+      onLoad(){ r.resizeDrawingSurfaceToCanvas(); PLATE={r, progress:r.viewModelInstance.number('progress')}; PLATE.progress.value=1;
+                addEventListener('resize',()=>r.resizeDrawingSurfaceToCanvas());
+                requestAnimationFrame(()=>requestAnimationFrame(()=>{ $('plate').classList.add('ink'); plateInk() })) },   // loaded is not drawn: two frames in
+      onLoadError(e){ console.error('eggplate.riv',e); plateInk() }});
+  };
+  document.head.appendChild(t);
+})();
 
 /* ---------- JOB MODE ----------
    The same screen, opened against one of the kid's jobs instead of against nothing.
@@ -817,11 +1050,10 @@ function applyJob(){
      button should be.
      ⚠️ Hidden, not removed. layout() still measures and sizes all of them, so job
      mode shares one code path with the dock rather than growing a second. */
-  /* ⚠️ THE WHOLE DIAL GOES, not just its columns. The job's name and length used to be
-     written across the shell inside #dial — Andjroo, 2026-08-01: "it just doesn't look
-     very well positioned on top of the egg". They are a card above the egg now, so
-     there is nothing left in #dial to place. */
-  for(const id of ['dial','plus','stepUp','stepDn','runCtl']) $(id).hidden=true;
+  /* The picker goes and the job's row takes its place in the card. The job's name and
+     length used to be written across the shell — Andjroo, 2026-08-01: "it just doesn't
+     look very well positioned on top of the egg". */
+  for(const id of ['cols','plus','stepUp','stepDn','runCtl']) $(id).hidden=true;
   for(const id of ['jobCard','btnJobDone']) $(id).hidden=false;
 }
 applyJob();
@@ -849,22 +1081,23 @@ function showEmojiIcon(){
    whatever state it got to. A white rectangle that never goes away is a worse bug
    than a staggered load, so the failsafe is set before there is anything that could
    fail.
-   ⚠️ CAP IS A BREAKAGE FAILSAFE, NOT A PATIENCE BUDGET, and that is why it is not
-   tighter. Measured cold, 390px (tools/whole.py):
+   ⚠️ CAP IS A BREAKAGE FAILSAFE, NOT A PATIENCE BUDGET. The canvas egg loaded whole in
+   1.35s at 1.6 Mbps and the cap sat past that. The Rive egg is a different animal: the
+   runtime is 800KB gzipped and the shells' PNGs 884KB, and BOTH documents (this one for
+   the plate, the rig for the egg) want the runtime. Measured cold through the app
+   server, 390px, 2026-09-18 (scratch coldtable.py):
 
-       kbps    background   egg drawn   whole
-        400        4.63s       5.15s     5.15s
-        700        2.63s       2.98s     2.98s
-       1600        1.08s       1.35s     1.35s
-       4000        0.33s       0.63s     0.63s
-       8000        0.20s       0.45s     0.45s
+       kbps    background   plate    egg drawn
+       1600        2.67s     6.59s     10.99s
+       4000        1.07s     2.71s      4.52s
+       8000        0.55s     1.43s      2.39s
+      20000        0.23s     0.67s      1.11s
 
-   The two are never more than ~0.35s apart, so waiting for both costs almost nothing
-   over waiting for the slower one alone — the whole point of holding them together.
-   A cap of 1200ms looked prudent and was not: it fired BEFORE the egg on anything
-   under about 1.9 Mbps, which is exactly the connection this was built for, and gave
-   back the staggered load it exists to prevent. It is set past the honest 1.6 Mbps
-   case instead. Second opens are 0.03s, so this only ever governs a cold one. */
+   No cap can hold a white screen for the 1.6 Mbps case, so it is not tried: past the
+   cap the scene shows without its plate and egg and each FADES IN on its first frame
+   (#plate.ink / #rigWrap.ink) instead of popping. The tablets are on the LAN with the
+   service worker's copy and open in ~1s; a phone over the tunnel is the case the cap
+   governs, and at 8 Mbps it does not fire. Everything under it is the failsafe. */
 const CAP=2500;
 let revealed=false, arrived;
 /* what the heavy art waits on. NOT "the egg has inked" — if the background is the
@@ -873,10 +1106,17 @@ let revealed=false, arrived;
 const afterReveal=new Promise(r=>{ arrived=r });
 function reveal(){
   if(revealed)return; revealed=true;
-  arrived();
-  const c=$('preboot'); if(!c)return;
+  document.body.classList.add('live');   // the .52s moves are for the kid, not the load
+  const c=$('preboot'); if(!c){ arrived(); return }
   c.classList.add('gone');
-  c.addEventListener('transitionend',()=>c.remove(),{once:true});
+  /* ⚠️ THE HEAVY ART WAITS FOR THE FADE TO FINISH, not for it to start. 2.2MB of
+     characters decoding on the main thread is exactly what a .34s opacity tween cannot
+     share it with: on the tablet the cover took 1.6s to finish fading with loadRest()
+     kicked off at the same instant. transitionend is the honest moment; the timer
+     behind it is for a tab that is hidden mid-fade, where the event may never come. */
+  let done=false; const go=()=>{ if(done)return; done=true; c.remove(); arrived() };
+  c.addEventListener('transitionend',go,{once:true});
+  setTimeout(go,600);
 }
 setTimeout(reveal,CAP);
 /* the two things that have to be true for the screen to be whole. Each resolves at
@@ -893,7 +1133,7 @@ const bgReady=new Promise(res=>{
   im.addEventListener('load',()=>{ (im.decode?im.decode():Promise.resolve()).then(done,done) });
   im.addEventListener('error',done);
 });
-Promise.all([bgReady,eggReady]).then(reveal);
+Promise.all([bgReady,eggReady,plateReady]).then(reveal);
 
 /* ---------- VER: the cache key for everything this page pulls ----------
    ⚠️ NOT the same thing as BUILD. BUILD is hand-typed and says which draft this is;
@@ -976,6 +1216,11 @@ if(!S.bedDefault){
   if(S.during==='none')S.during='bounce';
   save();
 }
+/* The mute toggles left with the run screen's capsule (2026-09-15); a mute stored by an
+   earlier build would otherwise silence a bed the sounds sheet says is on, with nothing
+   on screen to undo it. Cleared once. The flags stay in the playback code as the sheet's
+   No music / No sound already cover them. */
+if(!S.mutesGone){ S.mutesGone=1; S.muteMusic=false; S.muteBell=false; save() }
 
 /* ⚠️ THE BACKGROUND IS ASKED FOR THE LINE AFTER IT IS KNOWN. This used to sit down
    with the background picker, 600 lines below, which meant the <img> did not start
@@ -993,19 +1238,47 @@ if(bgSrc(S.bg))$('bgImg').src=bgSrc(S.bg); else bgSettle();   // no load, no wai
 /* Andjroo's list, in his order: "there's an off button, there's a good job, you did
    it, hooray... time to get ready, time to clean up, time to brush your teeth."
    The glyphs are monoline stand-ins — the illustrated set is an art pass. */
+/* Andjroo, 2026-09-17, cut this to the four celebrations because the rest are OBJECTIVES
+   ("getting the shoes on, getting dressed, bath time, bedtime, clean up, brush teeth,
+   time to eat") and he is moving those elsewhere in the app, then put them back the same
+   hour: they stay here until the screen that will hold them exists.
+   🔑 THAT ROUND TRIP COST ONE LINE, and only because the cut UNLISTED them instead of
+   deleting them: the art stayed in icons/ and in index.json and the glyphs stayed in
+   GLYPH, so both directions are this list. Screens off is the one that really went.
+   ⚠️ A saved reminder that is not in this list falls back to Off (see REMSET below), so
+   editing it can never strand a phone on a choice with no tile. */
 const REMINDERS=[
   ['off','Off'],['goodjob','Good job'],['youdidit','You did it'],['hooray','Hooray'],
   ['love','Love you'],['shoes','Shoes on'],['socks','Get dressed'],
   ['bath','Bath time'],['bed','Bedtime'],['tidy','Clean up'],
-  ['teeth','Brush teeth'],['eat','Time to eat'],['screenoff','Screens off'],
+  ['teeth','Brush teeth'],['eat','Time to eat'],
 ];
+/* ⚠️ A SAVED REMINDER THAT IS NO LONGER A CHOICE FALLS BACK TO OFF. Andjroo took
+   'screenoff' out on 2026-09-17 ("fully remove the screen time one, I'll add that back
+   in where I want it"), and a phone that had it chosen keeps it in localStorage: the
+   sheet would draw no ticked tile while the bubble rode the egg carrying a choice the
+   kid could not see or change. Its voice line, sfx/say-screenoff.mp3, stays on disk for
+   when it comes back. */
+/* ⚠️ AFTER the list, not beside the load. The saved state is merged 60 lines above this
+   and REMINDERS is a `const`, so normalising up there reads it inside its own temporal
+   dead zone and the whole page dies on a ReferenceError. Nothing has painted yet here. */
+const REMSET=new Set(REMINDERS.map(r=>r[0]));
+if(!REMSET.has(S.reminder))S.reminder='off';
 /* Andjroo, 2026-07-31: "add a 'no music' option at the end" meant ADD ONE — the END
    LANE had no way out at all, only the during lane did. Read as a position instead, it
    moved the during lane's opt-out to last, and he corrected it: "the no music part
    should be the first thing on the sounds page." Off is the first choice in both
    lanes now, the way Off is the first tile on the reminder sheet. */
-const DURING=[['none','No music'],['lullaby','Lullaby'],['bounce','Bouncy'],['space','Floaty'],['clock','Ticking']];
-const ENDING=[['none','No sound'],['chime','Chime'],['fanfare','Fanfare'],['bell','Bell'],['cheer','Kids cheer'],['pop','Pop']];
+const DURING=[['none','No music'],['lullaby','Lullaby'],['bounce','Bouncy'],['space','Floaty'],['clock','Ticking'],
+              ['cozy','Cozy'],['ocean','Ocean'],['robot','Robot'],['dragon','Dragon']];
+/* ⚠️ NO "Kids cheer" TILE. It was on this sheet with no file behind it (END_SRC has no
+   `cheer` on purpose: the cheer is what the hatch DOES, not a sting you pick), so tapping
+   it previewed silence while every other tile sounded, and a kid who chose it got the same
+   ending as everyone else. Andjroo, 2026-09-18: "the kids' cheer is not working, so if it
+   doesn't work, we just need to remove it." A saved 'cheer' falls back to No sound below. */
+const ENDING=[['none','No sound'],['chime','Chime'],['fanfare','Fanfare'],['bell','Bell'],['pop','Pop'],
+              ['rocket','Rocket'],['roar','Roar']];
+if(!ENDING.some(([k])=>k===S.end))S.end='none';   // 'cheer' was a tile until 2026-09-18; after the const, not before it
 /* which cracks the app rolls between. ⚠️ ASK THE RIG, never write the list down.
    This was `[1,2,3,4,5]` and the set became four on 2026-08-22: rollFrom() kept
    offering 5, setPattern(5) refused it, rollPattern() returned null WITHOUT
@@ -1023,7 +1296,14 @@ const rigFrame=$('rig');
    back out and stamps its OWN art with it (see wiggle.html), so one token from
    the server versions every byte under /kid/timer/. */
 rigFrame.src='wiggle.html?embed=1&v='+encodeURIComponent(VER);
-let RIG=null, GEO={stage:{w:720,h:560}, egg:{x:179,y:70,w:362,h:432}, ring:{x:360,y:280,r:262}};
+/* ⚠️ THE FALLBACK IS THE RIVE RIG'S OWN GEOMETRY (RIG.geom(), 2026-09-18), not the old
+   canvas egg's. layout() runs once at boot from this and again when the rig hooks from
+   the real thing; with the canvas numbers (ring r 262 against 316.8) the second pass
+   shrank the whole rig by 17% over #rigWrap's .52s transition, and because the cover
+   lifts on the rig's first frame, the egg was seen shrinking as it faded in. Every
+   load. Matching numbers make the second pass a no-op; body.live (see reveal) makes
+   sure nothing animates under the cover either way. */
+let RIG=null, GEO={stage:{w:720,h:560}, egg:{x:262.76,y:201.48,w:194.48,h:230.88}, ring:{x:360,y:316.92,r:316.8}};
 let heroes=[];
 /* ⚠️ THE HOST CAN SPEAK BEFORE THE RIG EXISTS. `init` arrives as soon as the host
    sees this document, and hooking window.RIG is a poll against an iframe that is
@@ -1031,10 +1311,19 @@ let heroes=[];
    resume. Anything in job mode that touches RIG waits on this instead of assuming. */
 let rigOk; const whenRig=new Promise(r=>{ rigOk=r });
 
-rigFrame.addEventListener('load',()=>{
-  const w=rigFrame.contentWindow;
+/* ⚠️ POLLED FROM NOW, NOT FROM THE FRAME'S LOAD EVENT. The rig publishes window.RIG
+   at the end of its boot wave, and its load event fires only when every image it has
+   started has landed: the second wave (thirty face parts, the crack sprites) begins
+   before that, so `load` trails RIG by the whole of it. Measured 2026-09-18 at 4x CPU:
+   the egg was drawn at 1.25s and this hook, waiting on `load`, ran at 2.45s, which is
+   where the cover sat for that second. Same-origin, so the poll can read the window
+   before the document is even there; an about:blank has no RIG and the poll goes on. */
+{
+  let hooked=false;
   const tryHook=()=>{
-    if(w.RIG){ RIG=w.RIG; GEO=RIG.geom(); heroes=RIG.heroes();
+    if(hooked)return;
+    const w=rigFrame.contentWindow;
+    if(w&&w.RIG){ hooked=true; RIG=w.RIG; GEO=RIG.geom(); heroes=RIG.heroes();
       $('dvBuild').textContent=BUILD+' · '+RIG.build;
       /* ⚠️ `heroes` is the DRAWN roster, read once, here. The kid's photos are
          pushed into the rig straight after, so re-reading RIG.heroes() later would
@@ -1057,7 +1346,8 @@ rigFrame.addEventListener('load',()=>{
          on this and the cover comes off an empty canvas. onInk fires on the first
          frame that actually painted. Older rigs have no onInk; treat those as ready
          rather than holding the cover to the cap. */
-      RIG.onInk?RIG.onInk(eggInk):eggInk();
+      const inked=()=>{ $('rigWrap').classList.add('ink'); eggInk() };
+      RIG.onInk?RIG.onInk(inked):inked();
       /* ⚠️ AND THE HEAVY ART STARTS ONLY AFTER WE HAVE ARRIVED. 2.2MB of patterns
          and characters used to load the instant the rig's own second wave resolved,
          which is still inside this screen's load — it is what made a 96KB background
@@ -1067,7 +1357,7 @@ rigFrame.addEventListener('load',()=>{
     else setTimeout(tryHook,60);
   };
   tryHook();
-});
+}
 
 /* ---------- layout: every number here is a share of the phone, not a pixel ----------
    The two egg positions are computed from what the rig MEASURES (RIG.geom()), so a
@@ -1077,18 +1367,29 @@ function layout(){
   const W=$('app').clientWidth, H=$('app').clientHeight;
   L.W=W; L.H=H;
   L.cx=W/2;
-  L.badgeR=Math.min(W*.44, H*.21);
-  L.badgeY=H*.35;
-  // the egg on the set screen: the ref's egg is ~77% of the width, centred at 35%
-  /* ⚠️ JOB MODE MOVES THE EGG DOWN AND IN, and it has to. At .35 with a .44 height the
-     shell's top edge lands ~110px down a 844px phone, and the mutes and the host's back
-     chevron already live in most of that — so a card above the egg had about 60px to
-     exist in and needs half as much again. This is the one number that buys the space
-     the card is meant to occupy; everything else on the screen is placed off H. */
-  const jobRoom=JOB?.88:1;
-  L.setEggH=Math.min(H*.44*jobRoom, W*.95*(GEO.egg.h/GEO.egg.w));
-  L.setEggW=L.setEggH*(GEO.egg.w/GEO.egg.h);
-  L.setEggY=JOB?H*.43:H*.35;
+  /* ---------- THE PLATE TAKES THE WHOLE BAND ----------
+     Andjroo, 2026-09-15: "the time picker versus the hexagon ... the hexagon should be way
+     bigger." It is the hero of the screen, so it is not a share of anything: the card's
+     box is decided first, the capsule is measured where it really is (env() is 0 in every
+     headless render and ~47px on his phone), and the plate fills what is left between
+     them. Everything else follows, because the rig is scaled by badgeR and the egg is
+     drawn inside the plate: a bigger plate is a bigger egg.
+     ⚠️ THE CAP IS ON THE DRAWN HEXAGON, NOT THE CANVAS. The hexagon is 383.6 of the
+     artboard's 430, so a canvas capped at the column width draws a hexagon with a 21px
+     gutter either side and looks small for no reason. Capping the hexagon at W-12
+     instead is the same picture 16% bigger.
+     ⚠️ Sizing it off W alone is what put it ON the card (his "This is over the hex"):
+     the card's top is a share of H. Both constraints, always. */
+  cardBox(W,H);
+  const appT=$('app').getBoundingClientRect().top;
+  L.trayBot=$('tray').getBoundingClientRect().bottom-appT;
+  const bandT=L.trayBot+8, bandB=L.cardTop-12;
+  const pw=Math.min((W-12)*430/383.6, (bandB-bandT)*430/400);
+  L.badgeR=pw/2.136;
+  L.badgeY=(bandT+bandB)/2;
+  /* ONE egg position. The set screen used to draw the egg big (.44 of H) with the dial
+     on its shell and shrink it into the badge on Start; since 2026-09-15 the plate
+     frames it at the badge from the first frame, and Start moves nothing. */
 
   /* ⚠️ THE COLUMN'S OWN OFFSET, because the background is not in the column.
      #bgImg and #conf are fixed to the VIEWPORT (see their CSS) while every number
@@ -1101,23 +1402,25 @@ function layout(){
   const SW=$('bgImg').clientWidth||W, SH=$('bgImg').clientHeight||H;
   const SX=Math.round((SW-W)/2);
 
-  // scene clip: wide open on set, the badge on run/hatch
-  const set=document.body.classList.contains('set');
   // ⚠️ the FULL screen's diagonal, not the column's, or the corners stay unpainted
-  $('bgImg').style.setProperty('--clipR', set? Math.hypot(SW,SH)+'px' : L.badgeR+'px');
+  // the scene is full-bleed on every screen (the plate is the frame, not a disc)
+  $('bgImg').style.setProperty('--clipR', Math.hypot(SW,SH)+'px');
   $('bgImg').style.setProperty('--clipX', (SX+L.cx)+'px');
-  $('bgImg').style.setProperty('--clipY', (set? SH/2 : L.badgeY)+'px');
+  $('bgImg').style.setProperty('--clipY', L.badgeY+'px');
 
-  // the rig itself: scale + place so the right thing lands in the right spot
-  let k,tx,ty;
-  if(set){ k=L.setEggH/GEO.egg.h;
-           tx=L.cx-(GEO.egg.x+GEO.egg.w/2)*k; ty=L.setEggY-(GEO.egg.y+GEO.egg.h/2)*k }
-  else   { k=L.badgeR/GEO.ring.r;
-           tx=L.cx-GEO.ring.x*k;              ty=L.badgeY-GEO.ring.y*k }
+  // the rig itself: scale + place so the ring lands on the badge
+  const k=L.badgeR/GEO.ring.r;
+  const tx=L.cx-GEO.ring.x*k, ty=L.badgeY-GEO.ring.y*k;
   const rw=$('rigWrap');
   rw.style.left=tx+'px'; rw.style.top=ty+'px';
   rw.style.width=(720*k)+'px'; rw.style.height=(560*k)+'px';
 
+  /* the plate: the band's own size (see above), centred on the egg; its artboard is
+     430x400 and the drawn hexagon 383.6x342 inside it, so the tunnel's inner edge (R 143)
+     frames the egg with room for the face and the wobble */
+  const pl=$('plate'), ph=pw*400/430;
+  pl.style.cssText+=`;left:${L.cx-pw/2}px;top:${L.badgeY-ph/2}px;width:${pw}px;height:${ph}px`;
+  if(PLATE)PLATE.r.resizeDrawingSurfaceToCanvas();
   const rim=$('badgeRim');
   rim.style.cssText+=`;left:${L.cx-L.badgeR}px;top:${L.badgeY-L.badgeR}px;
                       width:${L.badgeR*2}px;height:${L.badgeR*2}px`;
@@ -1125,7 +1428,7 @@ function layout(){
   const cf=$('conf');
   cf.style.cssText+=`;left:0;top:0;width:${SW}px;height:${SH}px`;
 
-  layoutSet(W,H); layoutRun(W,H); placePie();
+  layoutRun(W,H); layoutSet(W,H); placePie();   // run first: the set card takes its box
 }
 
 /* How far a text element's INK sits from the centre of its own box, in css px.
@@ -1142,70 +1445,17 @@ function inkShift(el){
 }
 
 function layoutSet(W,H){
-  const eggT=L.setEggY-L.setEggH/2, eh=L.setEggH;
-  const d=$('dial');
-  d.style.cssText+=`;left:0;right:0;top:${eggT+eh*.20}px`;
-  $('dialTitle').style.fontSize=Math.round(eh*.105)+'px';
-  /* ⚠️ A JOB'S NAME IS NOT "Set Timer". #dial is pinned left:0/right:0 so the title
-     can centre on the phone, and a two-word label never noticed — but "Put your
-     laundry away" inherited that full width and ran clean off both sides of the egg,
-     with the emoji pushed past the screen edge. The title belongs INSIDE the egg it
-     is written on, so in job mode it is measured against the egg and not the phone:
-     narrower, a size down, and clamped to two lines rather than growing until it
-     pushes the time out of the shell. */
-  if(JOB){
-    const tw=Math.round(L.setEggW*.80);
-    $('dialTitle').style.cssText+=`;font-size:${Math.round(eh*.082)}px;max-width:${tw}px;
-       margin:0 auto;line-height:1.12;display:-webkit-box;-webkit-line-clamp:2;
-       -webkit-box-orient:vertical;overflow:hidden`;
-  }
-
-  const rowH=Math.round(eh*.125), colW=Math.round(L.setEggW*.30);
-  $('cols').style.marginTop=Math.round(eh*.03)+'px';
-  /* JOB MODE: the card sits in the gap above the shell, its triangle just touching the
-     top of the egg. Measured AFTER it has its content — the card is two lines for a
-     long job title and one for a short one, and it has to hang off the egg either way
-     rather than off a guessed height. */
-  if(JOB){
-    const card=$('jobCard');
-    /* ⚠️ SCALED TO THE PHONE, like everything else on this screen. The vendored tooltip
-       is a fixed 14px card built for a desktop wallet; dropped in at that size next to a
-       320px egg and a 40px clock it reads as a footnote. The component's PROPORTIONS are
-       what carry the style — padding, radius and the arrow all stay in ratio to the text
-       exactly as tooltip.css has them — while the text itself comes off the egg, which is
-       the one thing on this screen every other size is derived from. */
-    /* ⚠️ TUNED AGAINST THE CHEVRON, not by eye. The card is anchored to the egg and
-       grows UPWARD, so its type size decides how far up it climbs — and the host's back
-       chevron ends at 58px. At .085 (28px) a two-line title put the card's top at y=11,
-       clean through it. At the first attempt's flat 14px it read as a footnote next to a
-       320px egg and a 60px clock. This sits between the two and keeps a two-line card
-       clear of the chevron at both phone widths. */
-    const fs=Math.round(clamp(eh*.062,15,22));
-    $('jobName').style.fontSize=fs+'px';
-    $('jobTime').style.fontSize=Math.round(fs*.88)+'px';
-    for(const id of ['jobIcon','jobEmoji']) $(id).style.cssText+=
-      `;width:${Math.round(fs*2)}px;height:${Math.round(fs*2)}px;font-size:${Math.round(fs*1.5)}px`;
-    $('jobCardBox').style.cssText+=`;gap:${Math.round(fs*.7)}px;
-       padding:${Math.round(fs*.75)}px ${Math.round(fs*.95)}px;
-       border-radius:${Math.round(fs*.42)}px`;
-    $('jobArrow').style.cssText+=`;width:${Math.round(fs*1.3)}px;height:${Math.round(fs*1.15)}px`;
-    /* ⚠️ ANCHORED BY ITS BOTTOM, 10px clear of the shell — NOT by a top computed from a
-       measured height. Measuring is a race this screen loses: layout() runs when `init`
-       arrives, the icon is an <img> that has not loaded yet, and the card is two lines
-       shorter than it will be. Positioning its top off that height then let it GROW
-       DOWNWARD onto the egg the moment the icon landed — a wrong position that only
-       appears on the frame after the one you are looking at. Anchored at the bottom it
-       grows upward, into the empty space that is there for it, and no measurement or
-       reload hook is involved.
-       ⚠️ The mutes are NOT a constraint above it: `body.set #mutes{display:none}`. The
-       host's back chevron is (safe-area + 14px, 44px tall, at left:16), and the name is
-       clamped to two lines so the card cannot climb into it. */
-    /* ⚠️ Only the BOTTOM is set here. The top is a CSS floor carrying env() (see the
-       rule), because the inset is not knowable to script — writing a top from JS would
-       silently drop the one constraint that only exists on a real device. */
-    card.style.cssText+=`;bottom:${Math.round(H-(eggT-10))}px`;
-  }
-  for(const h of ['hMin','hSec']) $(h).style.cssText+=`;font-size:${Math.round(eh*.062)}px;width:${colW}px`;
+  /* THE SET CARD IS THE RUN CARD'S BOX, and the box is sized off THIS screen's contents
+     (cardBox): a head, three picker rows, then the pill's slot. Start sits at the pause/stop
+     pill's own top and size, so Start swaps the card's contents and nothing on the screen
+     moves, on every phone shape (tools/eggtimer-setcard.py). */
+  const {rowH, headH, pad}=L, pillTop=L.pillTop-L.cardTop;
+  const colW=Math.round(clamp(L.cardW*.30,76,100));
+  $('setCard').style.cssText+=`;top:${L.cardTop}px;height:${L.cardH}px;left:${L.cardL}px;width:${L.cardW}px;padding-top:${pad.t}px`;
+  /* the head's text sits in the top 20 of its slot; the rule takes the bottom, with 4px of
+     air either side of it (2 above, 2 + the row's own top padding below) */
+  for(const h of ['hMin','hSec']) $(h).style.cssText+=`;font-size:${Math.round(rowH*.6)}px;width:${colW}px;height:${headH}px;line-height:${headH-10}px`;
+  $('cols').style.setProperty('--rule',(headH-6)+'px');
   for(const c of ['colMin','colSec']){
     const el=$(c);
     el.style.cssText+=`;width:${colW}px;height:${rowH*3}px;padding:${rowH}px 0`;
@@ -1229,7 +1479,6 @@ function layoutSet(W,H){
      resolves to SF Pro Rounded there and to something else in a headless render, with
      a different ink box. A Range over the text is the browser telling us where it
      actually drew, and it tracked the rendered pixels to 0.32px. */
-  const headH=$('hMin').offsetHeight||Math.round(eh*.08);
   const rowInk=inkShift($('colMin').querySelector('.n'));
   $('band').style.cssText+=`;top:${headH+rowH+rowInk}px;height:${rowH}px`;
   /* the colon lands its OWN ink on the line the digits' ink sits on — it is smaller
@@ -1237,51 +1486,120 @@ function layoutSet(W,H){
   $('colon').style.cssText+=`;top:${headH+rowH*1.5+rowInk}px;font-size:${Math.round(rowH*.7)}px`;
   $('colon').style.top=(headH+rowH*1.5+rowInk-inkShift($('colon')))+'px';
 
-  // the bubble's art is 100 wide but its disc is only 64 of that, so the box is
-  // scaled off the disc — otherwise the tail's overhang shrinks the + itself
-  /* ⚠️ THE SHOULDER, BUT ON SCREEN. The bubble is placed off the egg's own width, and
-     the egg is as wide as the phone lets it be — so on a 360px phone the shoulder is
-     already past the right edge and the bubble hung 6px off it. (4px of that predates
-     the geom fix; reading the DRAWN curve made the egg 2% wider for the same height,
-     which pushed it the rest of the way.) `right` is not a taste margin, it is where
-     the mutes sit, so the bubble stops on the same line the rest of the chrome does. */
-  const pw=Math.round(Math.min(92,L.setEggW*.31));
-  const px=Math.min(L.cx+L.setEggW*.30, W-14-pw);
-  $('plus').style.cssText+=`;width:${pw}px;height:${pw}px;
-      left:${px}px;top:${eggT-eh*.02}px`;
+  /* JOB MODE: the job's row in the picker's place, sized off the phone like the rest
+     of the card. The tooltip is a fixed 14px component built for a desktop wallet;
+     next to a 66px count it reads as a footnote, so the type comes up while padding,
+     radius and gap stay in the component's ratio to it. */
+  if(JOB){
+    const fs=Math.round(clamp(H*.022,15,20));
+    $('jobName').style.fontSize=fs+'px';
+    $('jobTime').style.fontSize=Math.round(fs*.88)+'px';
+    for(const id of ['jobIcon','jobEmoji']) $(id).style.cssText+=
+      `;width:${Math.round(fs*2)}px;height:${Math.round(fs*2)}px;font-size:${Math.round(fs*1.5)}px`;
+    $('jobCardBox').style.cssText+=`;gap:${Math.round(fs*.7)}px;
+       padding:${Math.round(fs*.75)}px ${Math.round(fs*.95)}px;
+       border-radius:${Math.round(fs*.42)}px`;
+    /* the row stands where three picker rows would */
+    $('jobCard').style.cssText+=`;min-height:${headH+rowH*3}px;align-items:center`;
+  }
 
-  const sh=Math.round(Math.min(76,H*.09));
-  $('start').style.cssText+=`;top:${H*.69-sh/2}px;height:${sh}px;font-size:${Math.round(sh*.52)}px`;
+  // Start: the pill's slot, the pill's size
+  $('start').style.cssText+=`;top:${pillTop}px;width:${L.pillW*2}px;height:${L.pillH}px;font-size:${Math.round(L.pillH*.5)}px`;
+}
 
-  const tb=Math.round(Math.min(64,W*.165));
-  $('tray').style.cssText+=`;top:${H*.88-tb/2}px;gap:${Math.round(tb*.42)}px`;
-  document.querySelectorAll('.trayb').forEach(b=>{ b.style.width=tb+'px'; b.style.height=tb+'px' });
+/* The white card's box, shared by the set and run screens: the count's size decides the
+   top, the pill's size the bottom. Computed before the plate so the plate can clear it.
+   The countdown row is sized from what is left, not from a chosen number. With the pie
+   beside the clock there is ~60px less to spend, so the digits come down a size — that
+   trade is real and it is the reason to look at all three. */
+/* ---------- THE CARD'S BOX ----------
+   Andjroo, 2026-09-15: "the [time] selection is still really big. It should be smaller."
+   The card used to be two anchors on H (.665 for the count, .845 for the pill) with
+   padding either side, which made it 279px of an 844px phone, a third of the screen. Its
+   height is its CONTENTS now, and the tallest contents are the set screen's: a head, three
+   picker rows, and the pill's slot. The run screen puts its count in the same space the
+   picker takes, so one box serves both and neither screen can drift from the other.
+   The card is anchored at the BOTTOM, a thumb's width off the edge, and the plate takes
+   everything above it. */
+function cardBox(W,H){
+  /* ⚠️ ONE PILL SIZES FOUR BUTTONS. Start, pause, stop and Done all take this slot, so
+     this line is the only place any of their sizes is decided — and a change here also
+     changes the card's height, because the card is its contents.
+     Andjroo, 2026-09-17, off the board: "let me see the original but with a smaller start
+     button", then picked a third off the whole pill (152x48 at 390x844, down from 224x70).
+     The scale is folded into the numbers rather than applied as a factor: .083*.68 = .0564,
+     54*.68 = 37, 72*.68 = 49, 112*.68 = 76, .30*.68 = .204, which is the same result at
+     every shape and leaves one number per thing. The plate does NOT grow into the space it
+     frees (it is capped on the badge), so what widens is the gap under the hexagon:
+     56px to 67px at 390x844. */
+  const pillH=Math.round(clamp(H*.0564,37,49)), pillW=Math.round(Math.min(76,W*.204));
+  const rowH=Math.round(clamp(H*.038,26,32));
+  /* the two nudges beside the count. Andjroo, 2026-09-17, once the pill under them came
+     down to 48: 45 read as the same size as the transport, so they are a sixth smaller
+     (46*.84=38.6, .115*.84=.0966) and the count takes the room, 51px up to its 56 cap.
+     ⚠️ 36px IS THE FLOOR: nq lint fails a tap target under it, and the 32 rung on the
+     board was under the line. The 24px glyph inside does NOT scale with this; it is 24
+     of 38 in the render he picked. */
+  const st=Math.round(Math.min(38.6,W*.0966));
+  const gap=Math.round(W*.045);
+  /* ⚠️ THE CARD IS AS WIDE AS ITS CONTENTS, NOT THE COLUMN. Andjroo, 2026-09-16: "if we
+     could maybe reduce the side space, the white, maybe that would help." A white slab
+     running the full width under a hexagon reads as a different kind of object; a plate
+     the width of the pill it holds reads as the hexagon's little brother. */
+  const cardW=Math.round(clamp(W*.76,272,340));
+  /* the count fills what the picker's three rows leave, so it stays the biggest number on
+     the screen without setting the height of anything. Its WIDTH is fitted to the card in
+     layoutRun, by measuring, because the card is no longer as wide as the phone. */
+  const cs=Math.round(clamp(H*.066,40,58));
+  /* ⚠️ pad.b IS WHAT THE PRESS LANDS ON. A lip button drops its face the whole lip (8px)
+     onto its own side, so with 16 below the pill the pressed face sat 8px off the card's
+     bottom edge and read as resting on it (Andjroo, 2026-09-18: "it lands on the bottom edge
+     of the card, which doesn't make it seem pressed, it makes it seem like it's not
+     floating"). 24 leaves 16 under the face pressed, and 16 under the lip at rest. */
+  const pad={t:12,g:12,b:24}, headH=30;   // the head, its air, and the rule under it (was 18)
+  const cardH=pad.t+headH+rowH*3+pad.g+pillH+pad.b;
+  const cardBot=H-Math.round(clamp(H*.072,44,64));
+  const cardTop=cardBot-cardH;
+  Object.assign(L,{clockSize:cs, clockGap:gap, stepSize:st, pillW, pillH, rowH, headH, pad,
+                   cardTop, cardBot, cardH, cardW, cardL:Math.round((W-cardW)/2),
+                   pillTop:cardBot-pad.b-pillH,
+                   rowMid:(cardTop+pad.t+(cardBot-pad.b-pillH-pad.g))/2});
 }
 
 function layoutRun(W,H){
-  /* The countdown row is sized from what is left, not from a chosen number. With
-     the pie beside the clock there is ~60px less to spend, so the digits come down
-     a size — that trade is real and it is the reason to look at all three. */
-  const inRow=(S.pie==='clock' && !S.pieXY);
-  const pieW=inRow?Math.round(Math.min(62,W*.16)):0;
-  const gap=Math.round(inRow?W*.028:W*.045);
-  const st=Math.round(Math.min(inRow?42:50,W*.125));
-  const room=W-28-pieW-st*2-gap*(inRow?4:2);
-  const cs=Math.round(clamp(room/3.05, 42, Math.min(66,W*.17)));
-  $('clockRow').style.cssText+=`;top:${H*.665-cs*.7}px;gap:${gap}px`;
-  $('clock').style.fontSize=cs+'px';
+  const {clockGap:gap, stepSize:st, pillW:cw, pillH:ch}=L;
+  let cs=L.clockSize;
+  // the count sits in the middle of what the picker takes on the other screen, and INSIDE
+  // the card: the row is bounded by the card, never by the phone
+  $('clockRow').style.cssText+=`;left:${L.cardL}px;right:auto;width:${L.cardW}px;top:${L.rowMid-cs*.7}px;gap:${gap}px`;
   document.querySelectorAll('.step').forEach(b=>{ b.style.width=st+'px'; b.style.height=st+'px' });
+  /* ⚠️ MEASURED, NOT PREDICTED. `00:00` is not a fixed fraction of its font size: the stack
+     resolves to SF Pro Rounded on Andjroo's phone and to something else in a headless render,
+     with different digit widths. A constant em guess put the two nudges half outside a
+     narrower card. Set the size, read what the browser drew, and come down if it does not
+     fit — one reflow, in a layout that is already reading offsetHeight. */
+  const room=L.cardW-24-st*2-gap*2;
+  $('clock').style.fontSize=cs+'px';
+  const w=$('clock').offsetWidth;
+  if(w>room){ cs=Math.max(28,Math.floor(cs*room/w)); $('clock').style.fontSize=cs+'px' }
+  L.clockFit=cs;
 
-  const cw=Math.round(Math.min(112,W*.30)), ch=Math.round(cw*.72);
-  $('runCtl').style.cssText+=`;top:${H*.845-ch/2}px`;
-  document.querySelectorAll('.ctl').forEach(b=>{ b.style.width=cw+'px'; b.style.height=ch+'px' });
-  $('done').style.cssText+=`;top:${H*.845-ch/2}px;height:${ch}px;font-size:${Math.round(ch*.52)}px`;
-  /* JOB MODE: the same box as the hatch's Done, one screen earlier. Sized off ch like
-     Done rather than off the set screen's `sh`, because it sits at .845 with Done and
-     not at .69 with Start — the slot decides the size, not the role. */
-  $('btnJobDone').style.cssText+=`;top:${H*.845-ch/2}px;height:${ch}px;font-size:${Math.round(ch*.52)}px`;
-  $('hatchClock').style.cssText+=`;position:absolute;left:0;right:0;text-align:center;
-     top:${H*.665-cs*.7}px;font-size:${cs}px;font-weight:800;color:var(--ink);
+  $('runCtl').style.cssText+=`;top:${L.pillTop}px`;
+  /* ⚠️ THE GLYPH RIDES THE PILL. It was a hard 40px in the markup, which was 40 of a 70
+     pill; the same 40 in the 48 pill Andjroo picked on 2026-09-17 is 83% of its height and
+     reads as a different, chunkier button. The ratio he has been looking at all along is
+     the constant, not the pixel count. */
+  document.querySelectorAll('.ctl').forEach(b=>{ b.style.width=cw+'px'; b.style.height=ch+'px';
+    const g=b.querySelector('svg'); if(g){ const s=Math.round(ch*.571);
+      g.setAttribute('width',s); g.setAttribute('height',s) } });
+  /* Done and I'm done take the SAME slot as the pill, on their own screens: the slot
+     decides the size, not the role. */
+  for(const id of ['done','btnJobDone'])
+    $(id).style.cssText+=`;top:${L.pillTop}px;width:${cw*2}px;height:${ch}px;font-size:${Math.round(ch*.52)}px`;
+  for(const id of ['runCard','hatchCard'])
+    $(id).style.cssText+=`;top:${L.cardTop}px;height:${L.cardH}px;left:${L.cardL}px;width:${L.cardW}px`;
+  $('hatchClock').style.cssText+=`;position:absolute;left:0;right:0;text-align:center;z-index:4;
+     top:${L.rowMid-cs*.7}px;font-size:${cs}px;font-weight:800;color:var(--ink);
      font-variant-numeric:tabular-nums;letter-spacing:-1px`;
 
   /* ---------- the reminder, still on screen while the clock runs ----------
@@ -1295,26 +1613,14 @@ function layoutRun(W,H){
      screen too — the shoulder, not the corner. */
   const pw=Math.round(clamp(L.badgeR*.46,44,76));
   const pr=L.badgeR+14+pw*.44;
+  /* ⚠️ IT STOPS AT THE CAPSULE, and the capsule's real position is the only thing that
+     can say where that is: its top carries `env(safe-area-inset-top)`, which is 0 in every
+     headless render and ~47px on Andjroo's phone — so a shoulder that clears it here slid
+     straight under it there (Andjroo, 2026-09-15: "the plus is underneath the other stuff").
+     Measured, not predicted. */
   $('plus').style.cssText+=`;width:${pw}px;height:${pw}px;
       left:${Math.min(L.cx+pr*.72-pw*.50, W-10-pw)}px;
-      top:${L.badgeY-pr*.72-pw*.44}px`;
-
-  for(const [id,on] of [['mMusic',S.muteMusic],['mBell',S.muteBell]]) drawMute(id,on);
-}
-
-/* the two little icons top right: music first, then the sound at the end */
-function drawMute(id,off){
-  const note=`<path d="M20 3.6 8.6 6v9.2a3.4 3.4 0 1 0 1.8 3V9.1l7.8-1.6v5.3a3.4 3.4 0 1 0 1.8 3z"/>`;
-  const bell=`<path d="M12 2.6a5.6 5.6 0 0 0-5.6 5.6c0 5-2 6.4-2 6.4h15.2s-2-1.4-2-6.4A5.6 5.6 0 0 0 12 2.6z"/>
-              <path d="M13.6 18.6a1.9 1.9 0 0 1-3.2 0"/>`;
-  const body=id==='mMusic'?note:bell;
-  const fill=id==='mMusic'?'#B9BFCB':'none';
-  const cross=off?`<path d="M17.4 17.4l4.4 4.4M21.8 17.4l-4.4 4.4" stroke="#B9BFCB" stroke-width="2.6" stroke-linecap="round" fill="none"/>`:'';
-  $(id).innerHTML=`<svg width="30" height="30" viewBox="0 0 24 26" fill="${fill}"
-     stroke="${id==='mMusic'?'none':(off?'#B9BFCB':'#E9B213')}" stroke-width="1.9"
-     stroke-linejoin="round" stroke-linecap="round">
-     <g fill="${id==='mMusic'?(off?'#B9BFCB':'#B9BFCB'):(off?'none':'#E9B213')}"
-        stroke="${id==='mMusic'?'none':(off?'#B9BFCB':'#E9B213')}">${body}</g>${cross}</svg>`;
+      top:${Math.max(L.trayBot+8, L.badgeY-pr*.72-pw*.44)}px`;
 }
 
 /* ---------- the pie: ours, somewhere theirs is not ----------
@@ -1555,13 +1861,28 @@ const SFX={};
    chosen — see the loop there. Choosing from the sheet also primes immediately, because
    the tap that chose it is itself a gesture. */
 const END_SRC={ chime:'sfx/end-chime.mp3', fanfare:'sfx/end-fanfare.mp3',
-                bell:'sfx/end-bell.mp3', pop:'sfx/end-pop.mp3' };
+                bell:'sfx/end-bell.mp3', pop:'sfx/end-pop.mp3',
+                rocket:'sfx/end-rocket.mp3', roar:'sfx/end-roar.mp3' };
+/* Cozy, Ocean, Robot and Dragon joined 2026-09-18 (Suno loops like the three below, ~30s,
+   -25 LUFS); Ocean and Dragon are named for the art packs a kid can pick. Rocket and Roar are
+   Suno "Sounds" one-shots trimmed to 2.5s at -17 LUFS, the level the four older stings sit at. */
 /* lullaby, bounce and space are Suno loops since 2026-09-17 (about 30s each, -25 LUFS,
    picked over the ElevenLabs originals on an A/B); clock is still the ElevenLabs file.
    Recipe: tools/sound/gen-timer-sounds.py, the DURING note. BUILD above was bumped with
    them, which is what makes a cached copy of the old bed let go. */
 const BED_SRC={ lullaby:'sfx/bed-lullaby.mp3', bounce:'sfx/bed-bounce.mp3',
-                space:'sfx/bed-space.mp3', clock:'sfx/bed-clock.mp3' };
+                space:'sfx/bed-space.mp3', clock:'sfx/bed-clock.mp3',
+                cozy:'sfx/bed-cozy.mp3', ocean:'sfx/bed-ocean.mp3',
+                robot:'sfx/bed-robot.mp3', dragon:'sfx/bed-dragon.mp3' };
+/* ⚠️ THE VOICE IS BACK, AND THE CREEPY PART HAD A NAME. Andjroo, 2026-09-17: "it says
+   both what it's describing and the emotion behind it." It did: the twelve lines were made
+   on eleven_multilingual_v2, which reads "[cheerful]" as a word, so sfx/say-goodjob.mp3
+   transcribed as "Cheerful. Good job". Redone 2026-09-18 on eleven_v3, where the bracket
+   is a delivery cue; every file was transcribed back (scribe_v1) and the tag word is in
+   none of them. Each take is cut after the last voiced sample and faded to zero, because
+   v3 ends its mp3 mid-decay and that lands as a click. Andjroo picked Eva or Tilly per line
+   on an A/B. The choice still rides the egg's shoulder as an icon; the line is what it
+   SAYS when the egg opens, last, after the cheer has cleared. */
 const SAY_SRC={};
 for(const r of ['goodjob','youdidit','hooray','love','shoes','socks',
                 'bath','bed','tidy','teeth','eat','screenoff'])SAY_SRC[r]='sfx/say-'+r+'.mp3';
@@ -1579,11 +1900,33 @@ function clip(src,loop){
 }
 /** Unlock a chosen clip inside whatever gesture is running right now. Same muted
     play-then-pause as sfxPrime, and the same reason: an audible prime is a bug. */
+/* ⚠️ THE UNLOCK MUST NEVER PAUSE A CLIP THAT HAS SINCE BEEN ASKED TO PLAY FOR REAL. This
+   primes an element with a muted play and pauses it when the promise lands, and the
+   promise lands AFTER playback begins. preview() called it and then called play()
+   unmuted in the same tick, so the pause arrived a few ms into the sound the kid had just
+   tapped: the first tap on every sound in a session was silent, the second worked, because
+   `ok` is set once (Andjroo, 2026-09-18: "sometimes it's not working, sometimes it does").
+   The same race sat under Start: sfxPrime primes the bed, beginRun starts it. So a real
+   play marks the element `live`, and a prime that lands on a live element leaves it be. */
+/* ⚠️ `live` IS A MOMENT, NOT A FLAG. The first cut of this marked a clip live for good, and
+   a sound previewed in the sheet was then primed at Start with its pause skipped: the prime
+   unmuted it and let its own play() run, and the end sting played out loud the moment Start
+   was tapped (Andjroo, 2026-09-18: "when the timer ends, it plays when I start the timer and
+   end the timer"). So a real play stamps the clock, and a prime leaves a clip be only when
+   a real play was asked for AFTER the prime began. A clip already playing is not primed. */
 function unlock(a){
   if(!a||a.dataset.ok)return;
-  a.dataset.ok='1'; a.muted=true;
-  a.play().then(()=>{ a.pause(); a.currentTime=0; a.muted=false })
+  a.dataset.ok='1';
+  if(!a.paused)return;                  // already playing for real: it is unlocked
+  const t0=performance.now(); a.muted=true;
+  a.play().then(()=>{ if(+a.dataset.live>=t0){ a.muted=false; return } a.pause(); a.currentTime=0; a.muted=false })
           .catch(()=>{ a.muted=false });
+}
+/** Play a clip for real: unmuted, from the top, stamped so a prime in flight lets it be. */
+function playReal(a){
+  if(!a)return;
+  a.dataset.live=String(performance.now());
+  try{ a.currentTime=0; a.muted=false; a.play().catch(()=>{}) }catch(e){}
 }
 
 /* The bed under a running timer. Started by beginRun, stopped by the hatch — never by the
@@ -1594,14 +1937,13 @@ function bedStart(){
   bedStop();
   if(S.muteMusic)return;
   bed=clip(BED_SRC[S.during],true);
-  if(bed){ try{ bed.currentTime=0; bed.muted=false; bed.play().catch(()=>{}) }catch(e){} }
+  playReal(bed);
 }
 function bedStop(){ if(bed){ try{ bed.pause(); bed.currentTime=0 }catch(e){} bed=null } }
 /** Play a one-shot by url, rewinding first so a repeat inside its own length still fires. */
 function shot(src){
   if(!SOUND_ON)return;
-  const a=clip(src,false); if(!a)return;
-  try{ a.currentTime=0; a.muted=false; a.play().catch(()=>{}) }catch(e){}
+  playReal(clip(src,false));
 }
 
 /* Auditioning from the sheets. Exactly one preview is ever audible: tapping down the list
@@ -1620,13 +1962,27 @@ function preview(src,loop){
   if(!SOUND_ON)return;
   if(!src)return;                       // "Off" is a choice, and it makes no sound
   const a=clip(src,loop); if(!a)return;
-  unlock(a);
   previewing=a;
-  try{ a.currentTime=0; a.muted=false; a.play().catch(()=>{}) }catch(e){}
+  playReal(a);                          // a real play inside a tap IS the unlock
   if(loop)previewTimer=setTimeout(stopPreview,PREVIEW_MS);
+}
+/* ⚠️ MUTED PLAYBACK DOES NOT UNLOCK ANYTHING ON iOS. Muted autoplay is allowed there
+   WITHOUT a gesture, so the silent unlock below buys nothing on the one platform it was
+   written for; what actually unlocks an element is an UNMUTED play inside a real tap,
+   which is what preview() has always done on the sounds sheet and what the reminder
+   tile's voice line was quietly doing until it was removed on 2026-09-17.
+   ⚠️ AND `volume` IS READ-ONLY ON iOS, so "unmuted but silent" cannot be done with the
+   volume property: it has to be a file with no sound in it. 0.25s of digital silence,
+   1.4KB, played unmuted inside the gesture. It cannot leak a whoop because there is
+   nothing in it to leak. */
+const SILENCE='sfx/silence.mp3';
+function unlockSession(){
+  if(!SOUND_ON)return;
+  playReal(clip(SILENCE,false));
 }
 function sfxPrime(){
   if(!SOUND_ON)return;
+  unlockSession();
   for(const [k,src] of Object.entries(SFX_SRC)){
     if(SFX[k])continue;
     const a=new Audio(src+'?v='+encodeURIComponent(VER));
@@ -1655,13 +2011,11 @@ function sfxPlay(k){
      so a second hatch inside the 2s of the cheer would land in silence.
      ⚠️ AND UNMUTE. A prime that was still in flight when the run ended would otherwise
      leave this element muted for its one real moment. */
-  try{ a.currentTime=0; a.muted=false; a.play().catch(()=>{}) }catch(e){}
+  playReal(a);        // stamped live, so a prime still in flight from Start leaves it be
 }
 /* The burst is the end of the hold phase. The cheer answers it 0.2s later, which is the
    same beat the film puts between crack-real and cheer (BURST_F vs BURST_F+6 at 30fps). */
-/* The burst is the end of the hold phase; the cheer answers 0.2s later, the same beat
-   the film puts between crack-real and cheer. SAY_MS clears the cheer's 2.03s tail. */
-const BURST_MS=460, CHEER_MS=660, SAY_MS=2900;
+const BURST_MS=460, CHEER_MS=660, SAY_MS=2900;   // SAY_MS clears the cheer's 2.03s tail
 /* ⚠️ THE POP IS UNTOUCHED. `makeDefaults()` is byte-for-byte the approved rig (rings,
    ticks, colours, speed, life) and stays that way — the only thing overridden is HOW
    MANY of them a burst fires, and that is not a dial, it is the same DENSITY carried
@@ -1710,7 +2064,7 @@ function tick(){
   if(screen==='run'||screen==='hatch'){
     $('clock').textContent=mmss(st.left);
     $('hatchClock').textContent=mmss(st.left);
-    drawPie(st.total?st.left/st.total:0);
+    if(PLATE)PLATE.progress.value=st.total?st.left/st.total:1;   // the tunnel drains with the clock
   }
   // the voices ride the same clock the dial does, and only while it is really running
   if(screen==='run'&&!hatched&&!st.breaking)countdownTick(st.left);
@@ -1736,7 +2090,7 @@ function tick(){
       if(END_SRC[S.end])setTimeout(()=>shot(END_SRC[S.end]),BURST_MS);
       /* ⚠️ THE REMINDER WAITS FOR THE ROOM TO CLEAR. The cheer starts at 660ms and runs
          2.03s, so anything before ~2.7s is spoken over children shouting and is simply
-         lost. This is the "what next" line — it only works if it is the last thing said. */
+         lost. This is the "what next" line; it only works if it is the last thing said. */
       if(SAY_SRC[S.reminder])setTimeout(()=>shot(SAY_SRC[S.reminder]),SAY_MS);
     }
     setTimeout(()=>conf.celebrate({burstPops:burstPops()}),420);
@@ -1839,7 +2193,9 @@ function beginRun(secs){
   /* `said` alongside `hatched`: both are per-run state, and a second run of the same
      length would otherwise start with the previous run's "one" still latched and count
      from four. */
-  hatched=false; said=0; conf.clear(); bedStart();
+  /* a sting still playing from the sheet is not part of the run: Start silences it,
+     so the only thing under a fresh countdown is its bed */
+  hatched=false; said=0; conf.clear(); stopPreview(); bedStart();
   /* ⚠️ Both rolls happen HERE, before go(). setPattern() re-cuts the halves and
      re-derives the landed pose, and the landing is framed off the CHARACTER's width
      (the gap is the hole it left) — so the character has to be settled before the
@@ -1848,14 +2204,30 @@ function beginRun(secs){
   go('run'); RIG.go(secs);
 }
 let paused=false;
-$('btnPause').onclick=()=>{
-  paused=!paused;
+/* the flag, the rig and the glyph are one state: three call sites set it and the glyph
+   used to be written at only one of them, so a stop taken while paused left a play
+   triangle on the button for the next run. */
+function setPaused(v){
+  paused=v;
   if(paused)RIG.pause(); else RIG.resume();
   $('icPause').innerHTML = paused
     ? `<path d="M7.4 4.9a1 1 0 0 1 1.5-.86l9.2 6.1a1 1 0 0 1 0 1.72l-9.2 6.1a1 1 0 0 1-1.5-.86z"/>`
     : `<rect x="6.4" y="4.6" width="4.2" height="14.8" rx="1.6"/><rect x="13.4" y="4.6" width="4.2" height="14.8" rx="1.6"/>`;
+}
+$('btnPause').onclick=()=>setPaused(!paused);
+/* ⚠️ STOP CRACKS THE EGG. Andjroo, 2026-09-17: "when somebody presses the pause versus the
+   stop button, the stop should automatically crack the egg." It used to rewind the rig and
+   drop back to the set screen, which made it the one button on this screen that ends in
+   nothing happening: the kid who waits gets the hatch and the kid who is done gets a form.
+   It is the move the job's "I'm done!" already makes, and tick() carries it to the hatch
+   when the break starts, so both kids travel the same last few seconds.
+   ⚠️ The confetti is NOT cleared here any more: it was, because this went back to a screen
+   that should be empty, and the screen it goes to now is the one the confetti is for. */
+$('btnStop').onclick=()=>{
+  if(!RIG||hatched)return;
+  if(paused)setPaused(false);        // hatchNow lifts the rig's own freeze, not this flag
+  RIG.hatchNow();
 };
-$('btnStop').onclick=()=>{ paused=false; conf.clear(); RIG.reset(); go('set') };
 /* JOB MODE: "I'm done!" before the clock. It does not report anything itself — it
    breaks the egg, and tick() reports the finish when the break starts, so the kid who
    waits and the kid who taps travel the same last few lines. */
@@ -1934,8 +2306,15 @@ if(JOB){
   });
   post('ready');
 }
-$('mMusic').onclick=()=>{ S.muteMusic=!S.muteMusic; save(); drawMute('mMusic',S.muteMusic) };
-$('mBell').onclick =()=>{ S.muteBell =!S.muteBell;  save(); drawMute('mBell', S.muteBell) };
+/* ⚠️ ONLY WHEN NOTHING IS EMBEDDING US, AND `HOST` IS NOT THAT TEST. `HOST` is the job
+   protocol's peer and it is null unless `job=1`, so the dock's plain timer, which is an
+   iframe with no job, read as standalone and drew a SECOND back chevron under the app's own
+   (Andjroo, 2026-09-17: "I'm noticing that there's two back buttons"). Being in a frame at
+   all is the question, and `window.parent!==window` is the answer to it.
+   On the demo page there is no frame, the top-left is where the product has a control, and
+   the screen cannot be judged without one. It leaves the page it was opened from. */
+const EMBEDDED=window.parent!==window;
+if(!EMBEDDED){ $('back').hidden=false; $('back').onclick=()=>history.back() }
 
 /* ---------- the tray's egg is THE egg ----------
    Same source of truth as the shell the rig clips to, so the glyph cannot drift from
@@ -2003,7 +2382,14 @@ function toast(msg){
    — a disc with the X knocked out of it by fill-rule:evenodd, so it is ONE path and
    the cross can never sit off-centre in its circle. Do not redraw it. */
 const XICON='<svg width="30" height="30" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M3.528 3.52c4.683-4.684 12.275-4.686 16.96-.005 4.678 4.69 4.678 12.28 0 16.97-4.685 4.68-12.277 4.678-16.96-.005-4.682-4.684-4.682-12.276 0-16.96zm13.145 13.133a1 1 0 0 0 .036-1.374l-3.11-3.11a.25.25 0 0 1 0-.352l3.11-3.11a1 1 0 1 0-1.414-1.415l-3.11 3.11a.25.25 0 0 1-.354 0l-3.11-3.11a1 1 0 0 0-1.41 1.415l3.11 3.11a.249.249 0 0 1 0 .353l-3.11 3.109a1 1 0 0 0 0 1.415c.396.38 1.021.38 1.416 0l3.109-3.11a.252.252 0 0 1 .354 0l3.11 3.11a1 1 0 0 0 1.373-.041z" fill="currentColor"/></svg>';
-const TICK='<i class="tick"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.8 9.6 17.4 19 7.2"/></svg></i>';
+/* the hexagon is the plate's proportion, 1.12 wide to tall, and the check rides inside it
+   at 62% so it clears the two slanted walls. One 24 box, like every other glyph here. */
+const TICK='<i class="tick"><svg viewBox="0 0 24 24">'
+  +'<path d="M6.6 2.2H17.4L22.8 12 17.4 21.8H6.6L1.2 12Z" fill="var(--teal)"'
+  +' stroke="var(--paper)" stroke-width="3" stroke-linejoin="round" paint-order="stroke"/>'
+  +'<path d="M5 12.8 9.6 17.4 19 7.2" transform="translate(4.56,4.56) scale(0.62)"'
+  +' fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>'
+  +'</svg></i>';
 document.querySelectorAll('.sheet').forEach(s=>{
   const b=document.createElement('button');
   b.className='sclose'; b.setAttribute('aria-label','Close'); b.innerHTML=XICON;
@@ -2059,7 +2445,6 @@ const GLYPH={
   tidy:'<path d="M4.4 8.6h15.2l-1.1 11a2 2 0 0 1-2 1.8H7.5a2 2 0 0 1-2-1.8z"/><path d="M3 8.6h18M9.4 8.6V5.4a1.6 1.6 0 0 1 1.6-1.6h2a1.6 1.6 0 0 1 1.6 1.6v3.2"/>',
   teeth:'<path d="M7 3.4c2 0 2.4 1.2 5 1.2s3-1.2 5-1.2a3 3 0 0 1 3 3.3c0 3.4-1.3 4.2-2 8.2-.5 3-1.1 5.5-2.6 5.5s-1.7-3.6-3.4-3.6-1.9 3.6-3.4 3.6-2.1-2.5-2.6-5.5c-.7-4-2-4.8-2-8.2A3 3 0 0 1 7 3.4z"/>',
   eat:'<path d="M6.4 3v7.4a2.4 2.4 0 0 0 4.8 0V3M8.8 10.4V21"/><path d="M17.2 21v-7.6a4 4 0 0 1-1.4-3.2V6.6a3.6 3.6 0 0 1 2.8-3.5V21z"/>',
-  screenoff:'<rect x="2.6" y="4" width="18.8" height="13" rx="2.6"/><path d="M8 21h8M12 17v4"/><path d="M12 7.6v3.2M9.6 8.4a3.4 3.4 0 1 0 4.8 0"/>',
 };
 /* The drawn art wins wherever it exists, and the monoline glyph stands in where it
    does not — so the sheet is never a grid of broken images while a batch is still
@@ -2072,7 +2457,7 @@ function buildRemGrid(){
       <button class="pick ${S.reminder===k?'on':''}" data-rem="${k}">
       ${k==='off' ? '<span class="off">Off</span>'
         : ART.has(k) ? `<img src="icons/${k}.png?v=${VER}" alt="${label}" loading="lazy">`
-        : `<svg width="60%" height="60%" viewBox="0 0 24 24" fill="none" stroke="#2C3149"
+        : `<svg width="60%" height="60%" viewBox="0 0 24 24" fill="none" stroke="var(--line)"
              stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">${GLYPH[k]||''}</svg>`}
     </button>${TICK}<div class="plabel">${label}</div></div>`).join('');
 }
@@ -2083,18 +2468,27 @@ $('remGrid').onclick=e=>{ const b=e.target.closest('[data-rem]'); if(!b)return;
   S.reminder=b.dataset.rem; save();
   markSel($('remGrid'),'.pick',b);
   paintPlus();
-  preview(SAY_SRC[S.reminder],false);   // hear who says it, and unlock it while a tap is live
+  /* Hear who says it, and unlock it while a tap is live: on iOS this gesture is the only
+     thing that unlocks the clip. Off has no line, so that tap unlocks the session instead. */
+  if(SAY_SRC[S.reminder])preview(SAY_SRC[S.reminder],false); else unlockSession();
 };
 // the drawn icons carry their own generous margin, so they can run to the rim
 $('remGrid').classList.add('artgrid');
 
 /* the bubble shows WHAT was chosen, not THAT something was */
 function paintPlus(){
-  const on=S.reminder!=='off' && ART.has(S.reminder);
+  /* THREE states, not two: the drawn art if it exists, the monoline glyph if it does not,
+     and the bare + when nothing is chosen. `set` is now "something is chosen", which is
+     what the white face and the label mean; whether we have a PNG for it is a different
+     question and it changes only which of the two drawings goes inside. */
+  const on=S.reminder!=='off';
+  const art=on && ART.has(S.reminder);
   $('plus').classList.toggle('set',on);
   $('plusGlyph').style.display=on?'none':'';
-  $('plusIcon').style.display=on?'':'none';
-  if(on)$('plusIcon').setAttribute('href','icons/'+S.reminder+'.png?v='+VER);
+  $('plusIcon').style.display=art?'':'none';
+  $('plusDraw').style.display=(on&&!art)?'':'none';
+  if(art)$('plusIcon').setAttribute('href','icons/'+S.reminder+'.png?v='+VER);
+  if(on&&!art)$('plusDrawArt').innerHTML=GLYPH[S.reminder]||'';
 }
 paintPlus();
 
@@ -2116,7 +2510,7 @@ try{ PHOTOS=JSON.parse(localStorage.getItem(PLS)||'[]') }catch(e){ PHOTOS=[] }
 const savePhotos=()=>{ try{ localStorage.setItem(PLS,JSON.stringify(PHOTOS)); return true }
                        catch(e){ console.warn('photo not saved: storage full'); return false } };
 
-const CAMICON=`<svg width="46%" height="46%" viewBox="0 0 24 24" fill="none" stroke="#8C93A3"
+const CAMICON=`<svg width="46%" height="46%" viewBox="0 0 24 24" fill="none" stroke="var(--muted)"
    stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round">
    <path d="M3 8.4h3.1l1.5-2.4h8.8l1.5 2.4H21a1.4 1.4 0 0 1 1.4 1.4v8.4A1.4 1.4 0 0 1 21 20H3a1.4 1.4 0 0 1-1.4-1.4V9.8A1.4 1.4 0 0 1 3 8.4z"/>
    <circle cx="12" cy="13.8" r="3.7"/></svg>`;
@@ -2265,7 +2659,11 @@ function buildLane(id,list,key){
        a chosen one can legally be played. It replaces a "Coming soon" toast: the lists
        were named and silent for two sessions and the honest thing then was to say so.
        They are not silent now, and hearing it is the answer a toast was standing in for. */
-    preview(key==='during'?BED_SRC[S.during]:END_SRC[S.end], key==='during');
+    /* ⚠️ MID-RUN, A BED PICK IS THE BED. The capsule is on the run screen too now, and a
+       preview beside a bed that keeps looping is two beds at once; the new choice takes
+       over (or, for No music, stops it). The end sound still previews: it has not played. */
+    if(key==='during'&&screen==='run')bedStart();
+    else preview(key==='during'?BED_SRC[S.during]:END_SRC[S.end], key==='during');
   };
 }
 buildLane('laneDuring',DURING,'during'); buildLane('laneEnd',ENDING,'end');

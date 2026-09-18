@@ -23,8 +23,9 @@ async function loadThemes() {
 }
 import { esc } from "./fmt.js";
 import { jobPickerHtml, wireJobPicker } from "/js/lib/job-picker.js";
+import { ring, giftIcon, NODE_CLASS } from "./duo-bits.js";
 import {
-  face, finish, jobGroups, nimLabel, rewardField, rewardLunaValue, wireReward,
+  face, faceUrl, finish, jobGroups, nimLabel, rewardField, rewardLunaValue, wireReward,
 } from "./views-board.js";
 
 /** What a rung looks like on the parent's side: its price, and where the kid has got to.
@@ -36,16 +37,66 @@ const RUNG_STATE = {
   open: "papp.boardRungOpen",
 };
 
-function rungRow(goal, r) {
-  return `<div class="bx-row-p ${r.state === "climbed" ? "is-off" : ""}">
-    ${face(r, "🪜")}
-    <div class="bx-row-main">
-      <div class="bx-row-title">${esc(rowTitle(r))}</div>
-      <div class="bx-row-sub">${r.rewardLuna > 0 ? nimLabel(r.rewardLuna) : t("papp.boardPaysNothing")}
-        &middot; ${t(RUNG_STATE[r.state])}</div>
+/* THE LADDER IS THE KID'S CLIMB, here too (2026-09-18). The parent used to read the ladder as
+   a list of rows while the kid climbed a duo-path; the same object drawn two ways is two
+   things to learn. So this is the kid's path (goal-path.js): climbed, the prize under the
+   banner, rung one at the bottom, the rung title in the active bubble, the gift on the prize.
+   What the parent needs that the kid does not is under every node as a caption: the title,
+   the price and the state, because a parent manages rungs by name and a number alone would
+   send them tapping to find out. Every node is tappable and opens the rung sheet, the one
+   action a row had (Edit). The rung sheet is unchanged. */
+function rungNode(goal, r, n, progress) {
+  const cls = NODE_CLASS[r.state] ?? "is-locked";
+  const active = r.state === "open";
+  const pay = r.rewardLuna > 0 ? nimLabel(r.rewardLuna) : t("papp.boardPaysNothing");
+  return `<li class="duo-path-step">
+    <div class="pg-step">
+      <div class="duo-node ${cls}${r.active ? "" : " is-locked"}"${active ? ` style="--duo-progress: ${progress}"` : ""}>
+        ${active || r.state === "waiting" ? ring() : ""}
+        ${active ? `<span class="duo-node-bubble">${esc(rowTitle(r))}</span>` : ""}
+        <button class="duo-node-face" type="button" data-rung="${esc(r.id)}" data-ingoal="${esc(goal.id)}"
+          aria-label="${esc(rowTitle(r))}, ${esc(t("papp.boxEdit"))}">${n}</button>
+      </div>
+      <span class="pg-cap">
+        <b>${esc(rowTitle(r))}</b>
+        <span>${pay} &middot; ${r.active ? t(RUNG_STATE[r.state]) : t("papp.boardRetired")}</span>
+      </span>
     </div>
-    <button class="pill-btn ghost sm" data-rung="${esc(r.id)}" data-ingoal="${esc(goal.id)}">${t("papp.boxEdit")}</button>
-  </div>`;
+  </li>`;
+}
+
+/** The prize, last in DOM so column-reverse puts it under the banner: the kid path's own rule
+ *  (goal-path.js prizeNode), the pack's egg while the set is unfinished and the boss once it is
+ *  owned, grey until then and the yolk after; the gift only when the theme has no art. Only a
+ *  ladder that collects a theme has one. */
+function prizeNode(g) {
+  const boss = g.theme?.boss;
+  if (!boss) return "";
+  const art = boss.owned ? boss.assetUrl : g.theme?.eggUrl;
+  return `<li class="duo-path-step">
+    <div class="pg-step">
+      <div class="duo-node is-prize${boss.owned ? "" : " is-locked"}">
+        <span class="duo-node-face" aria-label="${esc(boss.label)}">${art ? `<img src="${esc(art)}" alt="" draggable="false" />` : giftIcon()}</span>
+      </div>
+    </div>
+  </li>`;
+}
+
+function climb(g) {
+  const rungs = g.rungs ?? [];
+  const progress = g.total ? Math.round((g.climbed / g.total) * 100) / 100 : 0;
+  return `<section class="duo-path pg-path">
+    <header class="duo-path-head">
+      <div class="duo-path-head-text">
+        <p class="duo-path-kicker">${esc(t("papp.boardClimbed", { done: g.climbed, total: g.total }))}</p>
+        <h2 class="duo-path-title">${esc(rowTitle(g))}</h2>
+      </div>
+    </header>
+    <ol class="duo-path-steps">
+      ${rungs.map((r, i) => rungNode(g, r, i + 1, progress)).join("")}
+      ${prizeNode(g)}
+    </ol>
+  </section>`;
 }
 
 /* THE COLLECTION, not this ladder's progress. The same five dragons are collected across
@@ -70,11 +121,17 @@ function themeRow(g) {
 
 function goalCard(g) {
   const rungs = g.rungs.length
-    ? g.rungs.map((r) => rungRow(g, r)).join("")
+    ? climb(g)
     : `<div class="set-hint bx-empty">${t("papp.boardNoRungs")}</div>`;
+  // The card's picture is never the OS's emoji (2026-09-18, the same rule as the kid board,
+  // #546): a ladder with a theme wears the pack's egg, else the drawn icon for its emoji,
+  // else the ladder icon. The seeded "Ride the bike" carries a bicycle nobody has drawn.
+  const picture = g.theme?.eggUrl
+    ? `<img class="bd-face" src="${esc(g.theme.eggUrl)}" alt="" draggable="false" />`
+    : face(faceUrl(g.emoji) ? g : { emoji: "🪜" }, "🪜");
   return `<div class="card set-card ${g.active ? "" : "is-off"}">
     <div class="bx-shelf-hd-p">
-      ${face(g, "🪜")}
+      ${picture}
       <h3>${esc(rowTitle(g))}</h3>
       <div class="bx-shelf-tools">
         <button class="pill-btn ghost sm" data-goal="${esc(g.id)}">${t("papp.boxEdit")}</button>

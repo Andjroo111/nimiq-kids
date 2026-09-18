@@ -44,6 +44,19 @@ merged into a smudge on a phone. All three lockups now carry the same solid `han
 favicon uses, transplanted verbatim rather than redrawn. The high five remains correct at
 large sizes; if a big lockup is ever needed, take it back from git history.
 
+**Since 2026-09-18 the hand is the lineless one and the hexagon is flat.** Andjroo rolled the
+mark in Midjourney under the lineless lock (brand-voice-research `lineless/packs/appicon-0918`,
+job `7c4209ef` tile 1) and picked the navy hand; the hexagon came back corner-up on all
+sixteen tiles however it was worded, so the hexagon stays the verbatim Nimiq path (corners
+left and right, flat edge down) and only the hand is the roll, traced with potrace and set
+at the roll's own ratio (0.553 of the hexagon's width, centred). The gold radial is gone:
+the hexagon is a `#EC991C` rim with an `#E9B213` face inset 12% (DESIGN-SYSTEM.md, flat
+fills only). The favicon keeps a single flat face because a 16px tab cannot show a rim, and
+the lockups keep `currentColor` on the hand so the mono variant still inherits. The maskable
+tile (`nimiq-kids-icon-512.svg`, shipped as `/icon.svg`) is now the mark on paper `#F4F4E8`
+inside the 80% safe zone; before this it was the bare 20x18 hexagon and every launcher
+clipped its corners.
+
 **The suffix is Mulish 700 on every surface, and that is a FLEET rule, not a kids one.**
 Every `NIMIQ.x` mark sets the run after the dot at 700 — `.cool` and `.ninja` measure 700,
 and so do the dark and mono lockups here. The light file used to set `kids` at 400, which

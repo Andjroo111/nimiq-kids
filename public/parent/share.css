@@ -46,11 +46,11 @@
    which is the whole point. */
 .sh-held {
   right: 0; border-radius: 3px 500px 500px 3px;
-  background: repeating-linear-gradient(-58deg, #0582CA 0 2px, #fff 2px 10px);
-  border: 2px solid #0582CA; box-sizing: border-box;
+  background: repeating-linear-gradient(-58deg, var(--paint-blurple) 0 2px, #fff 2px 10px);
+  border: 2px solid var(--paint-blurple); box-sizing: border-box;
 }
 /* The light-blue hairline the handle rides on. Runs past the bar, as upstream does. */
-.sh-sep { position: absolute; top: 2px; bottom: 2px; width: 2px; margin-left: -1px; background: #0582CA; border-radius: 2px; pointer-events: none; }
+.sh-sep { position: absolute; top: 2px; bottom: 2px; width: 2px; margin-left: -1px; background: var(--paint-blurple); border-radius: 2px; pointer-events: none; }
 
 /* A REAL range input on top, transparent, so keyboard and screen readers get the native
    control and everything painted above is only ever a picture of its value. */
@@ -73,17 +73,17 @@
 .sh-input::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none; width: 28px; height: 28px; margin-top: 8px;
   border: 0; border-radius: 500px; background: #fff var(--sh-handle) center/12px 8px no-repeat;
-  box-shadow: 0 2px 6px rgba(31, 35, 72, 0.3);
+  box-shadow: 0 2px 6px rgba(28, 27, 19, 0.3);
 }
 .sh-input::-moz-range-thumb {
   width: 28px; height: 28px; border: 0; border-radius: 500px;
   background: #fff var(--sh-handle) center/12px 8px no-repeat;
-  box-shadow: 0 2px 6px rgba(31, 35, 72, 0.3);
+  box-shadow: 0 2px 6px rgba(28, 27, 19, 0.3);
 }
 .sh-input:focus { outline: 0; }
 /* Rule 21 / the a11y gap: never outline:0 without restoring a visible focus state. */
-.sh-input:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px rgba(5, 130, 202, 0.35), 0 2px 6px rgba(31, 35, 72, 0.3); }
-.sh-input:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px rgba(5, 130, 202, 0.35), 0 2px 6px rgba(31, 35, 72, 0.3); }
+.sh-input:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px rgba(84, 101, 238, 0.35), 0 2px 6px rgba(28, 27, 19, 0.3); }
+.sh-input:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px rgba(84, 101, 238, 0.35), 0 2px 6px rgba(28, 27, 19, 0.3); }
 
 /* THE QUARTER GUIDES. Under the bar, not on it: on the bar a tick would have to read against
    solid navy on one side and white hatching on the other. Each sits at its own fraction of
@@ -92,7 +92,7 @@
 .sh-ticks { position: relative; height: 24px; margin-top: 7px; }
 .sh-tick { position: absolute; top: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; }
 .sh-tick i { width: 2px; height: 7px; background: var(--navy); opacity: 0.25; border-radius: 2px; }
-.sh-tick b { font-size: 12px; font-weight: 700; color: #64687F; margin-top: 3px; font-variant-numeric: tabular-nums; }
+.sh-tick b { font-size: 12px; font-weight: 700; color: rgba(28, 27, 19, 0.64); margin-top: 3px; font-variant-numeric: tabular-nums; }
 /* The one the slider is sitting on. Not a colour change: at 12px a colour shift on a 2px
    tick is invisible, and the label is the part a parent reads. */
 .sh-tick.on i { opacity: 0.9; }

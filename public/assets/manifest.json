@@ -166,5 +166,16 @@
   ],
   "music": [],
   "timerSounds": [],
-  "alarms": []
+  "alarms": [
+    {
+      "id": "nim-landed",
+      "title": "Coins",
+      "url": "/assets/sounds/nim-landed.mp3"
+    },
+    {
+      "id": "nim-landed-quick",
+      "title": "Coins, quick",
+      "url": "/assets/sounds/nim-landed-quick.mp3"
+    }
+  ]
 }

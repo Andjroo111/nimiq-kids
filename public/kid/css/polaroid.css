@@ -7,21 +7,21 @@
 .pola-rig {
   /* -- palette (kawaii: bold dark outline, cream camera, teal stripe) -- */
   --pola-cam: #FFF6E8;
-  --pola-stripe: #21BCA5;
-  --pola-outline: #2E2E48;
+  --pola-stripe: var(--paint-grass);
+  --pola-outline: var(--paint-line);
   --pola-outline-w: 5px;
-  --pola-lens: #2E2E48;
+  --pola-lens: var(--paint-line);
   --pola-lens-in: #5C6284;
   --pola-flash: #FFD66E;
   --pola-button: #FF7D89;
   --pola-cheek: #FFB3C7;
-  --pola-face: #2E2E48;
+  --pola-face: var(--paint-line);
   --pola-paper: #FFFFFF;
-  --pola-paper-edge: rgba(31, 35, 72, 0.18);
+  --pola-paper-edge: rgba(28, 27, 19, 0.18);
   --pola-wash: #F6F3EC;
   --pola-chem-a: rgba(160, 190, 255, 0.55);
   --pola-chem-b: rgba(255, 214, 110, 0.5);
-  --pola-shadow: rgba(31, 35, 72, 0.16);
+  --pola-shadow: rgba(28, 27, 19, 0.16);
 
   /* -- geometry -- */
   --pola-frame-w: 62%;

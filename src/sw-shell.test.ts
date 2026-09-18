@@ -111,3 +111,19 @@ test("art is precached into the UNSTAMPED cache, and activate never purges it", 
   expect(sw).toMatch(/k !== CACHE && k !== ART/);
   expect(sw).toMatch(/isArt = \(p\) =>[\s\S]*?\/assets\//);
 });
+
+test("a stamped asset that misses its exact cache entry goes to the network, not to an older stamp", () => {
+  // Andjroo, 2026-09-18, on a build that had just recoloured the countdown: "I'm still
+  // seeing the old teal colour inside of the hexagon." The cache-first path looked up the
+  // request with `ignoreSearch` as a fallback and served the previous stamp's copy while
+  // fetching the new one for next time: every deploy showed the last deploy's art on the
+  // first load. The loose match is for the OFFLINE fallback only.
+  const handler = sw.slice(sw.indexOf("Other static assets"));
+  // the exact match is what may be served straight from cache
+  expect(handler).toMatch(/const exact = await caches\.match\(req\);/);
+  // the loose match appears only inside the network's catch, never before the fetch
+  const loose = handler.indexOf("ignoreSearch: true");
+  const fetchAt = handler.indexOf("fetch(req)");
+  expect(loose).toBeGreaterThan(fetchAt);
+  expect(handler.slice(0, fetchAt)).not.toContain("cacheLookup(req)");
+});

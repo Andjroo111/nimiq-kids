@@ -1,0 +1,42 @@
+/* nimiq.kids kid app — THE PAINT SET ON THE REGISTRY COMPONENTS (2026-09-18, after the parent
+   app, PR #519). kid.css maps the app's own chrome tokens by role; this sheet reaches the
+   vendored Nimiq components the kid screens still stand on (nq-card, nq-button, the pairing
+   password-box, status-alert, account-list) by remapping the legacy --nimiq-* tokens they read
+   on :root, which beats the legacy sheet's `html` declaration, and by flattening the radials
+   they carry, which the paint set does not have (DESIGN-SYSTEM.md: flat fills only).
+
+   What stays: the Nimiq hex logo keeps its gold (icons.js writes the hex, not the token),
+   the identicons and every character keep their own colours, the built-in scene gradients
+   are art. Linked AFTER kid.css. */
+
+:root {
+  --nimiq-blue: var(--paint-line);
+  --nimiq-light-blue: var(--paint-blurple);
+  --nimiq-green: var(--paint-grass);
+  --nimiq-gold: var(--paint-yolk);
+  --nimiq-orange: var(--paint-coral);
+  --nimiq-red: var(--paint-coral);
+  --nimiq-purple: var(--paint-line);
+  --nimiq-blue-bg: none;
+  --nimiq-light-blue-bg: none;
+  --nimiq-gold-bg: none;
+  --nimiq-green-bg: none;
+  --nimiq-orange-bg: none;
+  --nimiq-red-bg: none;
+  --nimiq-purple-bg: none;
+  /* the pressed face of a button: the paint with 20% black, the duo edge rule, no radial */
+  --nimiq-blue-darkened: color-mix(in srgb, var(--paint-line) 80%, #000);
+  --nimiq-light-blue-darkened: color-mix(in srgb, var(--paint-blurple) 80%, #000);
+  --nimiq-green-darkened: color-mix(in srgb, var(--paint-grass) 80%, #000);
+  --nimiq-gold-darkened: color-mix(in srgb, var(--paint-yolk) 80%, #000);
+  --nimiq-orange-darkened: color-mix(in srgb, var(--paint-coral) 80%, #000);
+  --nimiq-red-darkened: color-mix(in srgb, var(--paint-coral) 80%, #000);
+  --nimiq-blue-bg-darkened: none;
+  --nimiq-light-blue-bg-darkened: none;
+  --nimiq-green-bg-darkened: none;
+  --nimiq-gold-bg-darkened: none;
+  --nimiq-orange-bg-darkened: none;
+  --nimiq-red-bg-darkened: none;
+}
+/* The yolk carries the line as its label, never white (kid.css .is-prize says the same). */
+.nq-button.gold { color: var(--paint-line); }

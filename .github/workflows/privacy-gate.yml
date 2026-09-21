@@ -60,7 +60,9 @@ jobs:
           for c in $commits; do
             for e in $(git show -s --format='%ae%n%ce' "$c"); do
               case "$e" in
-                *@users.noreply.github.com|noreply@nimiq.kids) ;;
+                # noreply@github.com is GitHub's own committer on a web/API squash merge,
+                # not a person; without it every merged PR fails the gate on main.
+                *@users.noreply.github.com|noreply@nimiq.kids|noreply@github.com) ;;
                 *)
                   if [ "$STRICT" = "true" ]; then
                     echo "::error::$(git rev-parse --short "$c") commits as $e; the public repo takes noreply identities only"

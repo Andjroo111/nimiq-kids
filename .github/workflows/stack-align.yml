@@ -1,9 +1,11 @@
 name: stack-align
 
-# Weekly fleet stack-alignment audit — the sibling of branding-audit.yml. Runs
+# Weekly fleet stack-alignment audit, the sibling of branding-audit.yml. Runs
 # `nq align --all` across the repo, PRs safe manifest fixes (nq align --fix), and
 # files/updates a rolling stack-drift issue on any risky-fail (the broken light-client
 # path, off-brand styling). Reuses the same verdict-driven shape as audit.yml.
+#
+# The CLI is pinned to a tag so a HEAD change cannot break the whole fleet at once.
 on:
   schedule:
     - cron: '30 9 * * 1' # Mondays 09:30 UTC (after branding-audit at 09:00)
@@ -18,6 +20,9 @@ concurrency:
   group: stack-align
   cancel-in-progress: false
 
+env:
+  NQ_CLI: git+ssh://git@github.com/Andjroo111/nimiq-branding-cli.git#v1.5.0
+
 jobs:
   align:
     runs-on: ubuntu-latest
@@ -30,21 +35,38 @@ jobs:
         with:
           node-version: 20
 
+      # nimiq-branding-cli is PRIVATE. Same read-only deploy key nimiq.kids ci.yml has used
+      # since 2026-08-24 (secret NQ_CLI_DEPLOY_KEY, set on every fleet repo): it grants read
+      # on exactly that one repo and nothing else in the account.
+      - name: Authorise the private nimiq-branding-cli clone
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.NQ_CLI_DEPLOY_KEY }}
+
       - name: Run nq align
         id: align
         run: |
-          npx -y github:Andjroo111/nimiq-branding-cli align --all . --json > align.json || true
+          # `nq align` exits 1 on a risky-fail BY DESIGN and still writes the full JSON
+          # verdict, so its exit code is not the failure signal. The failure signal is an
+          # empty or unparseable align.json (clone/auth/CLI crash): fail HERE with the real
+          # error, not downstream as "Unexpected end of JSON input".
+          set +e
+          npx -y "$NQ_CLI" align --all . --json > align.json
+          rc=$?
+          set -e
+          node -e "const r=require('./align.json').results; if(!Array.isArray(r)) process.exit(1)" \
+            || { echo "::error::nq align exited $rc and wrote no parseable verdict"; exit 1; }
           node -e "const r=require('./align.json').results.filter(x=>!x.exempt); const bad=r.filter(x=>x.overall==='risky-fail'); const drift=r.filter(x=>x.overall==='safe-drift'); console.log('risky='+bad.length); console.log('drift='+drift.length); process.stdout.write('');"
           risky=$(node -e "console.log(require('./align.json').results.filter(x=>!x.exempt&&x.overall==='risky-fail').length)")
           drift=$(node -e "console.log(require('./align.json').results.filter(x=>!x.exempt&&x.overall==='safe-drift').length)")
           echo "risky=$risky" >> "$GITHUB_OUTPUT"
           echo "drift=$drift" >> "$GITHUB_OUTPUT"
 
-      # ---- SAFE: only manifest drift → autofix the manifests + open a PR ----
+      # ---- SAFE: only manifest drift -> autofix the manifests + open a PR ----
       - name: PR safe manifest fixes
         if: steps.align.outputs.risky == '0' && steps.align.outputs.drift != '0'
         run: |
-          npx -y github:Andjroo111/nimiq-branding-cli align --all . --fix || true
+          npx -y "$NQ_CLI" align --all . --fix || true
           git config user.name  "nq-align-bot"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           branch="align/auto-manifest-fix"
@@ -56,20 +78,20 @@ jobs:
           if [ "$(gh pr list --head "$branch" --state open --json number --jq 'length')" = "0" ]; then
             gh pr create --head "$branch" --base main \
               --title "align: safe manifest fixes" \
-              --body "Automated \`nq align --fix\` — manifest-only, no source changes."
+              --body "Automated \`nq align --fix\`, manifest-only, no source changes."
           fi
 
-      # ---- RISKY: a load-bearing axis failed (light client / off-brand) → rolling issue ----
+      # ---- RISKY: a load-bearing axis failed (light client / off-brand) -> rolling issue ----
       - name: Open/update stack-drift issue
         if: steps.align.outputs.risky != '0'
         run: |
           gh label create stack-drift --color B91C1C \
             --description "an app drifted off the canonical Nimiq fleet stack" 2>/dev/null || true
-          body="$(npx -y github:Andjroo111/nimiq-branding-cli align --all . 2>&1 || true)"
+          body="$(npx -y "$NQ_CLI" align --all . 2>&1 || true)"
           existing=$(gh issue list --state open --label stack-drift --json number --jq '.[0].number')
           if [ -n "$existing" ]; then
             printf '%s\n' "$body" | gh issue comment "$existing" --body-file -
           else
-            printf '%s\n' "$body" | gh issue create --title "⚙️ Nimiq stack drift needs review" \
+            printf '%s\n' "$body" | gh issue create --title "Nimiq stack drift needs review" \
               --label stack-drift --body-file -
           fi

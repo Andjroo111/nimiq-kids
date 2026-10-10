@@ -10,7 +10,7 @@ name: privacy gate
 # extended-regex alternation, seeded from ~/.git-privacy/blocklist.txt plus the
 # host/tunnel sweep the publish script adds. Set or rotate it with:
 #   gh secret set PRIVACY_PATTERNS --repo Andjroo111/nimiq-kids  < patterns.txt
-#   gh secret set PRIVACY_PATTERNS --repo Andjroo111/nimiq-kids  < patterns.txt
+#   gh secret set PRIVACY_PATTERNS --repo Andjroo111/nimiq.kids  < patterns.txt
 #
 # A hit is reported as path:line ONLY. The matched text is never printed: these
 # Actions logs are public on the public repo, so echoing a hit would publish the
@@ -41,7 +41,9 @@ jobs:
       - name: New commits must carry a noreply identity
         env:
           BEFORE: ${{ github.event.before }}
-          AFTER: ${{ github.sha }}
+          # On a PR, github.sha is GitHub's synthetic merge commit (committer
+          # noreply@github.com); scan the branch head instead.
+          AFTER: ${{ github.event.pull_request.head.sha || github.sha }}
           BASE: ${{ github.event.pull_request.base.sha }}
           STRICT: ${{ github.event.repository.private == false }}
         run: |
@@ -58,20 +60,31 @@ jobs:
 
           bad=0
           for c in $commits; do
-            for e in $(git show -s --format='%ae%n%ce' "$c"); do
-              case "$e" in
-                # noreply@github.com is GitHub's own committer on a web/API squash merge,
-                # not a person; without it every merged PR fails the gate on main.
-                *@users.noreply.github.com|noreply@nimiq.kids|noreply@github.com) ;;
+            # Author, committer, AND every Co-authored-by / Signed-off-by trailer:
+            # a GitHub squash-merge writes each squashed author into a trailer, and
+            # on 2026-10-05 that put a personal address on main past an author-only check.
+            pairs=$( { git show -s --format='author %ae%ncommitter %ce' "$c"
+                       git show -s --format='%B' "$c" \
+                         | grep -iE '^[[:space:]]*(co-authored-by|signed-off-by):' \
+                         | sed -n 's/.*<\([^>]*\)>.*/trailer \1/p'; } )
+            while read -r field e; do
+              [ -n "${e:-}" ] || continue
+              case "$(printf '%s' "$e" | tr 'A-Z' 'a-z')" in
+                # noreply@github.com is GitHub itself: the committer on web squash-merges.
+                # noreply@*/no-reply@* covers bot and Claude attribution trailers.
+                *@users.noreply.github.com|noreply@*|no-reply@*) ;;
                 *)
+                  # The address itself is never printed: these logs are public.
                   if [ "$STRICT" = "true" ]; then
-                    echo "::error::$(git rev-parse --short "$c") commits as $e; the public repo takes noreply identities only"
+                    echo "::error::$(git rev-parse --short "$c") has a non-noreply $field address; the public repo takes noreply identities only"
                   else
-                    echo "::warning::$(git rev-parse --short "$c") commits as $e; this would be blocked on the public repo"
+                    echo "::warning::$(git rev-parse --short "$c") has a non-noreply $field address; this would be blocked on the public repo"
                   fi
                   bad=1 ;;
               esac
-            done
+            done <<EOF_PAIRS
+          $pairs
+          EOF_PAIRS
           done
           if [ "$bad" = 1 ] && [ "$STRICT" = "true" ]; then
             echo "Fix: git config --global user.email Andjroo111@users.noreply.github.com, then rewrite the offending commits."

@@ -30,7 +30,12 @@ g.fetch = (input: unknown) => {
 };
 
 const { state } = await import("../public/kid/js/util.js");
-const { refreshHealth, refreshFamily, refreshRoster } = await import("../public/kid/js/data.js");
+type Probe = { status: number; children?: unknown };
+const { refreshHealth, refreshFamily, refreshRoster } = (await import("../public/kid/js/data.js")) as unknown as {
+  refreshHealth: () => Promise<void>;
+  refreshFamily: () => Promise<void>;
+  refreshRoster: () => Promise<Probe>;
+};
 
 async function boot() {
   await refreshHealth();
@@ -41,7 +46,7 @@ async function boot() {
 beforeEach(() => {
   store = {};
   calls = [];
-  delete (state as Record<string, unknown>).instanceNeedsPairing;
+  delete (state as unknown as Record<string, unknown>).instanceNeedsPairing;
 });
 
 test("unpaired tablet on an auth instance: pairing, and no 401 reads at all", async () => {

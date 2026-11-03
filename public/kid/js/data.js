@@ -2,7 +2,7 @@
 // home-screen truth (ONE call: rows + cells + placements + today's tasks + the
 // sticker inventory); the wallet payload backs the balance chip + money screen.
 
-import { api } from "./api.js";
+import { api, deviceToken } from "./api.js";
 import { state } from "./util.js";
 import { saveSnapshot, readSnapshot, snapshotAt } from "./snapshot.js";
 import { applyQueuedTaps } from "./outbox.js";
@@ -171,10 +171,19 @@ export async function refreshHealth() {
   state.demo = !!h.demo;
   // Never in SIM: those tx hashes are invented, so a receipt link would 404 on the explorer.
   state.explorerTx = h.sim ? "" : (h.explorerTx || "");
+  state.instanceNeedsPairing = !!h.custody?.kidAuthRequired;
 }
+
+/** True when the server is certain to answer the boot reads with 401 pairing_required: this
+ *  instance demands auth (/health `custody.kidAuthRequired`, the same approvalPolicy() flag
+ *  that makes requestFamily() return null) and this browser holds no device token. Asking
+ *  anyway only printed two red "Failed to load resource: 401" lines on every first visit
+ *  to /kid from an unpaired browser, so the boot skips straight to pairing. */
+export const pairingCertain = () => state.instanceNeedsPairing === true && !deviceToken();
 
 /** GET /api/family -> the household, whose labels the board uses ("Waiting for Mom"). */
 export async function refreshFamily() {
+  if (pairingCertain()) return;
   const { data } = await pull("family", () => api.family());
   if (data) state.family = data.family ?? state.family;
 }
@@ -199,6 +208,7 @@ export async function refreshCatalog() {
  * with nobody on it.
  */
 export async function refreshRoster() {
+  if (pairingCertain()) return { status: 401, children: [] };
   let probe = null;
   try {
     probe = await api.bootChildren();
